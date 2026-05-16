@@ -169,3 +169,7 @@ bundle exec rake
 ## Project Status
 
 Undercover Agents is under active development. The core product is usable today, but some extension points and internal APIs may continue to evolve as the open-source release matures.
+
+---
+
+Project by Mirko Mignini. Open sourced under the Apache 2.0 License. See [LICENSE.md](LICENSE.md).
