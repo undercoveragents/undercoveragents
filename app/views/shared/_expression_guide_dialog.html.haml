@@ -1,0 +1,17 @@
+/ ── Expression Guide Dialog ──
+/ Rendered once in the designer layout; opened by expression-guide Stimulus controller.
+%dialog.ms-expr-guide-dialog{ data: { "expression-guide-target": "dialog", action: "click->expression-guide#backdropClick" } }
+  .ms-expr-guide-content
+    .ms-expr-guide-header
+      %h3.ms-expr-guide-title
+        %i.fa-solid.fa-function
+        Expression Guide
+      %button.ms-expr-guide-close{ type: "button", data: { action: "click->expression-guide#close" } }
+        %i.fa-solid.fa-xmark
+    .ms-expr-guide-body
+      = render "shared/expression_guide/variables"
+      -# haml-lint:disable ConsecutiveRenderCalls
+      = render "shared/expression_guide/operators"
+      = render "shared/expression_guide/functions_core"
+      = render "shared/expression_guide/functions_extra"
+      = render "shared/expression_guide/patterns"

@@ -1,0 +1,8 @@
+- thinking_text = local_assigns.fetch(:thinking_text)
+- open = local_assigns.fetch(:open, false)
+- streaming = local_assigns.fetch(:streaming, false)
+- row_locals = chat_tool_call_row_locals(label: "Thinking", icon_class: "fa-solid fa-brain", section: true, collapsible: true)
+%details.shared-chat__thinking{ class: ("streaming" if streaming), open: open ? true : nil }
+  %summary.shared-chat__tree-summary.shared-chat__tree-summary--thinking
+    = render partial: "shared/chat/tool_call_row", locals: row_locals
+  .shared-chat__tree-children.shared-chat__thinking-body= thinking_text

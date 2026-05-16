@@ -1,0 +1,8 @@
+- content_for(:title, "Edit #{@connector.name} — #{APP_NAME}")
+- form_id = "connector-form"
+- back_link = { label: "Back to #{@connector.name}", url: admin_connector_path(@connector) }
+= render_page_hero(title: "Edit Connector", variant: :compact, title_icon: connector_type_icon(@connector), record_title: @connector.name, back_link:, meta: [tag.span(connector_type_label(@connector), class: "badge badge-neutral")], actions: [page_hero_form_action(label: "Update Connector", form_id:)])
+
+.card
+  .card-body
+    = render_connector_form(@connector, form_id:)

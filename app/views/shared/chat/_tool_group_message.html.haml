@@ -1,0 +1,5 @@
+- tool_group_locals = { group_title:, items:, status: }
+%article.shared-chat__message.shared-chat__message--assistant.shared-chat__message--stable.shared-chat__message--tool-group
+  .shared-chat__assistant-panel
+    .shared-chat__tool-calls
+      = render partial: "shared/chat/tool_call_group", locals: tool_group_locals

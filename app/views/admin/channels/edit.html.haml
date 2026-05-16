@@ -1,0 +1,5 @@
+- content_for(:title, "Edit #{@channel.name} - #{APP_NAME}")
+- actions = [page_hero_form_action(label: "Save Channel", form_id: "channel-form", icon: "fa-solid fa-check")]
+= render_page_hero(title: "Edit Channel", variant: :compact, title_icon: @channel.type_icon, record_title: @channel.name, back_link: { label: "Back to Channel", url: admin_channel_path(@channel) }, actions:)
+
+= render "form", channel: @channel, connectors: @connectors, available_agents: @available_agents, available_missions: @available_missions, selected_target_kind: @selected_target_kind, selected_agent_id: @selected_agent_id, selected_mission_id: @selected_mission_id, selected_agent_ids: @selected_agent_ids, selected_mission_ids: @selected_mission_ids

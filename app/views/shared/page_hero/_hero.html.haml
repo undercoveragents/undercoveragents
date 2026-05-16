@@ -1,0 +1,26 @@
+
+- root_classes = h(hero.root_classes)
+- title_icon_class = hero.header_icon.present? ? h(hero.header_icon) : nil
+
+.card{ class: root_classes }
+  .card-body
+    .page-hero__toolbar
+      .page-hero__lead
+        - if hero.header_title.present?
+          .page-hero__heading
+            .page-hero__title-badge
+              - if title_icon_class.present?
+                %i{ class: title_icon_class }
+              %span= hero.header_title
+            - if hero.record_title?
+              %span.page-hero__record-title= hero.record_title
+      - if hero.panel?
+        .page-hero__controls
+          - hero.control_groups.each_with_index do |group, index|
+            - if index.positive?
+              .page-hero__control-separator{ aria: { hidden: true } }
+
+            - if group.kind == :meta
+              .page-hero__meta.page-hero__control-group= safe_join(group.entries)
+            - else
+              = render "shared/page_hero/actions", group: group.entries

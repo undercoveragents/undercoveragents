@@ -1,0 +1,14 @@
+/ ── SQL Query Show Section ──
+/ Locals: tool
+- toolable = tool.toolable
+
+.grid.grid-cols-1.lg:grid-cols-2.gap-6.mb-6
+  = render "tools/sql_queries/connection_info_card", tool:, toolable:, connector: toolable.connector
+
+  -# Keep a separator comment between consecutive render calls for haml-lint.
+  = render "tools/sql_queries/visibility_summary_card", tool:, toolable:
+
+.grid.grid-cols-1.lg:grid-cols-2.gap-6.mb-6
+  = render "tools/sql_queries/schema_discovery", tool:, toolable:
+
+= render "tools/sql_queries/instructions_card", tool:, toolable:

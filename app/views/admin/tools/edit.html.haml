@@ -1,0 +1,6 @@
+- content_for(:title, "Edit #{@tool.name} — #{APP_NAME}")
+- form_id = "tool-form"
+- back_link = { label: "Back to #{@tool.name}", url: admin_tool_path(@tool) }
+= render_page_hero(title: "Edit Tool", variant: :compact, title_icon: tool_type_icon(@tool), record_title: @tool.name, back_link:, meta: [tag.span(tool_type_label(@tool), class: "badge badge-neutral")], actions: [page_hero_form_action(label: "Update Tool", form_id:)])
+
+= render @toolable.form_partial_path, form_id:, tool: @tool, toolable: @toolable

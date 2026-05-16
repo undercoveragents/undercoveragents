@@ -1,0 +1,40 @@
+.mc-panel
+  .mc-agent-chats-header
+    %i.fa-solid.fa-user-secret.mr-2
+    Agent & LLM Chats (#{agent_chats.size})
+    %span.mc-agent-chats-subtitle Chats created during this mission run
+  .mc-agent-chats-list
+    - agent_chats.each do |chat|
+      - chat_cost = mc_chat_cost(chat)
+      - chat_tokens = mc_chat_tokens(chat)
+      = link_to admin_inspector_chat_path(chat), class: "mc-agent-chat-row" do
+        .mc-agent-chat-row-main
+          .mc-agent-chat-icon
+            %i.fa-solid.fa-comments
+          .mc-agent-chat-info
+            .mc-agent-chat-title= truncate(chat.display_title, length: 60)
+            .mc-agent-chat-meta
+              - if chat.agent
+                %span.mc-agent-chat-agent
+                  %i.fa-solid.fa-user-secret.mr-0.5
+                  = truncate(chat.agent.name, length: 25)
+              - if chat.model
+                %span.mc-agent-chat-model
+                  %i.fa-solid.fa-microchip.mr-0.5
+                  = chat.model.model_id
+        .mc-agent-chat-row-stats
+          %span.mc-agent-chat-stat
+            %i.fa-solid.fa-comments.mr-0.5
+            = chat.messages_count
+          - if chat_tokens[:input].positive? || chat_tokens[:output].positive?
+            %span.mc-agent-chat-stat
+              %i.fa-solid.fa-arrow-down.mr-0.5
+              = number_with_delimiter(chat_tokens[:input])
+              %span.mx-0.5 /
+              %i.fa-solid.fa-arrow-up.mr-0.5
+              = number_with_delimiter(chat_tokens[:output])
+          - if chat_cost.positive?
+            %span.mc-agent-chat-stat.text-accent
+              %i.fa-solid.fa-dollar-sign.mr-0.5
+              = format("%.6f", chat_cost)
+          %i.fa-solid.fa-arrow-up-right-from-square.text-text-muted.text-xs

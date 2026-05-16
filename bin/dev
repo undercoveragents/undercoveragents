@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+
+# Required for Falcon on macOS to avoid fork() safety crashes
+ENV["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"] = "YES"
+
+exec "foreman", "start", "-f", "Procfile.dev", *ARGV

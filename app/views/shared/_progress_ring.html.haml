@@ -1,0 +1,8 @@
+-# Reusable circular progress ring (locals: percentage 0-100, size_class default "w-10 h-10"). haml-lint:disable InlineStyles
+- size_class ||= "w-10 h-10"
+- dash_array = "stroke-dasharray: #{percentage}, 100"
+.dashboard-progress-ring{ "data-percentage" => percentage }
+  %svg{ viewBox: "0 0 36 36", class: size_class }
+    %path.dashboard-progress-bg{ d: "M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" }
+    %path.dashboard-progress-fill{ d: "M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831", style: dash_array }
+  .dashboard-progress-text #{percentage}%

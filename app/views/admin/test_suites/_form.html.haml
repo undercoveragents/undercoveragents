@@ -1,0 +1,71 @@
+-# haml-lint:disable ViewLength
+- action = test_suite.persisted? ? admin_test_suite_path(test_suite) : admin_test_suites_path
+- method = test_suite.persisted? ? :patch : :post
+- form_id = local_assigns.fetch(:form_id, "test-suite-form")
+
+= form_with model: test_suite, url: action, method:, local: true, html: { class: "test-suite-form", id: form_id, data: { controller: "test-suite-form", test_suite_form_model_options_url_value: model_options_admin_agents_path } } do |f|
+  = f.hidden_field :suite_type
+  = render "shared/forms/validation_errors", record: test_suite, resource_name: "test suite"
+
+  / ── Basic Information ──
+  .card.mb-6
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-tag.mr-2.text-accent
+        Basic Information
+    .card-body
+      .form-grid
+        .form-group
+          = f.label :name, class: "form-label" do
+            Name
+            %span.text-danger-500.ml-0.5 *
+          = f.text_field :name, class: "form-input", placeholder: "e.g., Sales Query Accuracy Tests", required: true
+          .form-hint A unique name to identify this test suite.
+
+        .form-group
+          = f.label :description, "Description", class: "form-label"
+          = f.text_area :description, class: "form-input", rows: 3, placeholder: "Describe what this test suite validates..."
+          .form-hint Optional description of the test suite's purpose.
+
+        - if test_suite.agent?
+          .form-group{ data: { controller: "choices" } }
+            = f.label :agent_id, "Agent Under Test", class: "form-label" do
+              Agent Under Test
+              %span.text-danger-500.ml-0.5 *
+            = f.select :agent_id, available_agents.map { |a| [a.name, a.id] }, { include_blank: "Select an agent to test..." }, class: "form-select", data: { choices_target: "select" }
+            .form-hint The agent whose responses will be tested.
+        - else
+          .form-group{ data: { controller: "choices" } }
+            = f.label :mission_id, "Mission Under Test", class: "form-label" do
+              Mission Under Test
+              %span.text-danger-500.ml-0.5 *
+            = f.select :mission_id, available_missions.map { |m| [m.name, m.id] }, { include_blank: "Select a mission to test..." }, class: "form-select", data: { choices_target: "select" }
+            .form-hint The mission whose execution will be tested.
+
+  / ── Evaluation LLM Configuration (agent suites only) ──
+  - if test_suite.agent?
+    .card.mb-6
+      .card-header
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-scale-balanced.mr-2.text-accent
+          Evaluation LLM
+      .card-body
+        %p.text-xs.text-text-muted.mb-4 Configure the LLM used to evaluate test results. Leave empty to use the agent's settings.
+        .form-grid
+          .form-group.col-span-full{ data: { controller: "choices", choices_search_value: "true", choices_placeholder_value: "Use agent's connection\u2026" } }
+            %label.form-label{ for: "test_suite_evaluation_llm_connector_id" } LLM Connection
+            = select_tag "test_suite[evaluation_llm_connector_id]", options_for_select([["Use agent's connection\u2026", ""]] + llm_connectors_for_select(available_llm_connectors), test_suite.evaluation_llm_connector_id), id: "test_suite_evaluation_llm_connector_id", class: "form-input form-select", data: { choices_target: "select", action: "change->test-suite-form#onEvaluationConnectorChange" }
+            .form-hint Select an LLM provider or leave empty to use the agent's default.
+
+          = render "shared/model_select", frame_id: "evaluation_model_select", field_prefix: "test_suite", field_name: "evaluation_model_id", available_models: evaluation_models, selected_model_id: test_suite.evaluation_model_id, required: false
+
+          .form-group.col-span-full{ data: { controller: "temperature-slider" } }
+            %label.form-label{ for: "test_suite_evaluation_temperature" }
+              Temperature
+              %span.text-sm.font-normal.text-text-muted.ml-2{ data: { temperature_slider_target: "label" } }
+                = "(#{temperature_label(test_suite.evaluation_temperature)})"
+            = range_field_tag "test_suite[evaluation_temperature]", test_suite.evaluation_temperature, min: 0.0, max: 2.0, step: 0.1, id: "test_suite_evaluation_temperature", class: "form-range w-full", data: { action: "input->temperature-slider#update", temperature_slider_target: "slider" }
+            .flex.items-center.justify-between.mt-1
+              %span.text-xs.text-text-muted 0.0 — Precise
+              %span.text-xs.font-medium.text-text-secondary{ data: { temperature_slider_target: "value" } }= test_suite.evaluation_temperature
+              %span.text-xs.text-text-muted 2.0 — Experimental

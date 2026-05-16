@@ -1,0 +1,33 @@
+/ ── JSON Extract Node Configuration ──
+.ms-prop-field
+  %label.ms-prop-label
+    JSON Source
+    %span.ms-prop-required *
+  = render "shared/expression_editor", value: presenter.data("source"), variables: presenter.selectable_upstream_variables, prop_key: "source", placeholder: "Variable name or JSON string", rows: 2
+  .ms-prop-hint
+    %i.fa-solid.fa-circle-info
+    Supports
+    %code {{variable}}
+    interpolation. Type
+    %code @
+    to insert a variable.
+/ Extractions
+.ms-prop-field
+  %label.ms-prop-label
+    Extractions
+    %button.ms-prop-add-btn{ type: "button", data: { action: "click->mission#addExtraction" } }
+      %i.fa-solid.fa-plus
+  .ms-prop-kv-list{ data: { "mission-target": "propExtractions", "kv-type": "extractions" } }
+    - presenter.extractions.each do |key, value|
+      .ms-prop-kv-row
+        %input.ms-prop-kv-key{ type: "text", placeholder: "Variable name", value: key, data: { action: "blur->mission#syncKv" } }
+        %span.ms-prop-kv-sep =
+        %input.ms-prop-kv-value{ type: "text", placeholder: "JSON path", value:, data: { action: "blur->mission#syncKv" } }
+        %button.ms-prop-kv-remove{ type: "button", data: { action: "click->mission#removeKvRow" } }
+          %i.fa-solid.fa-xmark
+  .ms-prop-hint
+    %i.fa-solid.fa-circle-info
+    Each row maps a variable name (left) to a dot-path in the JSON (right), e.g.
+    %code user_email
+    →
+    %code data.user.email

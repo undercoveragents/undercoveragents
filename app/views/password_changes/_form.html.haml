@@ -1,0 +1,33 @@
+= form_tag password_change_path, method: :patch, class: "space-y-4" do
+  - if user.errors.any?
+    .flash-alert.mb-4
+      %strong #{user.errors.count} #{"error".pluralize(user.errors.count)} prevented saving:
+      %ul.mt-2.list-disc.list-inside
+        - user.errors.full_messages.each do |message|
+          %li= message
+
+  .form-group
+    %label.form-label{ for: "user-current-password" } Current Password
+    %input.form-input#user-current-password{ type: "password", name: "user[current_password]", placeholder: "Enter your current password", required: true, autofocus: true }
+
+  .form-group
+    %label.form-label{ for: "user-password" } New Password
+    %input.form-input#user-password{ type: "password", name: "user[password]", placeholder: "Minimum 8 characters", required: true }
+
+  .form-group
+    %label.form-label{ for: "user-password-confirmation" } Confirm New Password
+    %input.form-input#user-password-confirmation{ type: "password", name: "user[password_confirmation]", placeholder: "Repeat your new password", required: true }
+
+  .auth-password-hint
+    %p Password must contain:
+    %ul
+      %li At least 8 characters
+      %li One uppercase letter
+      %li One lowercase letter
+      %li One digit
+      %li One special character
+
+  .flex.items-center.justify-end.mt-6.pt-6.border-t.border-border-default
+    %button.btn.btn-primary{ type: "submit" }
+      %i.fa-solid.fa-lock.mr-2
+      Update Password

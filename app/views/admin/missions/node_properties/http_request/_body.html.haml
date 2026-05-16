@@ -1,0 +1,87 @@
+- body_modes = [["none", "No Body", "Send no payload"], ["json", "JSON", "Structured request body"], ["raw", "Raw", "Custom content type"], ["form_urlencoded", "Form Fields", "URL-encoded fields"], ["multipart", "Multipart", "Text and file uploads"], ["binary", "Binary Upload", "Single upstream file"]]
+- selected_mode = body_modes.find { |value, *_rest| value == presenter.http_body_mode } || body_modes.first
+- body_open = presenter.http_body_mode != "none" || presenter.data("body").present? || presenter.http_form_urlencoded_body.any? || presenter.http_multipart_form_data.any? || presenter.data_raw("binary_source").present?
+
+%details.llm-settings-inline-accordion.ms-http-request-accordion{ open: body_open }
+  %summary.llm-settings-inline-accordion__summary.ms-http-request-accordion__summary
+    .ms-http-request-accordion__summary-copy
+      %span.ms-http-request-accordion__summary-title Body
+      %span.ms-http-request-accordion__summary-meta #{selected_mode[1]}: #{selected_mode[2]}
+    %i.fa-solid.fa-chevron-down.llm-settings-inline-accordion__chevron
+  .llm-settings-inline-accordion__body.ms-http-request-accordion__body
+    .ms-http-request-grid
+      .ms-prop-field.ms-prop-field--dense.ms-http-request-grid__full
+        %label.ms-prop-label Body Mode
+        %select.ms-prop-select{ data: { action: "change->mission#updateNodeProp change->http-request-node#sync", "prop-key": "body_mode", "http-request-node-target": "bodyMode" } }
+          - body_modes.each do |value, label, description|
+            %option{ value:, selected: presenter.http_body_mode == value } #{label} - #{description}
+        .ms-prop-hint Choose the payload shape that matches the upstream endpoint.
+
+      .ms-http-request-section.ms-http-request-grid__full{ hidden: presenter.http_body_mode != "none", data: { "http-request-node-target": "bodySection", "body-mode": "none" } }
+        .ms-http-request-empty-state
+          %i.fa-solid.fa-ban
+          %span This request sends no body payload.
+
+      .ms-http-request-section.ms-http-request-grid__full{ hidden: presenter.http_body_mode != "json", data: { "http-request-node-target": "bodySection", "body-mode": "json" } }
+        .ms-prop-field.ms-prop-field--dense
+          %label.ms-prop-label JSON Body
+          = render "shared/expression_editor", value: presenter.data("body"), variables: selectable_variables, prop_key: "body", placeholder: '{"query": "{{user_query}}"}', rows: 5
+          .ms-prop-hint Content-Type defaults to application/json unless you override it in Headers.
+
+      .ms-http-request-section.ms-http-request-grid__full{ hidden: presenter.http_body_mode != "raw", data: { "http-request-node-target": "bodySection", "body-mode": "raw" } }
+        .ms-http-request-grid
+          .ms-prop-field.ms-prop-field--dense.ms-http-request-grid__full
+            %label.ms-prop-label Raw Body
+            = render "shared/expression_editor", value: presenter.data("body"), variables: selectable_variables, prop_key: "body", placeholder: "Plain text or XML payload", rows: 5
+          .ms-prop-field.ms-prop-field--dense
+            %label.ms-prop-label Content Type
+            %input.ms-prop-input{ type: "text", value: presenter.data("body_content_type"), placeholder: "text/plain", data: { action: "blur->mission#updateNodeProp", "prop-key": "body_content_type" } }
+
+      .ms-http-request-section.ms-http-request-grid__full{ hidden: presenter.http_body_mode != "form_urlencoded", data: { "http-request-node-target": "bodySection", "body-mode": "form_urlencoded" } }
+        .ms-prop-field.ms-prop-field--dense
+          %label.ms-prop-label.ms-prop-label--spread
+            %span.ms-prop-label__text Form Fields
+            %button.ms-prop-add-btn{ type: "button", data: { action: "click->mission#addKvRow", list_target: "propFormUrlencodedBody", key_placeholder: "Field", value_placeholder: "Value", value_mode: "expression" } }
+              %i.fa-solid.fa-plus
+          .ms-prop-kv-list{ data: { "mission-target": "propFormUrlencodedBody", "kv-type": "form_urlencoded_body", "prop-key": "form_urlencoded_body", "kv-value-mode": "expression", "kv-variables": selectable_variables.to_json } }
+            - presenter.http_form_urlencoded_body.each do |key, value|
+              .ms-prop-kv-row
+                %input.ms-prop-kv-key{ type: "text", placeholder: "Field", value: key, data: { action: "blur->mission#syncKv" } }
+                %span.ms-prop-kv-sep =
+                = render "shared/expression_editor", value:, variables: selectable_variables, prop_key: "", placeholder: "Value", multiline: false, rows: 1, data_action: "blur->mission#syncKv input->mission#syncKv"
+                %button.ms-prop-kv-remove{ type: "button", data: { action: "click->mission#removeKvRow" } }
+                  %i.fa-solid.fa-xmark
+
+      .ms-http-request-section.ms-http-request-grid__full{ hidden: presenter.http_body_mode != "multipart", data: { "http-request-node-target": "bodySection", "body-mode": "multipart" } }
+        .ms-prop-field.ms-prop-field--dense
+          %label.ms-prop-label.ms-prop-label--spread
+            %span.ms-prop-label__text Multipart Fields
+            %button.ms-prop-add-btn{ type: "button", data: { action: "click->mission#addKvRow", list_target: "propMultipartFormData", key_placeholder: "Field", value_placeholder: "Value or {{file_var}}", value_mode: "expression" } }
+              %i.fa-solid.fa-plus
+          .ms-prop-kv-list{ data: { "mission-target": "propMultipartFormData", "kv-type": "multipart_form_data", "prop-key": "multipart_form_data", "kv-value-mode": "expression", "kv-variables": selectable_variables.to_json } }
+            - presenter.http_multipart_form_data.each do |key, value|
+              .ms-prop-kv-row
+                %input.ms-prop-kv-key{ type: "text", placeholder: "Field", value: key, data: { action: "blur->mission#syncKv" } }
+                %span.ms-prop-kv-sep =
+                = render "shared/expression_editor", value:, variables: selectable_variables, prop_key: "", placeholder: "Value or {{file_var}}", multiline: false, rows: 1, data_action: "blur->mission#syncKv input->mission#syncKv"
+                %button.ms-prop-kv-remove{ type: "button", data: { action: "click->mission#removeKvRow" } }
+                  %i.fa-solid.fa-xmark
+          .ms-prop-hint If a field resolves to file metadata, the request uploads the file instead of serializing JSON.
+
+      .ms-http-request-section.ms-http-request-grid__full{ hidden: presenter.http_body_mode != "binary", data: { "http-request-node-target": "bodySection", "body-mode": "binary" } }
+        - if file_reference_options.any?
+          .ms-http-request-grid
+            .ms-prop-field.ms-prop-field--dense
+              %label.ms-prop-label Source File
+              %select.ms-prop-select{ data: { action: "change->mission#updateNodeProp", "prop-key": "binary_source" } }
+                %option{ value: "", selected: presenter.data_raw("binary_source").blank? } Select an upstream file...
+                - file_reference_options.each do |option|
+                  %option{ value: option[:value], selected: presenter.data_raw("binary_source").to_s == option[:value] }= option[:label]
+            .ms-prop-field.ms-prop-field--dense
+              %label.ms-prop-label Content Type
+              %input.ms-prop-input{ type: "text", value: presenter.data("body_content_type"), placeholder: "application/octet-stream", data: { action: "blur->mission#updateNodeProp", "prop-key": "body_content_type" } }
+          .ms-prop-hint Binary mode streams the selected file variable as the request body.
+        - else
+          .ms-http-request-empty-state
+            %i.fa-solid.fa-paperclip
+            %span No upstream file variables are available yet. Connect an input, write-file, or image-producing node first.

@@ -1,0 +1,62 @@
+- content_for(:title, "Agents — #{APP_NAME}")
+- actions = []
+- actions << policy_page_hero_action(Agent, :restore_defaults?, label: "Restore Built-ins", url: restore_defaults_admin_agents_path, icon: "fa-solid fa-rotate-left", style: :secondary, method: :post, data: { controller: "confirm", confirm_title_value: "Restore Built-in Agents", confirm_message_value: "Restore and recreate all built-in agents from the current application and plugin definitions?" }) if current_operation.headquarter?
+- actions << policy_page_hero_action(Agent, :create?, label: "New Agent", url: new_admin_agent_path, icon: "fa-solid fa-plus", style: :primary)
+= render_page_hero(title: "Instructions, tools, and skills composed into each agent", description: "Create and manage AI agents with custom instructions and connected data sources.", variant: :dashboard, eyebrow: { label: "Agents", icon: "fa-solid fa-user-secret" }, actions:)
+
+- can_create_agent = policy_allows?(Agent, :create?)
+- create_agent_title = policy_tooltip(Agent, :create?)
+
+- if @agents.any?
+  .card-grid.card-grid--entities
+    - @agents.each do |agent|
+      = link_to admin_agent_path(agent), class: "card entity-card entity-card--interactive no-underline" do
+        .card-body.entity-card__body
+          .entity-card__header
+            .entity-card__identity
+              .entity-card__icon
+                %i.fa-solid.fa-user-secret
+              .entity-card__identity-copy
+                %h3.entity-card__title= agent.name
+                %p.entity-card__subtitle= agent_model_display(agent)
+            .entity-card__status
+              = agent_origin_badge(agent)
+              = agent_status_badge(agent)
+
+          - if agent.description.present?
+            %p.entity-card__description.line-clamp-2= agent.description
+
+          .entity-card__badges
+            = agent_type_badge(agent)
+
+          .entity-card__metrics
+            .entity-card__metric
+              %i.fa-solid.fa-wrench
+              = agent_tool_count_label(agent)
+            .entity-card__metric
+              %i.fa-solid.fa-book-open
+              = agent_skill_count_label(agent, @agent_skill_counts.fetch(agent.id, 0))
+            .entity-card__metric
+              %i.fa-solid.fa-user-secret
+              = agent_subagent_count_label(agent)
+            .entity-card__metric
+              %i.fa-solid.fa-sliders
+              = agent_input_count_label(agent)
+            .entity-card__metric
+              %i.fa-solid.fa-bolt
+              = agent_capability_count_label(agent)
+
+          .entity-card__footer
+            %span.entity-card__timestamp
+              %i.fa-solid.fa-clock
+              Updated #{time_ago_in_words(agent.updated_at)} ago
+- else
+  = render_page_empty_state(title: "No agents yet", body: "Create your first agent to start querying your data sources with AI.") do
+    - if can_create_agent
+      = link_to new_admin_agent_path, class: "btn btn-primary" do
+        %i.fa-solid.fa-plus.mr-1
+        Create Agent
+    - else
+      %button{ type: "button", class: disabled_action_classes("btn btn-primary", disabled: true), disabled: true, title: create_agent_title }
+        %i.fa-solid.fa-plus.mr-1
+        Create Agent

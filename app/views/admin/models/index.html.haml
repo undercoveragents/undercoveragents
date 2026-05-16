@@ -1,0 +1,59 @@
+- content_for(:title, "Models — #{APP_NAME}")
+= render_page_hero(title: "Provider intelligence, searchable across your catalog", description: "Explore the model catalog with facet filters, sortable columns, and full JSON-backed capabilities and modalities.", variant: :dashboard, eyebrow: { label: "Models", icon: "fa-solid fa-microchip" }, meta: [link_to("Source: models.dev", "https://models.dev", target: "_blank", rel: "noopener", class: "badge badge-neutral no-underline hover:text-accent")], actions: [{ label: "Refresh Models", url: refresh_admin_models_path, icon: "fa-solid fa-arrows-rotate", style: :secondary, method: :post, title: "Refresh model catalog from providers" }])
+
+.models-browser
+  %aside.models-sidebar
+    .card
+      .card-body.models-sidebar-card-body
+        = form_with url: admin_models_path, method: :get, local: true, class: "models-search-form" do
+          - models_query_params.except("search").each do |key, value|
+            = hidden_field_tag key, value
+
+          .models-sidebar-section-header.models-sidebar-section-header--search
+            %h2.models-sidebar-title Filters
+            = link_to("Clear all", admin_models_path(sort: @sort_column, direction: @sort_direction), class: "text-xs text-accent no-underline hover:underline") if models_filters_active?
+
+          = label_tag :search, "Query", class: "inspector-filter-label models-filter-label"
+          = text_field_tag :search, @filters[:search], placeholder: "Name, model id, provider…", class: "form-input form-input-sm"
+
+          .models-search-actions
+            = submit_tag "Apply", class: "btn btn-primary btn-sm"
+            = link_to "Reset", admin_models_path(sort: @sort_column, direction: @sort_direction), class: "btn btn-secondary btn-sm"
+
+          .models-search-divider
+
+          - @facet_groups.each do |group|
+            .models-filter-group
+              .models-sidebar-section-header
+                .flex.items-center.gap-2
+                  %i{ class: group[:icon] }
+                  %h2.models-sidebar-title= group[:title]
+                = link_to("Clear", admin_models_path(models_query_params(group[:key] => nil, page: nil)), class: "text-xs text-accent no-underline hover:underline") if @filters[group[:key]].present?
+
+              .models-facet-list
+                - all_active = @filters[group[:key]].blank?
+                = link_to admin_models_path(models_query_params(group[:key] => nil, page: nil)), class: ["models-facet-link", ("is-active" if all_active)] do
+                  %span All
+                  %span.models-facet-count= number_with_delimiter(group[:all_count])
+                - group[:options].each do |option|
+                  - active = @filters[group[:key]] == option[:value]
+                  = link_to admin_models_path(models_query_params(group[:key] => option[:value], page: nil)), class: ["models-facet-link", ("is-active" if active)] do
+                    %span.models-facet-label= option[:value]
+                    %span.models-facet-count= number_with_delimiter(option[:count])
+
+  .models-results
+    - if @models.any?
+      .card
+        = render "table",
+                 models: @models,
+                 pagy: @pagy,
+                 sort_column: @sort_column,
+                 sort_direction: @sort_direction,
+                 table_columns: @table_columns
+    - else
+      - body = if models_filters_active?
+        - "No models match the current filters. Try a different provider, capability, or modality."
+      - else
+        - "No model metadata has been synced yet."
+      = render_page_empty_state(title: "No models found", body:) do
+        = link_to "Clear Filters", admin_models_path(sort: @sort_column, direction: @sort_direction), class: "btn btn-primary" if models_filters_active?

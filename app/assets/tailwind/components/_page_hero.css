@@ -1,0 +1,261 @@
+.page-hero {
+  --page-hero-accent-rgb: 14 116 144;
+  --page-hero-badge-bg: rgb(14 116 144 / 0.1);
+  --page-hero-badge-color: rgb(14 116 144);
+  margin: 0 calc(-1 * var(--page-padding)) 1rem;
+  min-height: 0;
+  border: none;
+  border-radius: 0;
+  background: var(--surface-admin-chrome);
+  box-shadow: none;
+  color: var(--text-secondary);
+
+  .card-body {
+    box-sizing: border-box;
+    border-bottom: 1px solid var(--border-default);
+    min-height: var(--panel-header-height);
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+  }
+}
+
+/* Keep shared form-page headers visible while the body of the form scrolls. */
+.page-content > .page-hero--sticky {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.page-hero--skills {
+  --page-hero-badge-bg: rgb(217 119 6 / 0.12);
+  --page-hero-badge-color: rgb(180 83 9);
+}
+
+.page-hero__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 0;
+  width: 100%;
+}
+
+.page-hero__lead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.page-hero__heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.page-hero__title-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+  max-width: 100%;
+  border-radius: 9999px;
+  min-height: 28px;
+  padding: 0.28rem 0.72rem;
+  background: var(--page-hero-badge-bg);
+  color: var(--page-hero-badge-color);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.page-hero__title-badge span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.page-hero__title-badge i {
+  width: 14px;
+  flex-shrink: 0;
+  color: inherit;
+  font-size: 0.6875rem;
+  text-align: center;
+}
+
+.page-hero__record-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-primary);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.page-hero__controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.page-hero__control-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.page-hero__control-separator {
+  width: 1px;
+  height: 14px;
+  flex-shrink: 0;
+  background: var(--border-default);
+  margin: 0 4px;
+}
+
+.page-hero__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+.page-hero__actions {
+  justify-content: flex-end;
+}
+
+.page-hero__action-group {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+.page-hero__action-form {
+  margin: 0;
+}
+
+.page-hero__custom-control {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.page-hero__custom-control .inline-dropdown {
+  text-align: left;
+}
+
+.page-hero__custom-control .inline-dropdown-item i {
+  width: 14px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.page-hero__actions .btn,
+.page-hero__custom-control .btn {
+  min-height: 22px;
+  padding: 0.21875rem 0.625rem;
+  font-size: var(--font-size-xs);
+  line-height: 1.05rem;
+  border-radius: 0.375rem;
+  box-shadow: none;
+}
+
+.page-hero__actions .btn i,
+.page-hero__custom-control .btn i {
+  font-size: 0.6875rem;
+}
+
+.page-hero__actions .btn-secondary {
+  background: transparent;
+  border-color: transparent;
+  color: var(--text-secondary);
+
+  &:hover {
+    background: var(--surface-hover);
+    border-color: transparent;
+    color: var(--text-primary);
+  }
+}
+
+.page-hero__actions .btn-primary,
+.page-hero__custom-control .btn-primary {
+  padding-inline: 0.75rem;
+}
+
+.dark .page-hero {
+  --page-hero-badge-bg: rgb(var(--page-hero-accent-rgb) / 0.18);
+  --page-hero-badge-color: rgb(186 230 253);
+}
+
+.dark .page-hero--skills {
+  --page-hero-badge-bg: rgb(245 158 11 / 0.2);
+  --page-hero-badge-color: rgb(253 230 138);
+}
+
+@media (max-width: 1100px) {
+  .page-hero__toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .page-hero__controls {
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .page-hero__heading {
+    flex-wrap: wrap;
+  }
+
+  .page-hero__controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-hero__control-separator {
+    width: 100%;
+    height: 1px;
+  }
+
+  .page-hero__control-group,
+  .page-hero__action-group {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .page-hero__meta {
+    justify-content: flex-start;
+  }
+
+  .page-hero__action-form,
+  .page-hero__action-group .btn,
+  .page-hero__custom-control,
+  .page-hero__custom-control .btn {
+    width: 100%;
+  }
+
+  .page-hero__action-form .btn,
+  .page-hero__custom-control .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

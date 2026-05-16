@@ -1,0 +1,51 @@
+.card.mb-6
+  .card-header.tool-widget-config__card-header
+    .tool-widget-config__header-copy
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-wand-magic-sparkles.mr-2.text-accent
+        Chat Widget
+      %p.tool-widget-config__header-note Give this tool its own icon, execution copy, and completion copy. Leave any field blank to keep the tool defaults.
+  .card-body
+    - widget_type_key = tool.tool_type.presence || toolable.class.type_key
+    - default_presentation = tool_widget_default_presentation(tool, toolable)
+    .tool-widget-config__body
+      .tool-widget-config__grid
+        .form-group
+          = f.label "#{widget_type_key}[tool_widget_icon]", "Custom Icon", class: "form-label"
+          = f.text_field "#{widget_type_key}[tool_widget_icon]", **tool_widget_icon_field_options(toolable, default_presentation)
+          .form-hint
+            Use a Font Awesome Free class pair such as fa-solid fa-bolt. Leave blank to use the tool default.
+            = link_to "Browse free icons", "https://fontawesome.com/search?ic=free-collection", target: "_blank", rel: "noopener", class: "text-accent no-underline ml-1"
+          .tool-widget-config__icon-presets
+            - tool_widget_icon_presets(toolable).each do |icon_class|
+              %span.tool-widget-config__icon-preset
+                %i{ class: icon_class }
+                %span= icon_class.split.last.to_s.delete_prefix("fa-").tr("-", " ").titleize
+
+        .form-group
+          = f.label "#{widget_type_key}[tool_widget_running_mode]", "Running Behavior", class: "form-label"
+          .tool-widget-config__mode-list
+            - tool_widget_running_mode_options.each do |title, body, value|
+              %label.tool-widget-config__mode-card
+                = f.radio_button "#{widget_type_key}[tool_widget_running_mode]", value, checked: toolable.tool_widget_running_mode == value
+                %span.tool-widget-config__mode-copy
+                  %span.tool-widget-config__mode-title= title
+                  %span.tool-widget-config__mode-body= body
+                  - if value == "rotate"
+                    %span.tool-widget-config__mode-settings
+                      %span.tool-widget-config__mode-settings-grid
+                        %span.form-group.tool-widget-config__mode-setting
+                          = f.label "#{widget_type_key}[tool_widget_running_interval_ms]", "Rotate every (ms)", class: "form-label"
+                          = f.number_field "#{widget_type_key}[tool_widget_running_interval_ms]", **tool_widget_interval_field_options(toolable)
+                          %span.form-hint Only used when rotate is selected.
+
+    .tool-widget-config__message-grid
+      .form-group
+        = f.label "#{widget_type_key}[tool_widget_running_messages_text]", "While Executing", class: "form-label"
+        = f.text_area "#{widget_type_key}[tool_widget_running_messages_text]", **tool_widget_messages_field_options(toolable.tool_widget_running_messages, default_presentation.running_messages)
+        .form-hint One sentence per line. These are used while the tool is still running.
+
+      .form-group
+        = f.label "#{widget_type_key}[tool_widget_complete_messages_text]", "When Complete", class: "form-label"
+        = f.text_area "#{widget_type_key}[tool_widget_complete_messages_text]", **tool_widget_messages_field_options(toolable.tool_widget_complete_messages, default_presentation.complete_messages)
+        .form-hint One sentence per line. One of these will be picked at random after the tool finishes.

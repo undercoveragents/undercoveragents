@@ -1,0 +1,66 @@
+- selected_agent_id ||= channel.client_agent&.id
+
+.card.mb-6
+  .card-header
+    %h3.text-sm.font-semibold.text-text-primary
+      %i.fa-solid.fa-comments.mr-2.text-accent
+      Client Experience
+  .card-body
+    .form-grid
+      .form-group{ data: { controller: "choices", choices_search_value: "true" } }
+        = label_tag "channel_target[agent_id]", "Agent", class: "form-label" do
+          Agent
+          %span.text-danger-500.ml-0.5 *
+        = hidden_field_tag "channel_target[target_kind]", "agent"
+        = select_tag "channel_target[agent_id]", options_for_select(available_agents.map { |agent| [agent.name, agent.id] }, selected_agent_id), include_blank: "Select an agent…", class: "form-input form-select", required: true, data: { choices_target: "select" }
+        .form-hint The AI agent that will handle conversations for this client channel.
+
+      .form-group
+        .form-check
+          = f.check_box :default, class: "form-check-input"
+          = f.label :default, "Set as default client channel", class: "form-check-label"
+        .form-hint.ml-6 The default client channel powers the main end-user chat experience.
+
+.card.mb-6
+  .card-header
+    %h3.text-sm.font-semibold.text-text-primary
+      %i.fa-solid.fa-image.mr-2.text-accent
+      Logo
+  .card-body
+    .form-group
+      = f.label :logo, class: "form-label" do
+        Logo Image
+      - if channel.logo.attached?
+        .flex.items-center.gap-4.mb-3
+          = image_tag channel.logo, class: "w-16 h-16 rounded object-cover border border-border-default"
+          %span.text-sm.text-text-secondary Current logo
+      = f.file_field :logo, accept: "image/*", class: "form-input"
+      .form-hint Upload a logo image (PNG, JPG, SVG). Recommended size: 128x128px.
+
+.card.mb-6
+  .card-header
+    %h3.text-sm.font-semibold.text-text-primary
+      %i.fa-solid.fa-pen-fancy.mr-2.text-accent
+      Content
+  .card-body.space-y-6
+    .form-group
+      = f.label :title, class: "form-label" do
+        Brand Title
+      %lexxy-editor.lexxy-content{ name: "channel[title]", attachments: "false", value: channel.title.to_s }
+      .form-hint The brand title displayed in the chat sidebar. Supports text formatting.
+
+    .form-group
+      = f.label :welcome_message, class: "form-label" do
+        Welcome Message
+      %lexxy-editor.lexxy-content{ name: "channel[welcome_message]", attachments: "false", value: channel.welcome_message.to_s }
+      .form-hint The welcome message shown when users first open the chat. Supports rich text formatting.
+
+    .form-group
+      = f.label :footer, class: "form-label" do
+        Footer Text
+      %lexxy-editor.lexxy-content{ name: "channel[footer]", attachments: "false", value: channel.footer.to_s }
+      .form-hint Footer text displayed at the bottom of the chat. Supports text formatting.
+
+= render "channels/client/chat_labels_fields", f:
+-# haml-lint sibling render separator
+= render "channels/client/account_menu_labels_fields", f:

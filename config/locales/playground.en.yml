@@ -1,0 +1,8 @@
+en:
+  playground:
+    chats:
+      no_available_agents:
+        title: "No available agents for this operation"
+        sidebar_title: "No available agents"
+        description: "Playground only supports enabled, selectable agents in the current operation without built-in tools."
+      deleted: "Chat deleted."

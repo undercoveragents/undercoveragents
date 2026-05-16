@@ -1,0 +1,22 @@
+/ ── Instructions Card ──
+#instructions-card
+  .card.mb-6
+    .card-header
+      .flex.items-center.justify-between.gap-3
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-scroll.mr-2.text-accent
+          Instructions
+        .flex.items-center.gap-2.flex-wrap.justify-end
+          - if policy(tool).update?
+            = link_to edit_instructions_admin_tool_path(tool), class: "btn btn-secondary btn-xs" do
+              %i.fa-solid.fa-pen.mr-1
+              Edit
+    .card-body
+      - if toolable.schema_discovered?
+        %p.text-xs.text-text-muted.mb-3
+          Discovery and visibility changes refresh this prompt automatically from the visible schema.
+        %div{ class: "markdown-body bg-surface-secondary p-4 rounded-lg text-[11px] leading-5", data: { controller: "markdown-render", markdown_render_content_value: toolable.effective_instructions } }
+      - else
+        .text-center.py-6
+          %i.fa-solid.fa-scroll.text-2xl.text-text-muted.mb-2
+          %p.text-sm.text-text-muted Instructions will be generated after schema discovery succeeds.

@@ -1,0 +1,27 @@
+- content_for(:title, "Edit Mission — #{APP_NAME}")
+- form_id = "mission-form"
+- back_link = { label: "Back to Missions", url: admin_missions_path }
+= render_page_hero(title: "Edit Mission", variant: :compact, title_icon: "fa-solid fa-diagram-project", record_title: @mission.name, back_link:, actions: [{ label: "Open Designer", url: designer_admin_mission_path(@mission), icon: "fa-solid fa-diagram-project", style: :secondary }, page_hero_form_action(label: "Save Changes", form_id:)])
+
+= form_with model: @mission, url: admin_mission_path(@mission), method: :patch, id: form_id do |f|
+  = render "shared/forms/validation_errors", record: @mission, resource_name: "mission"
+
+  .card.mb-6
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-project-diagram.mr-2.text-accent
+        Mission Details
+    .card-body
+      .form-grid
+        .form-group
+          = f.label :name, class: "form-label" do
+            Name
+            %span.text-red-500.ml-0.5 *
+          = f.text_field :name, class: "form-input", placeholder: "e.g. Customer Support Flow", required: true, autofocus: true
+          .form-hint A descriptive name to identify this mission.
+
+        .form-group
+          = f.label :description, class: "form-label" do
+            Description
+          = f.text_area :description, class: "form-input", placeholder: "Describe what this mission does…", rows: 4
+          .form-hint Optional — helps teammates understand the mission's purpose.

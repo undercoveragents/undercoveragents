@@ -1,0 +1,131 @@
+-# haml-lint:disable ViewLength
+- content_for(:title, "#{@agent.name} — #{APP_NAME}")
+- actions = []
+- actions << policy_page_hero_action(@agent, :restore?, label: "Restore Default", url: restore_admin_agent_path(@agent), icon: "fa-solid fa-rotate-left", style: :secondary, method: :post, data: { controller: "confirm", confirm_title_value: "Restore Built-in Agent", confirm_message_value: "Restore this built-in agent to its default definition? Your custom changes will be replaced." }) if @agent.builtin?
+- actions << policy_page_hero_action(@agent, :update?, label: "Edit", url: edit_admin_agent_path(@agent), icon: "fa-solid fa-pen", style: :secondary)
+- actions << policy_page_hero_action(@agent, :destroy?, label: "Delete", url: admin_agent_path(@agent), icon: "fa-solid fa-trash", style: :danger_outline, method: :delete, data: { controller: "confirm", confirm_title_value: "Delete Agent", confirm_message_value: "Are you sure you want to delete this agent? This action cannot be undone." })
+= render_page_hero(title: "Agent", variant: :compact, title_icon: "fa-solid fa-user-secret", record_title: @agent.name, actions:)
+
+- can_update_agent = policy_allows?(@agent, :update?)
+- update_agent_title = policy_tooltip(@agent, :update?)
+
+.grid.grid-cols-1.lg:grid-cols-2.gap-6.mb-6
+  = render "agents/show_metadata", agent: @agent
+
+  -# Keep a separator comment between consecutive render calls for haml-lint.
+  = render "agents/show_input_parameters", agent: @agent
+
+.grid.grid-cols-1.lg:grid-cols-2.gap-6.mb-6
+  .card.h-full
+    .card-header
+      .flex.items-center.justify-between
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-wrench.mr-2.text-accent
+          Tools
+        = render "agents/add_select_dropdown",
+                 record: @agent,
+                 url: add_tool_admin_agent_path(@agent),
+                 method: :post,
+                 field_name: :tool_id,
+                 options: @available_tools.map { |tool| [tool.name, tool.id] },
+                 empty_message: "All tools already assigned."
+    .card-body
+      - tools = @agent.assigned_tools
+      - builtin_tools = @builtin_tool_entries
+      - if tools.any? || builtin_tools.any?
+        .space-y-2
+          - tools.each do |tool|
+            .flex.items-center.gap-2.p-2.rounded-lg.bg-surface-secondary
+              .entity-card__icon
+                %i{ class: tool_type_icon(tool) }
+              .flex-1.min-w-0
+                = link_to tool.name, admin_tool_path(tool), class: "text-sm font-medium text-text-primary truncate no-underline block leading-snug"
+                .text-xs.text-text-secondary= tool_type_label(tool)
+              = tool_status_badge(tool)
+              - if can_update_agent
+                = button_to remove_tool_admin_agent_path(@agent), method: :delete, params: { tool_id: tool.id }, class: "btn btn-ghost btn-xs text-danger-400 hover:text-danger-600 shrink-0", title: "Remove tool", data: { controller: "confirm", confirm_title_value: "Remove Tool", confirm_message_value: "Remove \"#{tool.name}\" from this agent?" } do
+                  %i.fa-solid.fa-xmark
+              - else
+                %button{ type: "button", class: disabled_action_classes("btn btn-ghost btn-xs text-danger-400 hover:text-danger-600 shrink-0", disabled: true), disabled: true, title: update_agent_title }
+                  %i.fa-solid.fa-xmark
+          - builtin_tools.each do |tool|
+            .flex.items-center.gap-2.p-2.rounded-lg.bg-surface-secondary
+              .entity-card__icon
+                %i.fa-solid.fa-wrench
+              .flex-1.min-w-0
+                .text-sm.font-medium.text-text-primary.leading-snug= tool[:name]
+                .text-xs.text-text-secondary= tool[:description]
+                .text-text-muted.mt-1{ class: "text-[11px]" }= tool[:key]
+              - if tool[:missing]
+                .badge.badge-danger Missing
+              - else
+                .badge.badge-info Built-in
+      - else
+        .text-center.py-6
+          %i.fa-solid.fa-wrench.text-2xl.text-text-muted.mb-2
+          %p.text-sm.text-text-muted No tools assigned.
+
+  -# Keep a separator comment between consecutive render calls for haml-lint.
+  .card.h-full
+    .card-header
+      .flex.items-center.justify-between
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-user-secret.mr-2.text-accent
+          Sub-Agents
+        = render "agents/add_select_dropdown",
+                 record: @agent,
+                 url: add_subagent_admin_agent_path(@agent),
+                 method: :post,
+                 field_name: :subagent_id,
+                 options: @available_agents.map { |agent_option| [agent_option.name, agent_option.id] },
+                 empty_message: "No other agents available."
+    .card-body
+      - subs = @agent.subagents
+      - if subs.any?
+        .space-y-2
+          - subs.find_each do |subagent|
+            .flex.items-center.gap-2.p-2.rounded-lg.bg-surface-secondary
+              .entity-card__icon
+                %i.fa-solid.fa-user-secret
+              .flex-1.min-w-0
+                = link_to subagent.name, admin_agent_path(subagent), class: "text-sm font-medium text-text-primary truncate no-underline block leading-snug"
+                .text-xs.text-text-secondary= agent_model_display(subagent)
+              = agent_status_badge(subagent)
+              - if can_update_agent
+                = button_to remove_subagent_admin_agent_path(@agent), method: :delete, params: { subagent_id: subagent.id }, class: "btn btn-ghost btn-xs text-danger-400 hover:text-danger-600 shrink-0", title: "Remove sub-agent", data: { controller: "confirm", confirm_title_value: "Remove Sub-Agent", confirm_message_value: "Remove \"#{subagent.name}\" from this agent?" } do
+                  %i.fa-solid.fa-xmark
+              - else
+                %button{ type: "button", class: disabled_action_classes("btn btn-ghost btn-xs text-danger-400 hover:text-danger-600 shrink-0", disabled: true), disabled: true, title: update_agent_title }
+                  %i.fa-solid.fa-xmark
+      - else
+        .text-center.py-6
+          %i.fa-solid.fa-user-secret.text-2xl.text-text-muted.mb-2
+          %p.text-sm.text-text-muted No sub-agents assigned.
+
+.grid.grid-cols-1.lg:grid-cols-2.gap-6.mb-6
+  = render "agents/show_skill_catalogs", agent: @agent, available_skill_catalogs: @available_skill_catalogs
+
+  -# Keep a separator comment between consecutive render calls for haml-lint.
+  = render "agents/show_capabilities", agent: @agent
+
+.card
+  .card-header
+    .flex.items-center.justify-between
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-scroll.mr-2.text-accent
+        System Instructions
+      - if can_update_agent
+        = link_to edit_instructions_admin_agent_path(@agent), class: "btn btn-secondary btn-xs shrink-0" do
+          %i.fa-solid.fa-pen.mr-1
+          Edit
+      - else
+        %button{ type: "button", class: disabled_action_classes("btn btn-secondary btn-xs shrink-0", disabled: true), disabled: true, title: update_agent_title }
+          %i.fa-solid.fa-pen.mr-1
+          Edit
+  .card-body
+    - if @agent.instructions.present?
+      %div{ class: "markdown-body bg-surface-secondary p-4 rounded-lg text-[11px] leading-5", data: { controller: "markdown-render", markdown_render_content_value: @agent.instructions } }
+    - else
+      .text-center.py-6
+        %i.fa-solid.fa-scroll.text-2xl.text-text-muted.mb-2
+        %p.text-sm.text-text-muted No system instructions defined.

@@ -1,0 +1,59 @@
+.card.mb-6
+  .card-header
+    %h3.text-sm.font-semibold.text-text-primary
+      %i.fa-solid.fa-comment-dots.mr-2.text-accent
+      Chat Labels
+  .card-body.space-y-6
+    .form-grid
+      .form-group
+        = f.label :new_chat_label, "New Chat Button", class: "form-label"
+        = f.text_field :new_chat_label, class: "form-input"
+      .form-group
+        = f.label :composer_placeholder, "Composer Placeholder", class: "form-label"
+        = f.text_field :composer_placeholder, class: "form-input"
+      .form-group
+        = f.label :sidebar_toggle_label, "Sidebar Toggle Title", class: "form-label"
+        = f.text_field :sidebar_toggle_label, class: "form-input"
+      .form-group
+        = f.label :sidebar_open_label, "Sidebar Open Title", class: "form-label"
+        = f.text_field :sidebar_open_label, class: "form-input"
+      .form-group
+        = f.label :attach_button_label, "Attach Button", class: "form-label"
+        = f.text_field :attach_button_label, class: "form-input"
+      .form-group
+        = f.label :send_button_label, "Send Button", class: "form-label"
+        = f.text_field :send_button_label, class: "form-input"
+      .form-group
+        = f.label :stop_button_label, "Stop Button", class: "form-label"
+        = f.text_field :stop_button_label, class: "form-input"
+      .form-group
+        = f.label :drop_files_label, "Drop Files Label", class: "form-label"
+        = f.text_field :drop_files_label, class: "form-input"
+      .form-group
+        = f.label :empty_state_title, "Empty Chat Title", class: "form-label"
+        = f.text_field :empty_state_title, class: "form-input"
+      .form-group
+        = f.label :welcome_heading, "Welcome Heading", class: "form-label"
+        = f.text_field :welcome_heading, class: "form-input"
+      .form-group
+        = f.label :delete_chat_title, "Delete Chat Button Title", class: "form-label"
+        = f.text_field :delete_chat_title, class: "form-input"
+      .form-group
+        = f.label :delete_chat_confirm_title, "Delete Confirmation Title", class: "form-label"
+        = f.text_field :delete_chat_confirm_title, class: "form-input"
+      .form-group
+        = f.label :delete_chat_confirm_label, "Delete Confirmation Button", class: "form-label"
+        = f.text_field :delete_chat_confirm_label, class: "form-input"
+
+    .form-group
+      = f.label :empty_state_body, "Empty Chat Body", class: "form-label"
+      = f.text_area :empty_state_body, rows: 3, class: "form-input"
+    .form-group
+      = f.label :welcome_body, "Welcome Body", class: "form-label"
+      = f.text_area :welcome_body, rows: 3, class: "form-input"
+    .form-group
+      = f.label :no_agent_body, "No Agent Message", class: "form-label"
+      = f.text_area :no_agent_body, rows: 3, class: "form-input"
+    .form-group
+      = f.label :delete_chat_confirm_message, "Delete Confirmation Message", class: "form-label"
+      = f.text_area :delete_chat_confirm_message, rows: 3, class: "form-input"

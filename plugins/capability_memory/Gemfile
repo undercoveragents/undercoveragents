@@ -1,0 +1,4 @@
+# frozen_string_literal: true
+
+# Neighbor — pgvector ActiveRecord integration for archival memory similarity search
+gem "neighbor"

@@ -1,0 +1,5 @@
+= turbo_frame_tag "node-model-select", data: { llm_settings_target: "modelFrame", action: "turbo:frame-load->llm-settings#syncCapabilities", "node-model-options-url": node_model_options_admin_mission_path(@mission) } do
+  %select.ms-prop-select{ data: { action: "change->mission#updateNodePropSelect change->llm-settings#syncCapabilities", "prop-key": "model", "name-key": "model_name" } }
+    %option{ value: "" } Select a model…
+    - @models.each do |m|
+      %option{ value: m.model_id, selected: m.model_id == @selected_model, data: { custom_properties: llm_model_option_properties(m).to_json } }= m.name.presence || m.model_id

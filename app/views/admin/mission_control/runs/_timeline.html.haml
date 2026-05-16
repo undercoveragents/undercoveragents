@@ -1,0 +1,18 @@
+= turbo_frame_tag "mc-timeline-#{run.id}" do
+  / ── Node Executions Timeline ──
+  .mc-timeline-section{ data: { controller: "inspector-collapse" } }
+    .mc-section-header{ data: { action: "click->inspector-collapse#toggle" } }
+      .mc-section-title
+        %i.fa-solid.fa-timeline.mr-2
+        Execution Timeline (#{node_executions.size} steps)
+      .mc-section-badges
+        %span.badge.badge-success #{execution_stats[:successful]} success
+        - if execution_stats[:failed].positive?
+          %span.badge.badge-danger #{execution_stats[:failed]} failed
+        - if execution_stats[:skipped].positive?
+          %span.badge.badge-secondary #{execution_stats[:skipped]} skipped
+      %i.fa-solid.fa-chevron-down.mc-collapse-icon{ data: { inspector_collapse_target: "icon" } }
+
+    .mc-section-body{ data: { inspector_collapse_target: "body" } }
+      - node_executions.each_with_index do |execution, index|
+        = render "mission_control/runs/node_execution_card", execution:, index:, flow_nodes:

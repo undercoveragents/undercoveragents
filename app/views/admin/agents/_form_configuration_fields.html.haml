@@ -1,0 +1,54 @@
+.grid.grid-cols-1.xl:grid-cols-2.gap-6.mb-6
+  .card
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-tag.mr-2.text-accent
+        Basic Information
+    .card-body
+      .form-grid
+        - if agent.builtin?
+          .form-group.col-span-full
+            %div{ class: "p-3 rounded-lg bg-info-500/10 text-sm text-text-secondary" }
+              This is a built-in agent. You can customize it, and restore it later from its predefined definition.
+
+        .form-group.col-span-full
+          = f.label :name, class: "form-label" do
+            Name
+            %span.text-danger-500.ml-0.5 *
+          = f.text_field :name, class: "form-input", placeholder: "e.g. People Query Agent", required: true
+          .form-hint A unique name to identify this agent.
+
+        .form-group.col-span-full
+          = f.label :description, "Description", class: "form-label"
+          = f.text_area :description, class: "form-input", placeholder: "Brief description of what this agent does", rows: 3
+          .form-hint Describe the agent's purpose in a few words.
+
+        .form-group.col-span-full{ data: { controller: "choices", choices_search_value: "false" } }
+          = f.label :agent_type, "Agent Type", class: "form-label"
+          = f.select :agent_type,
+                     options_for_select(agent_type_options_for_select(agent), agent.agent_type),
+                     {},
+                     class: "form-input form-select",
+                     data: { choices_target: "select" }
+          .form-hint Choose from the agent types defined by the built-in agents.
+
+        .form-group.col-span-full
+          .form-check
+            = f.check_box :enabled, class: "form-check-input"
+            = f.label :enabled, "Enable this agent", class: "form-check-label"
+          .form-hint.ml-6 Disabled agents cannot be used to answer questions.
+
+  .card{ data: { controller: "agent-form", agent_form_model_options_url_value: model_options_admin_agents_path(frame_id: "agent_model_select", field_prefix: "agent"), agent_form_llm_settings_value: true } }
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-brain.mr-2.text-accent
+        Model Configuration
+    .card-body
+      .form-group.mb-4
+        = f.label :llm_config_source, "LLM Source", class: "form-label"
+        = f.select :llm_config_source,
+                   [["Agent Configuration", "agent"], ["System Preference", "system_preference"], ["Runtime Supplied", "runtime"]],
+                   {},
+                   class: "form-input form-select"
+        .form-hint Runtime supplied uses whatever model/context the caller provides. System preference uses the global default model.
+      = render "shared/model_config", field_prefix: "agent", frame_id: "agent_model_select", connector_change_action: "change->agent-form#onConnectorChange", available_llm_connectors:, available_models:, selected_connector_id: agent.llm_connector_id, selected_model_id: agent.model_id, temperature_value: agent.temperature, show_reasoning_settings: true, thinking_effort_value: agent.thinking_effort, thinking_budget_value: agent.thinking_budget, custom_params_value: agent.custom_llm_params_json

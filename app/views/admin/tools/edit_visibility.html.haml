@@ -1,0 +1,2 @@
+- content_for(:title, "Edit Visibility — #{@tool.name} — #{APP_NAME}")
+= render @tool.toolable.edit_visibility_partial_path, tool: @tool, toolable: @tool.toolable

@@ -1,0 +1,26 @@
+en:
+  auth:
+    signed_in: "Signed in successfully."
+    signed_out: "Signed out successfully."
+    invalid_credentials: "Invalid email or password."
+    account_inactive: "Your account has been deactivated. Contact an administrator."
+    admin_required: "You must be an administrator to access this page."
+    oauth_error: "Could not sign in with the external provider. Please try again."
+    oauth_tenant_login_required: "Use your workspace sign-in page the first time you sign in with an external provider."
+    oauth_failure: "Authentication failed: %{reason}. Please try again."
+    password_reset:
+      email_sent: "If an account with that email exists, a password reset link has been sent."
+      invalid_token: "This password reset link is invalid or has expired."
+      success: "Your password has been reset successfully. Please sign in."
+      email_subject: "Reset your password — Undercover Agents"
+    password_change:
+      success: "Your password has been updated successfully."
+      incorrect_current: "is incorrect"
+  cloud_signup:
+    created: "Workspace created successfully."
+  admin:
+    users:
+      created: "User account was successfully created."
+      updated: "User account was successfully updated."
+      deleted: "User account was successfully deleted."
+      cannot_delete_self: "You cannot delete your own account."

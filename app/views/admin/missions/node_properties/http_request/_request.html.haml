@@ -1,0 +1,37 @@
+%details.llm-settings-inline-accordion.ms-http-request-accordion{ open: true }
+  %summary.llm-settings-inline-accordion__summary.ms-http-request-accordion__summary
+    .ms-http-request-accordion__summary-copy
+      %span.ms-http-request-accordion__summary-title Request
+      %span.ms-http-request-accordion__summary-meta Method, URL, and query parameters
+    %i.fa-solid.fa-chevron-down.llm-settings-inline-accordion__chevron
+  .llm-settings-inline-accordion__body.ms-http-request-accordion__body
+    .ms-http-request-grid
+      .ms-prop-field.ms-prop-field--dense
+        %label.ms-prop-label
+          Method
+          %span.ms-prop-required *
+        %select.ms-prop-select{ data: { action: "change->mission#updateNodeProp", "prop-key": "method" } }
+          - Missions::Nodes::HttpRequest::ALLOWED_METHODS.each do |http_method|
+            %option{ value: http_method, selected: presenter.data("method", "GET") == http_method }= http_method
+
+      .ms-prop-field.ms-prop-field--dense.ms-http-request-grid__full
+        %label.ms-prop-label
+          URL
+          %span.ms-prop-required *
+        = render "shared/expression_editor", value: presenter.data("url"), variables: selectable_variables, prop_key: "url", placeholder: "https://api.example.com/resources", multiline: false, rows: 1
+        .ms-prop-hint Resolve path variables inline and keep the base URL readable.
+
+      .ms-prop-field.ms-prop-field--dense.ms-http-request-grid__full
+        %label.ms-prop-label.ms-prop-label--spread
+          %span.ms-prop-label__text Query Params
+          %button.ms-prop-add-btn{ type: "button", data: { action: "click->mission#addKvRow", list_target: "propParams", key_placeholder: "Key", value_placeholder: "Value", value_mode: "expression" } }
+            %i.fa-solid.fa-plus
+        .ms-prop-kv-list{ data: { "mission-target": "propParams", "kv-type": "params", "prop-key": "params", "kv-value-mode": "expression", "kv-variables": selectable_variables.to_json } }
+          - presenter.http_params.each do |key, value|
+            .ms-prop-kv-row
+              %input.ms-prop-kv-key{ type: "text", placeholder: "Key", value: key, data: { action: "blur->mission#syncKv" } }
+              %span.ms-prop-kv-sep =
+              = render "shared/expression_editor", value:, variables: selectable_variables, prop_key: "", placeholder: "Value", multiline: false, rows: 1, data_action: "blur->mission#syncKv input->mission#syncKv"
+              %button.ms-prop-kv-remove{ type: "button", data: { action: "click->mission#removeKvRow" } }
+                %i.fa-solid.fa-xmark
+        .ms-prop-hint Query params are appended after authorization injects any query-based credentials.

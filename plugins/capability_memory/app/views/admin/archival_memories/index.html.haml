@@ -1,0 +1,83 @@
+- content_for(:title, "Archival Memory — #{@agent.name} — Admin — Undercover Agents")
+= render_page_hero(title: "Archival Memory", variant: :compact, title_icon: "fa-solid fa-archive", record_title: @agent.name, back_link: { label: "Back to #{@agent.name}", url: admin_agent_path(@agent) }, actions: [{ label: "Memory Blocks", url: admin_memory_blocks_path, icon: "fa-solid fa-brain", style: :secondary }])
+
+/ ── Search ──
+.card.mb-6
+  .card-header
+    %h3.text-sm.font-semibold.text-text-primary
+      %i.fa-solid.fa-search.mr-2.text-accent
+      Semantic Search
+  .card-body
+    = form_with url: search_admin_agent_archival_memories_path(@agent), method: :post, local: true, class: "flex items-end gap-3" do
+      .flex-1
+        = label_tag :query, "Query", class: "form-label"
+        = text_field_tag :query, params[:query], class: "form-input", placeholder: "Search archival memories..."
+      .w-48
+        = label_tag :tags, "Tags (comma-separated)", class: "form-label"
+        = text_field_tag :tags, params[:tags], class: "form-input", placeholder: "e.g. rails, prefs"
+      .w-48
+        = label_tag :user_id, "Filter by User", class: "form-label"
+        = select_tag :user_id, options_from_collection_for_select(@users, :id, :email, params[:user_id]), prompt: "All users", class: "form-input"
+      = submit_tag "Search", class: "btn btn-primary"
+
+/ ── Add Memory ──
+.card.mb-6
+  .card-header
+    %h3.text-sm.font-semibold.text-text-primary
+      %i.fa-solid.fa-plus.mr-2.text-accent
+      Store New Memory
+  .card-body
+    = form_with url: admin_agent_archival_memories_path(@agent), method: :post, local: true do
+      .form-group
+        = label_tag "archival_memory_user_id", "User", class: "form-label"
+        = select_tag "archival_memory[user_id]", options_from_collection_for_select(@users, :id, :email), prompt: "Select a user...", class: "form-input"
+        .form-hint The user this memory entry belongs to.
+      .form-group
+        = label_tag "archival_memory_content", "Content", class: "form-label"
+        = text_area_tag "archival_memory[content]", nil, class: "form-input", rows: 4, placeholder: "Enter information to store in archival memory..."
+      .form-group
+        = label_tag "archival_memory_tags", "Tags (comma-separated)", class: "form-label"
+        = text_field_tag "archival_memory[tags]", nil, class: "form-input", placeholder: "e.g. preferences, project_notes"
+        .form-hint Optional tags for filtering during search.
+      .flex.justify-end
+        = submit_tag "Store Memory", class: "btn btn-primary"
+
+/ ── User Filter ──
+- if @users.any?
+  .card.mb-6
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-users.mr-2.text-accent
+        Filter by User
+    .card-body.flex.flex-wrap.gap-2
+      = link_to "All", admin_agent_archival_memories_path(@agent), class: "btn btn-sm #{@selected_user ? "btn-secondary" : "btn-primary"}"
+      - @users.each do |u|
+        = link_to u.email, admin_agent_archival_memories_path(@agent, user_id: u.id), class: "btn btn-sm #{@selected_user&.id == u.id ? "btn-primary" : "btn-secondary"}"
+
+/ ── Memory List ──
+.card
+  .card-header
+    %h3.text-sm.font-semibold.text-text-primary
+      %i.fa-solid.fa-list.mr-2.text-accent
+      Stored Memories
+      %span.badge.badge-default.ml-2= @archival_memories.size
+      - if @selected_user
+        %span.ml-2.text-xs.text-text-muted — #{@selected_user.email}
+  .card-body
+    - if @archival_memories.empty?
+      .text-center.py-8
+        %i.fa-solid.fa-archive.text-2xl.text-text-muted.mb-2
+        %p.text-sm.text-text-secondary No archival memories stored yet.
+    - else
+      .space-y-3
+        - @archival_memories.each do |memory|
+          .flex.items-start.gap-3.p-3.rounded-lg.bg-surface-secondary
+            .flex-1.min-w-0
+              %p.text-sm.text-text-primary.whitespace-pre-wrap.break-words= memory.content.truncate(300)
+              .flex.items-center.gap-2.mt-2
+                %span.text-xs.text-text-muted #{time_ago_in_words(memory.created_at)} ago
+                %span.text-xs.text-text-muted.font-medium= memory.user.email
+                - memory.tags.each do |tag|
+                  %span.badge.badge-default.text-xs= tag
+            = button_to admin_agent_archival_memory_path(@agent, memory), method: :delete, class: "btn btn-ghost btn-xs text-text-muted shrink-0", data: { controller: "confirm", confirm_title_value: "Delete Memory", confirm_message_value: "Delete this archival memory entry? This cannot be undone." } do
+              %i.fa-solid.fa-trash

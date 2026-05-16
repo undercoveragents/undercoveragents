@@ -1,0 +1,16 @@
+- selectable_variables = presenter.selectable_upstream_variables
+.ms-http-request-settings{ data: { controller: "http-request-node" } }
+  = render "admin/missions/node_properties/http_request/request", presenter:, selectable_variables:
+  -# haml-lint workaround for consecutive renders
+  = render "admin/missions/node_properties/http_request/authorization", presenter:, selectable_variables:
+  -# haml-lint workaround for consecutive renders
+  = render "admin/missions/node_properties/http_request/body", presenter:, selectable_variables:, file_reference_options: presenter.http_file_reference_options
+  -# haml-lint workaround for consecutive renders
+  = render "admin/missions/node_properties/http_request/transport", presenter:
+
+  .ms-prop-hint.ms-prop-hint-vars
+    %i.fa-solid.fa-circle-info
+    HTTP values support mission variables. Type
+    %code @
+    inside URL, header, query, or body editors to insert upstream data.
+  = render "shared/expression_guide_link"

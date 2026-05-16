@@ -1,0 +1,77 @@
+/ Prompt Editor — Reusable multi-message prompt editing component.
+
+- prompt_editor = build_prompt_editor_config(local_assigns)
+
+.pe-container{ class: ("pe-container--compact" if prompt_editor.compact), data: { controller: "prompt-editor", prompt_editor_compact_value: prompt_editor.compact, prompt_editor_show_variables_value: prompt_editor.show_variables, prompt_editor_show_user_messages_value: prompt_editor.show_user_messages, prompt_editor_variables_value: prompt_editor.variables_json } }
+
+  / ── System Prompt ──
+  .pe-message{ data: { "message-role": "system" } }
+    .pe-message-header
+      .pe-message-header-left
+        %span.pe-role-badge.pe-role-system
+          %i.fa-solid.fa-microchip
+          System
+      .pe-message-header-actions
+        - if prompt_editor.show_variables
+          .pe-var-dropdown-wrap
+            %button.pe-action-btn.pe-action-btn-var{ type: "button", title: "Insert variable", data: { action: "click->prompt-editor#toggleVariablesDropdown" } }
+              %i.fa-solid.fa-code
+            .pe-var-dropdown.hidden
+              - prompt_editor.var_names.each do |name|
+                %button.pe-var-dropdown-item{ type: "button", data: { variable: name, action: "click->prompt-editor#insertVariable" } }= prompt_editor.var_labels[name]
+        %button.pe-action-btn{ type: "button", title: "Toggle editor theme", data: { action: "click->prompt-editor#toggleTheme" } }
+          %i.fa-solid.fa-circle-half-stroke
+        %button.pe-action-btn{ type: "button", title: "Maximize", data: { action: "click->prompt-editor#openMaximize" } }
+          %i.fa-solid.fa-expand
+    .pe-editor-wrap{ class: ("pe-editor-wrap--compact" if prompt_editor.compact), data: { "editor-key": "system", action: "focus->prompt-editor#editorFocused" }, "data-prompt-editor-target": "systemEditor" }
+      %textarea.pe-textarea{ class: ("pe-textarea--compact" if prompt_editor.compact), placeholder: "Enter system instructions…" }= prompt_editor.system_value
+    - if prompt_editor.field_name.present?
+      %input{ type: "hidden", name: prompt_editor.field_name, value: prompt_editor.system_value, data: { "prompt-editor-target": "systemInput" } }
+    - else
+      %input{ type: "hidden", data: { "prompt-editor-target": "systemInput" } }
+
+  / ── User Messages ──
+  - if prompt_editor.show_user_messages
+    .pe-user-messages{ data: { "prompt-editor-target": "userMessagesContainer" } }
+      - prompt_editor.user_messages.each_with_index do |msg, idx|
+        .pe-message{ data: { "user-message-id": idx, "message-role": "user" } }
+          .pe-message-header
+            .pe-message-header-left
+              %span.pe-role-badge.pe-role-user
+                %i.fa-solid.fa-user
+                User
+              %span.pe-msg-counter ##{idx + 1}
+            .pe-message-header-actions
+              %button.pe-action-btn.pe-action-btn-danger{ type: "button", title: "Remove message", data: { action: "click->prompt-editor#removeUserMessage" } }
+                %i.fa-solid.fa-trash-can
+              - if prompt_editor.show_variables
+                .pe-var-dropdown-wrap
+                  %button.pe-action-btn.pe-action-btn-var{ type: "button", title: "Insert variable", data: { action: "click->prompt-editor#toggleVariablesDropdown" } }
+                    %i.fa-solid.fa-code
+                  .pe-var-dropdown.hidden
+                    - prompt_editor.var_names.each do |name|
+                      %button.pe-var-dropdown-item{ type: "button", data: { variable: name, action: "click->prompt-editor#insertVariable" } }= prompt_editor.var_labels[name]
+              %button.pe-action-btn{ type: "button", title: "Maximize", data: { action: "click->prompt-editor#openMaximize" } }
+                %i.fa-solid.fa-expand
+          .pe-editor-wrap{ class: ("pe-editor-wrap--compact" if prompt_editor.compact), data: { "editor-key": "user_#{idx}", action: "focus->prompt-editor#editorFocused" } }
+            %textarea.pe-textarea{ class: ("pe-textarea--compact" if prompt_editor.compact), placeholder: "Enter user message…" }= msg
+          %input{ type: "hidden", data: { "user-input-id": idx.to_s } }
+    %button.pe-add-message-btn{ type: "button", data: { action: "click->prompt-editor#addUserMessage" } }
+      %i.fa-solid.fa-plus
+      Add Message
+
+  / ── Maximize Dialog ──
+  %dialog.dialog.pe-maximize-dialog{ data: { "prompt-editor-target": "maximizeDialog", action: "click->prompt-editor#maximizeBackdropClick" } }
+    .dialog-content
+      .dialog-header
+        %h3.dialog-title System Prompt
+        %button.dialog-close{ type: "button", data: { action: "click->prompt-editor#closeMaximize" } }
+          %i.fa-solid.fa-xmark
+      .pe-maximize-body
+        .pe-maximize-editor-wrap{ data: { "prompt-editor-target": "maximizeEditorWrap" } }
+          %textarea.pe-textarea{ placeholder: "Enter your prompt…" }
+      .pe-maximize-footer
+        %button.btn.btn-secondary{ type: "button", data: { action: "click->prompt-editor#closeMaximize" } } Cancel
+        %button.btn.btn-primary{ type: "button", data: { action: "click->prompt-editor#saveMaximize" } }
+          %i.fa-solid.fa-check.mr-1
+          Apply

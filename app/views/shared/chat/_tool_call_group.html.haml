@@ -1,0 +1,9 @@
+- group_title = local_assigns[:group_title]
+- status = local_assigns[:status] || :complete
+- items = Array(local_assigns[:items])
+- active_tool_calls = items.count { |item| item[:status].to_s == "running" }
+- group_data = { group_title:, active_tool_calls: }
+.shared-chat__tool-group{ class: ("streaming" if status.to_s == "running"), data: group_data }
+  %ol.shared-chat__tool-timeline
+    - items.each do |item|
+      = render partial: "shared/chat/tool_timeline_item", locals: item

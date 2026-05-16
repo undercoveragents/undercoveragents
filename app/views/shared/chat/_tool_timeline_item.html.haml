@@ -1,0 +1,18 @@
+- tool_call = local_assigns[:tool_call]
+- child_chat = local_assigns[:child_chat]
+- status = local_assigns[:status] || :complete
+- resolved_label = child_chat.present? ? chat_tool_call_branch_label(local_assigns[:label], child_chat) : local_assigns[:label]
+- resolved_icon_class = chat_tool_call_branch_icon_class(local_assigns[:icon_class], child_chat)
+- row_locals = chat_tool_call_row_locals(status:, label: resolved_label, icon_class: resolved_icon_class, phrase: local_assigns[:phrase], duration_label: local_assigns[:duration_label])
+- item_data = (local_assigns[:widget_data] || {}).merge({ tool_call_id: tool_call&.tool_call_id, tool_name: tool_call&.name, tool_status: row_locals[:status] }).compact
+%li.shared-chat__tool-timeline-item{ class: ["is-#{row_locals[:status]}", ("shared-chat__tool-timeline-item--branch" if child_chat.present?)], data: item_data }
+  - if child_chat.present?
+    %details.shared-chat__tool-timeline-branch{ open: (true if row_locals[:status] == "running") }
+      %summary.shared-chat__tree-summary.shared-chat__tree-summary--timeline
+        = render partial: "shared/chat/tool_call_row", locals: row_locals.merge(collapsible: true, section: true)
+        %span.sr-only= chat_tool_call_state_label(row_locals[:status])
+      .shared-chat__tree-children
+        = render partial: "shared/chat/subagent_chat", locals: { chat: child_chat }
+  - else
+    = render partial: "shared/chat/tool_call_row", locals: row_locals
+    %span.sr-only= chat_tool_call_state_label(row_locals[:status])

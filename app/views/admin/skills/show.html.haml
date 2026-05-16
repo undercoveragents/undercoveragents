@@ -1,0 +1,82 @@
+- content_for(:title, "#{@skill.name} — #{APP_NAME}")
+- actions = []
+- actions << policy_page_hero_action(@skill, :restore?, label: "Restore Default", url: restore_admin_skill_catalog_skill_path(@skill_catalog, @skill), icon: "fa-solid fa-rotate-left", style: :secondary, method: :post, data: { controller: "confirm", confirm_title_value: "Restore Built-in Skill", confirm_message_value: "Restore #{@skill.name} to the shipped default? This also reloads its parent built-in catalog." }) if @skill.builtin?
+- actions << policy_page_hero_action(@skill, :update?, label: "Edit", url: edit_admin_skill_catalog_skill_path(@skill_catalog, @skill), icon: "fa-solid fa-pen", style: :secondary)
+- actions << policy_page_hero_action(@skill, :destroy?, label: "Delete", url: admin_skill_catalog_skill_path(@skill_catalog, @skill), icon: "fa-solid fa-trash", style: :danger_outline, method: :delete, data: { controller: "confirm", confirm_title_value: "Delete Skill", confirm_message_value: "Delete #{@skill.name} from #{@skill_catalog.name}?" })
+= render_page_hero(title: "Skill", variant: :compact, theme: :skills, title_icon: "fa-solid fa-sparkles", record_title: @skill.name, back_link: { label: "Back to #{@skill_catalog.name}", url: admin_skill_catalog_path(@skill_catalog) }, meta: [skill_source_badge(@skill), skill_warning_badge(@skill)], actions:)
+
+%div{ class: "grid grid-cols-1 xl:grid-cols-[minmax(0,1.2fr)_minmax(18rem,0.8fr)] gap-6 mb-6" }
+  .card
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-scroll.mr-2.text-accent
+        Instructions Preview
+    .card-body
+      - if @skill.instructions.present?
+        .markdown-body.bg-surface-secondary.p-4.rounded-lg{ data: { controller: "markdown-render", markdown_render_content_value: @skill.instructions } }
+      - else
+        .text-sm.text-text-secondary This skill currently contains only frontmatter metadata.
+
+  .card
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-sliders.mr-2.text-accent
+        Frontmatter & Diagnostics
+    .card-body.space-y-4
+      .detail-grid
+        .detail-item
+          .detail-label Catalog
+          .detail-value= @skill_catalog.name
+        .detail-item
+          .detail-label License
+          .detail-value= @skill.license.presence || "—"
+        .detail-item
+          .detail-label Compatibility
+          .detail-value= @skill.compatibility.presence || "—"
+        .detail-item
+          .detail-label Allowed tools
+          .detail-value= @skill.allowed_tools.presence || "—"
+        .detail-item
+          .detail-label Resources
+          .detail-value= @skill.skill_resources.size
+        .detail-item
+          .detail-label Updated
+          .detail-value= @skill.updated_at.strftime("%B %d, %Y at %H:%M")
+      - if @skill.spec_warnings.any?
+        %div{ class: "p-3 rounded-lg bg-warning-500/10 border border-warning-500/20" }
+          %h4.text-sm.font-semibold.text-text-primary.mb-2 Specification warnings
+          %ul.list-disc.list-inside.text-sm.text-text-secondary.space-y-1
+            - @skill.spec_warnings.each do |warning|
+              %li= warning
+      - if @skill.metadata.present?
+        %div
+          %h4.text-xs.font-semibold.uppercase.tracking-wide.text-text-muted.mb-2 Metadata JSON
+          %pre.skill-preview= JSON.pretty_generate(@skill.metadata)
+
+%div{ class: "grid grid-cols-1 xl:grid-cols-[minmax(0,1.1fr)_minmax(18rem,0.9fr)] gap-6" }
+  .card
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-file-code.mr-2.text-accent
+        Canonical SKILL.md
+    .card-body
+      %pre.skill-preview= @skill.skill_markdown
+
+  .card
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-folder-tree.mr-2.text-accent
+        Bundled Resources
+    .card-body
+      - if @skill.skill_resources.any?
+        .skill-resource-list
+          - @skill.skill_resources.each do |resource|
+            .skill-resource-item
+              .entity-card__icon
+                %i{ class: skill_resource_icon(resource) }
+              .flex-1.min-w-0
+                = link_to resource.relative_path, resource.file, class: "text-sm font-medium text-text-primary truncate no-underline block", target: "_blank", rel: "noopener"
+                .text-xs.text-text-secondary= resource.file.blob.content_type
+              .badge.badge-secondary= resource.resource_kind
+      - else
+        .text-sm.text-text-secondary This skill does not bundle any extra files yet.

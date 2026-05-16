@@ -1,0 +1,9 @@
+= turbo_frame_tag "llm_provider_fields" do
+  .card.mb-6
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-key.mr-2.text-accent
+        = t("connectors.llm_provider.form.provider_config")
+    .card-body
+      .form-grid
+        = render "llm_provider_fields", connector:

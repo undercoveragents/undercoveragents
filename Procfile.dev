@@ -1,0 +1,7 @@
+# OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES silences the macOS fork() warning
+# that Falcon emits via libdispatch when forking workers. Required on
+# macOS development; harmless on other platforms.
+web: OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES bundle exec falcon serve --bind http://localhost:3000
+css: bundle exec rails tailwindcss:watch
+js: pnpm run watch:mission
+jobs: bundle exec rails solid_queue:start

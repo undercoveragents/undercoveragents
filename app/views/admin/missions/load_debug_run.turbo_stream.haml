@@ -1,0 +1,48 @@
+-# Load a specific debug run's state into the debug panel
+- debug_state = @debug_state
+- filtered_vars = debug_state.filtered_variables(fallback: :all)
+
+= turbo_stream.replace "mission-timeline-content" do
+  #mission-timeline-content
+    - if debug_state.execution_log.any?
+      .ms-debug-timeline#mission-timeline-entries
+        - debug_state.execution_log.each do |entry|
+          -# entry
+          = render "admin/missions/debug/timeline_entry", entry:
+    - else
+      .ms-debug-empty
+        %i.fa-solid.fa-play-circle
+        %span Run the mission to see execution timeline
+
+= turbo_stream.replace "mission-variables-content" do
+  = render "admin/missions/debug/variables", variables: filtered_vars, node_outputs: {}
+
+= turbo_stream.replace "mission-run-controls" do
+  = render "admin/missions/debug/run_controls", run_status: @run.status
+
+= turbo_stream.replace "mission-run-status" do
+  = render "admin/missions/debug/run_status", run_status: @run.status, run_error: @run.error, run_duration: debug_state.duration_ms
+
+= turbo_stream.replace "mission-past-runs" do
+  = render "admin/missions/debug/past_runs", recent_runs: @recent_runs, active_run_id: @run.id
+
+-# Subscribe to stream if run is still active
+= turbo_stream.replace "mission-stream-subscription" do
+  #mission-stream-subscription
+    = turbo_stream_from "mission_debug_#{@run.id}" if @run.active?
+
+= turbo_stream.update "mission-node-events", ""
+
+-# Emit node state events so React canvas updates
+- debug_state.node_event_payloads.each do |data|
+  = turbo_stream.append "mission-node-events" do
+    %div{ data: }
+
+- debug_state.persisted_node_state_payloads.each do |data|
+  = turbo_stream.append "mission-node-events" do
+    %div{ data: }
+
+-# Emit edge state events so React canvas restores exact edge status
+- debug_state.edge_event_payloads.each do |data|
+  = turbo_stream.append "mission-node-events" do
+    %div{ data: }

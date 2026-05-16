@@ -1,0 +1,442 @@
+/* ==========================================================================
+   Wizard UI
+   Reusable shell, progress, section, choice-card, status, and footer styles
+   for guided multi-step forms across the app and plugins.
+   ========================================================================== */
+
+.ui-wizard {
+  --ui-wizard-card-padding: var(--card-padding);
+  --ui-wizard-hero-start: color-mix(in srgb, var(--accent) 4%, var(--color-surface-card));
+  --ui-wizard-hero-end: color-mix(in srgb, white 82%, var(--color-surface-card));
+  --ui-wizard-progress-line: color-mix(in srgb, var(--accent) 12%, var(--color-border-default));
+  --ui-wizard-divider-color: color-mix(in srgb, var(--accent) 10%, var(--color-border-default));
+  --ui-wizard-divider-highlight: color-mix(in srgb, white 70%, transparent);
+  --ui-wizard-option-bg: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-surface-card) 90%, white),
+    var(--color-surface-card)
+  );
+  --ui-wizard-option-active-shadow: 0 10px 24px color-mix(in srgb, var(--accent) 14%, transparent);
+  --ui-wizard-chip-bg: color-mix(in srgb, var(--accent) 10%, var(--color-surface-card));
+  --ui-wizard-chip-remove-color: var(--color-text-secondary);
+  display: grid;
+  gap: 0;
+}
+
+.ui-wizard--flush-card {
+  margin: 0 calc(var(--ui-wizard-card-padding) * -1) 0;
+}
+
+.ui-wizard-form > .ui-wizard--flush-card {
+  margin-top: calc(var(--ui-wizard-card-padding) * -1);
+}
+
+.ui-wizard-form.space-y-6 > input[type="hidden"] + .ui-wizard--flush-card {
+  margin-top: calc(var(--ui-wizard-card-padding) * -1) !important;
+}
+
+.ui-wizard__shell {
+  display: grid;
+  gap: 0;
+  border-radius: calc(var(--radius-lg) - 1px);
+  overflow: hidden;
+}
+
+.ui-wizard__hero-main,
+.ui-wizard__section-copy-block {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.ui-wizard__hero {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem 1rem 1.1rem;
+  margin: 0;
+  background-image: linear-gradient(135deg, var(--ui-wizard-hero-start), var(--ui-wizard-hero-end));
+}
+
+.ui-wizard__eyebrow {
+  margin: 0 0 0.15rem;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.ui-wizard__title {
+  margin: 0;
+  font-size: 1.06rem;
+  font-weight: 650;
+  color: var(--color-text-primary);
+}
+
+.ui-wizard__subtitle,
+.ui-wizard__section-copy,
+.ui-wizard__mode-card p {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--color-text-secondary);
+}
+
+.ui-wizard__progress {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  position: relative;
+  width: 100%;
+}
+
+.ui-wizard__progress::before {
+  content: "";
+  position: absolute;
+  left: 0.8rem;
+  right: 0.8rem;
+  top: 0.65rem;
+  height: 1px;
+  background: var(--ui-wizard-progress-line);
+}
+
+.ui-wizard__progress-pill {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  justify-items: center;
+  gap: 0.3rem;
+}
+
+.ui-wizard__progress-link {
+  display: grid;
+  justify-items: center;
+  gap: 0.3rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.ui-wizard__progress-link:hover .ui-wizard__progress-number,
+.ui-wizard__progress-link:focus-visible .ui-wizard__progress-number {
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.ui-wizard__progress-link:focus-visible {
+  outline: none;
+}
+
+.ui-wizard__progress-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  min-width: 1.35rem;
+  border-radius: 9999px;
+  background: var(--accent);
+  color: white;
+  font-size: 0.66rem;
+  font-weight: 700;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ui-wizard__progress-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.ui-wizard__section-head {
+  display: block;
+  margin-bottom: 1.05rem;
+}
+
+.ui-wizard__section-marker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.35rem;
+}
+
+.ui-wizard__section-marker-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.ui-wizard__section-copy {
+  max-width: 38rem;
+}
+
+.ui-wizard__panel {
+  padding: 1.45rem 1rem 1.05rem;
+  background: transparent;
+  border-top: 1px solid var(--ui-wizard-divider-color);
+  box-shadow: inset 0 1px 0 var(--ui-wizard-divider-highlight);
+  scroll-margin-top: 1.5rem;
+}
+
+.ui-wizard__hero + .ui-wizard__panel {
+  padding-top: 1.35rem;
+  border-top: 0;
+  box-shadow: none;
+}
+
+.ui-wizard__mode-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0.65rem;
+  margin-top: 0.2rem;
+}
+
+.ui-wizard__mode-option {
+  display: block;
+}
+
+.ui-wizard__mode-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ui-wizard__mode-card {
+  display: grid;
+  gap: 0.35rem;
+  min-height: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  background: var(--ui-wizard-option-bg);
+
+  strong {
+    font-size: 0.88rem;
+    color: var(--color-text-primary);
+  }
+
+  p {
+    font-size: 0.8rem;
+  }
+}
+
+.ui-wizard__mode-input:checked + .ui-wizard__mode-card {
+  border-color: var(--accent);
+  box-shadow: var(--ui-wizard-option-active-shadow);
+  transform: translateY(-2px);
+}
+
+.ui-wizard__mode-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+}
+
+.ui-wizard__action-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.ui-wizard__action-note {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.79rem;
+  line-height: 1.45;
+}
+
+.ui-wizard__source-body {
+  margin-top: 1rem;
+}
+
+.ui-wizard__status {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin-top: 0.8rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  font-size: 0.82rem;
+
+  p {
+    margin: 0;
+    line-height: 1.45;
+  }
+
+  &.is-info {
+    border-color: color-mix(in srgb, var(--color-info-500, var(--accent)) 30%, transparent);
+    background: color-mix(in srgb, var(--color-info-500, var(--accent)) 10%, transparent);
+    color: var(--color-info-600, var(--accent));
+  }
+
+  &.is-success {
+    border-color: color-mix(in srgb, var(--color-success-500) 30%, transparent);
+    background: color-mix(in srgb, var(--color-success-500) 10%, transparent);
+    color: var(--color-success-600, var(--color-success-500));
+  }
+
+  &.is-error {
+    border-color: color-mix(in srgb, var(--color-danger-500) 30%, transparent);
+    background: color-mix(in srgb, var(--color-danger-500) 10%, transparent);
+    color: var(--color-danger-600, var(--color-danger-500));
+  }
+}
+
+.ui-wizard .choices {
+  font-size: 0.85rem;
+}
+
+.ui-wizard .form-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.ui-wizard .form-hint {
+  margin-top: 0.2rem;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.ui-wizard .choices__inner {
+  min-height: 2.15rem;
+  padding: 0.32rem 0.55rem;
+}
+
+.ui-wizard .choices__list--dropdown,
+.ui-wizard .choices__list[aria-expanded] {
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+
+.ui-wizard .choices__list--multiple {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  width: auto;
+  max-width: 100%;
+  flex: 0 1 auto;
+}
+
+.ui-wizard .choices__list--multiple .choices__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
+  margin-bottom: 0;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--ui-wizard-chip-bg);
+  color: var(--color-text-primary);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.18rem 0.42rem;
+}
+
+.ui-wizard .choices__list--multiple .choices__item .choices__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  border-left: 0;
+  margin: 0;
+  padding: 0;
+  width: 0.9rem;
+  min-width: 0.9rem;
+  height: 0.9rem;
+  background-image: none;
+  text-indent: 0;
+  font-size: 0;
+  line-height: 1;
+  opacity: 1;
+  color: transparent;
+}
+
+.ui-wizard .choices__list--multiple .choices__item .choices__button::before {
+  content: "\00d7";
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ui-wizard-chip-remove-color);
+}
+
+.ui-wizard .choices__list--multiple .choices__item .choices__button:hover::before,
+.ui-wizard .choices__list--multiple .choices__item .choices__button:focus-visible::before {
+  color: var(--accent);
+}
+
+.ui-wizard .choices[data-type*="select-multiple"] .choices__inner {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding-top: 0.35rem;
+  padding-bottom: 0.25rem;
+}
+
+.ui-wizard .choices[data-type*="select-multiple"] .choices__input--cloned {
+  flex: 1 0 10rem;
+  min-width: 10rem !important;
+  width: auto !important;
+  margin: 0 !important;
+  padding: 0.18rem 0 0.12rem !important;
+}
+
+.ui-wizard .choices__button {
+  opacity: 0.75;
+}
+
+.ui-wizard-form__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin: 1.5rem calc(var(--card-padding) * -1) 0;
+  padding: 1rem var(--card-padding) 0;
+  border-top: 1px solid var(--color-border-default);
+}
+
+@media (min-width: 900px) {
+  .ui-wizard__hero-main {
+    max-width: 50rem;
+  }
+}
+
+@media (max-width: 720px) {
+  .ui-wizard__section-head,
+  .ui-wizard__action-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ui-wizard__hero {
+    padding: 0.9rem 0.85rem 1rem;
+  }
+
+  .ui-wizard__panel {
+    padding: 1.05rem 0.85rem 0.85rem;
+  }
+
+  .ui-wizard__hero + .ui-wizard__panel {
+    padding-top: 1rem;
+  }
+
+  .ui-wizard__progress {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ui-wizard__progress::before {
+    display: none;
+  }
+}

@@ -1,0 +1,38 @@
+/ ── MCP Tool Visibility ──
+/ Locals: tool, toolable
+- form_id = "mcp-server-visibility-form"
+- back_link = { label: "Back to #{tool.name}", url: admin_tool_path(tool) }
+= render_page_hero(title: "Tool Visibility", variant: :compact, title_icon: "fa-solid fa-filter", record_title: tool.name, back_link:, actions: [page_hero_form_action(label: "Save Visibility", form_id:)])
+
+= form_with url: update_visibility_admin_tool_path(tool), method: :patch, local: true, html: { class: "connector-form", id: form_id } do
+  .card.mb-6{ data: { controller: "table-visibility" } }
+    .card-header
+      .flex.items-center.justify-between
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-filter.mr-2.text-accent
+          Tool Visibility
+        %span.text-sm.font-medium.text-text-secondary{ data: { table_visibility_target: "counter" } }
+          - selected_names = toolable.selected_tool_names
+          - total = toolable.all_discovered_tool_names.size
+          #{selected_names.size} of #{total} selected
+    .card-body
+      / Select / deselect all buttons
+      .flex.items-center.gap-3.mb-4
+        %button.btn.btn-secondary.btn-xs{ type: "button", data: { action: "click->table-visibility#selectAll" } }
+          %i.fa-solid.fa-check-double.mr-1
+          Select All
+        %button.btn.btn-secondary.btn-xs{ type: "button", data: { action: "click->table-visibility#deselectAll" } }
+          %i.fa-solid.fa-xmark.mr-1
+          Deselect All
+
+      / Tool list
+      .space-y-2
+        - toolable.discovered_tools.each do |mcp_tool|
+          - tool_name = mcp_tool["name"]
+          - checked = selected_names.include?(tool_name)
+          %label.flex.items-start.gap-3.p-3.rounded-lg.border.border-border-default.cursor-pointer.hover:bg-surface-secondary.transition-colors{ data: { table_visibility_target: "checkbox" } }
+            = check_box_tag "mcp_server[selected_tools][]", tool_name, checked, class: "mt-1 rounded border-border-default text-accent focus:ring-accent", data: { action: "change->table-visibility#updateCounter" }
+            .flex-1.min-w-0
+              %span.text-sm.font-semibold.text-text-primary= tool_name
+              - if mcp_tool["description"].present?
+                %p.text-xs.text-text-secondary.mt-0.5= mcp_tool["description"]

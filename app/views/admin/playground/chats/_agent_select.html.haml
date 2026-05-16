@@ -1,0 +1,13 @@
+- if agents.any?
+  .page-hero__custom-control.playground-header-agent-control
+    = form_tag admin_playground_chats_path,
+               method: :get,
+               class: "playground-header-agent-form",
+               data: { turbo_frame: "app-content-frame" } do
+      .playground-header-agent-dropdown{ data: { controller: "choices", choices_search_value: "true", choices_placeholder_value: "Select an agent…" } }
+        = select_tag :agent_id,
+                     options_for_select(playground_agents_for_select(agents), agent&.id),
+                     prompt: "Select an agent…",
+                     class: "form-input form-select playground-agent-select",
+                     data: { choices_target: "select" },
+                     onchange: "this.form.requestSubmit()"

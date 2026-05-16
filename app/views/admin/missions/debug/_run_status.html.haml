@@ -1,0 +1,18 @@
+-# Run status indicator badge
+- run_status = local_assigns.fetch(:run_status, "none")
+- run_error = local_assigns.fetch(:run_error, nil)
+- run_duration = local_assigns.fetch(:run_duration, nil)
+- config = run_status_config(run_status)
+
+#mission-run-status
+  -# haml-lint:disable InlineStyles
+  .ms-debug-run-indicator{ style: "color: #{config[:color]}; background: #{config[:bg]}" }
+    %i.fa-solid{ class: config[:icon] }
+    %span= run_status == "none" ? "Ready" : run_status.capitalize
+    - if run_duration
+      %span.ms-debug-run-time #{run_duration}ms
+  -# haml-lint:enable InlineStyles
+
+  - if run_error
+    .ms-debug-run-error{ title: run_error }
+      %i.fa-solid.fa-triangle-exclamation

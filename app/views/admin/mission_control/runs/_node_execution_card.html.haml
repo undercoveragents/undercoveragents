@@ -1,0 +1,102 @@
+- number = index + 1
+- node_label = mc_node_label(flow_nodes, execution.node_id)
+- duration_ms = execution.started_at && execution.finished_at ? (execution.finished_at - execution.started_at) * 1000 : nil
+- input_present = !execution.input.nil? && !(execution.input.respond_to?(:empty?) && execution.input.empty?)
+- output_present = !execution.output.nil? && !(execution.output.respond_to?(:empty?) && execution.output.empty?)
+.mc-node-exec{ class: mc_execution_status_color(execution.status), data: { controller: "inspector-collapse", inspector_collapse_expanded_value: "false" } }
+  / ── Node Execution Header (always visible, clickable) ──
+  .mc-node-exec-header{ data: { action: "click->inspector-collapse#toggle" } }
+    .mc-node-exec-header-left
+      .mc-node-exec-number= number
+      .mc-node-type-badge{ class: mc_node_type_color(execution.node_type) }
+        %i{ class: mc_node_type_icon(execution.node_type) }
+        = execution.node_type
+      .mc-node-exec-label= node_label
+    .mc-node-exec-header-right
+      .mc-exec-status-badge{ class: mc_execution_status_color(execution.status) }
+        = execution.status
+      - if duration_ms
+        %span.mc-node-exec-duration
+          %i.fa-solid.fa-stopwatch
+          = mc_format_duration(duration_ms)
+      - if execution.error.present?
+        %span.mc-node-exec-error-flag
+          %i.fa-solid.fa-triangle-exclamation
+      %i.fa-solid.fa-chevron-down.mc-collapse-icon{ data: { inspector_collapse_target: "icon" } }
+
+  / ── Node Execution Body (collapsible) ──
+  .mc-node-exec-body{ data: { inspector_collapse_target: "body" } }
+    / ── Metadata Grid ──
+    .mc-node-exec-meta-grid
+      .mc-meta-item
+        .mc-meta-label Node ID
+        .mc-meta-value.font-mono= execution.node_id
+      .mc-meta-item
+        .mc-meta-label Label
+        .mc-meta-value= node_label
+      .mc-meta-item
+        .mc-meta-label Type
+        .mc-meta-value= execution.node_type
+      .mc-meta-item
+        .mc-meta-label Status
+        .mc-meta-value= execution.status
+      .mc-meta-item
+        .mc-meta-label Next Port
+        .mc-meta-value= execution.next_port || "—"
+      - if execution.started_at
+        .mc-meta-item
+          .mc-meta-label Started
+          .mc-meta-value{ title: execution.started_at.iso8601 }= execution.started_at.strftime("%H:%M:%S.%L")
+      - if execution.finished_at
+        .mc-meta-item
+          .mc-meta-label Finished
+          .mc-meta-value{ title: execution.finished_at.iso8601 }= execution.finished_at.strftime("%H:%M:%S.%L")
+      - if duration_ms
+        .mc-meta-item
+          .mc-meta-label Duration
+          .mc-meta-value= mc_format_duration(duration_ms)
+
+    / ── Error ──
+    - if execution.error.present?
+      .mc-node-exec-section
+        .mc-node-exec-section-label
+          %i.fa-solid.fa-triangle-exclamation.mr-1
+          Error
+        .mc-code-block-wrapper.mc-code-block-error
+          %pre.mc-code-block= execution.error
+
+    / ── Input ──
+    .mc-node-exec-section
+      .mc-node-exec-section-label
+        %i.fa-solid.fa-arrow-right-to-bracket.mr-1
+        Input
+      - if input_present
+        .mc-code-block-wrapper
+          - if image_output?(execution.input)
+            %img.ms-debug-image-preview{ src: execution.input, alt: "Node input" }
+          - elsif file_output?(execution.input)
+            = file_download_link(execution.input)
+          - elsif execution.input.is_a?(Hash) || execution.input.is_a?(Array)
+            %pre.mc-code-block= JSON.pretty_generate(execution.input)
+          - else
+            %pre.mc-code-block= execution.input
+      - else
+        .text-text-muted.text-xs.italic No input
+
+    / ── Output ──
+    .mc-node-exec-section
+      .mc-node-exec-section-label
+        %i.fa-solid.fa-arrow-right-from-bracket.mr-1
+        Output
+      - if output_present
+        .mc-code-block-wrapper
+          - if image_output?(execution.output)
+            %img.ms-debug-image-preview{ src: execution.output, alt: "Image response" }
+          - elsif file_output?(execution.output)
+            = file_download_link(execution.output)
+          - elsif execution.output.is_a?(Hash) || execution.output.is_a?(Array)
+            %pre.mc-code-block= JSON.pretty_generate(execution.output)
+          - else
+            %pre.mc-code-block= execution.output
+      - else
+        .text-text-muted.text-xs.italic No output

@@ -1,0 +1,22 @@
+{
+  "name": "event-horizon-react",
+  "private": true,
+  "scripts": {
+    "build:mission": "esbuild app/javascript/mission_designer/index.jsx --bundle --minify --sourcemap --target=es2020 --loader:.jsx=jsx --loader:.css=css --outfile=app/assets/builds/mission_designer.js",
+    "watch:mission": "esbuild app/javascript/mission_designer/index.jsx --bundle --sourcemap --target=es2020 --loader:.jsx=jsx --loader:.css=css --outfile=app/assets/builds/mission_designer.js --watch",
+    "site:dev": "vitepress dev website --host 0.0.0.0 --port 4173",
+    "site:build": "vitepress build website",
+    "site:preview": "vitepress preview website --host 0.0.0.0 --port 4173",
+    "site:serve": "node website/server.mjs"
+  },
+  "dependencies": {
+    "@xyflow/react": "^12.10.2",
+    "elkjs": "^0.11.1",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.12",
+    "vitepress": "^1.6.4"
+  }
+}

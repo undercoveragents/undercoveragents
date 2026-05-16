@@ -1,0 +1,33 @@
+-# Input fields form — only Input node fields
+- fields = mission.input_fields
+
+.ms-debug-inputs
+  - if fields.empty?
+    .ms-debug-empty
+      %i.fa-solid.fa-sliders
+      %span No input fields detected. Add an Input node to define mission inputs.
+  - else
+    .ms-debug-inputs-groups#mission-input-variables
+      .ms-debug-inputs-group
+        .ms-debug-inputs-group-header
+          %i.fa-solid.fa-right-to-bracket.text-emerald-400
+          %span Input Fields
+          %span.ms-debug-inputs-group-count= fields.size
+
+        .ms-debug-inputs-group-body
+          - fields.select { |f| f["variable_name"].present? }.each do |field|
+            - key = field["variable_name"]
+            - var = { key:, field_type: field["field_type"], required: field["required"].present?, default_value: field.dig("config", "default_value"), description: field["label"] }
+            .ms-debug-input-card{ data: { trigger: "true" } }
+              .ms-debug-input-header
+                %span.ms-debug-input-key= key
+                - if field["field_type"]
+                  %span.ms-debug-input-type-badge= field["field_type"]
+                - if field["required"].present?
+                  %span.ms-debug-input-required-badge required
+              - desc = field["label"]
+              - show_desc = desc.present? && desc != key
+              - if show_desc
+                .ms-debug-input-desc= desc
+              .ms-debug-input-field
+                = render "admin/missions/debug/input_field", var:, is_trigger: true

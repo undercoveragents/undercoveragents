@@ -1,0 +1,49 @@
+- presentation = tool_widget_resolved_presentation(tool, toolable)
+.card.mb-6
+  .card-header.tool-widget-summary__card-header
+    .tool-widget-summary__header-copy
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-wand-magic-sparkles.mr-2.text-accent
+        Chat Widget
+    .tool-widget-summary__header-actions
+      - if policy_allows?(tool, :update?)
+        = link_to edit_widget_admin_tool_path(tool), class: "btn btn-secondary btn-sm" do
+          %i.fa-solid.fa-pen.mr-1
+          Edit
+      - else
+        %button{ type: "button", class: disabled_action_classes("btn btn-secondary btn-sm", disabled: true), disabled: true, title: policy_tooltip(tool, :update?) }
+          %i.fa-solid.fa-pen.mr-1
+          Edit
+  .card-body
+    .detail-grid.mb-5
+      .detail-item
+        .detail-label Configuration Source
+        .detail-value
+          - if toolable.tool_widget_customized?
+            %span.badge.badge-info Custom
+          - else
+            %span.badge.badge-secondary Tool defaults
+      .detail-item
+        .detail-label Icon
+        .detail-value.tool-widget-summary__icon-value
+          %i{ class: presentation.icon }
+          %span.font-mono= presentation.icon
+      .detail-item
+        .detail-label Execution Behavior
+        .detail-value= tool_widget_running_mode_label(presentation.running_mode)
+      - if presentation.running_mode == "rotate"
+        .detail-item
+          .detail-label Rotation Speed
+          .detail-value #{presentation.running_interval_ms} ms
+
+    .tool-widget-summary__message-grid
+      .tool-widget-summary__message-list
+        %h4.tool-widget-summary__message-heading While Executing
+        %ul.tool-widget-summary__message-items
+          - presentation.running_messages.each do |message|
+            %li= message
+      .tool-widget-summary__message-list
+        %h4.tool-widget-summary__message-heading When Complete
+        %ul.tool-widget-summary__message-items
+          - presentation.complete_messages.each do |message|
+            %li= message

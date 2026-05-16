@@ -1,0 +1,38 @@
+.card.h-full
+  .card-header
+    .flex.items-center.justify-between
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-book-open.mr-2.text-accent
+        Skill Catalogs
+      = render "agents/add_select_dropdown",
+               record: agent,
+               url: add_skill_catalog_admin_agent_path(agent),
+               method: :post,
+               field_name: :skill_catalog_id,
+               options: available_skill_catalogs.map { |skill_catalog| [skill_catalog.name, skill_catalog.id] },
+               empty_message: "All skill catalogs already assigned."
+  .card-body
+    - can_update_agent = policy_allows?(agent, :update?)
+    - update_agent_title = policy_tooltip(agent, :update?)
+    - catalogs = agent.skill_catalogs.ordered
+    - if catalogs.any?
+      .space-y-2
+        - catalogs.each do |skill_catalog|
+          .flex.items-center.gap-2.p-2.rounded-lg.bg-surface-secondary
+            .entity-card__icon
+              %i.fa-solid.fa-book-open
+            .flex-1.min-w-0
+              = link_to skill_catalog.name, admin_skill_catalog_path(skill_catalog), class: "text-sm font-medium text-text-primary truncate no-underline block leading-snug"
+              .text-xs.text-text-secondary
+                #{skill_catalog.skills.count} #{"skill".pluralize(skill_catalog.skills.count)}
+            .badge.badge-secondary Catalog
+            - if can_update_agent
+              = button_to remove_skill_catalog_admin_agent_path(agent), method: :delete, params: { skill_catalog_id: skill_catalog.id }, class: "btn btn-ghost btn-xs text-danger-400 hover:text-danger-600 shrink-0", title: "Remove skill catalog", data: { controller: "confirm", confirm_title_value: "Remove Skill Catalog", confirm_message_value: "Remove #{skill_catalog.name} from this agent?" } do
+                %i.fa-solid.fa-xmark
+            - else
+              %button{ type: "button", class: disabled_action_classes("btn btn-ghost btn-xs text-danger-400 hover:text-danger-600 shrink-0", disabled: true), disabled: true, title: update_agent_title }
+                %i.fa-solid.fa-xmark
+    - else
+      .text-center.py-6
+        %i.fa-solid.fa-book-open.text-2xl.text-text-muted.mb-2
+        %p.text-sm.text-text-muted No skill catalogs attached.

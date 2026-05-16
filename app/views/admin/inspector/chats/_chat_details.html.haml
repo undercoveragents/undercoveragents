@@ -1,0 +1,119 @@
+.inspector-details-grid
+  / ── Identity Card ──
+  .inspector-detail-card
+    .inspector-detail-card-header
+      %i.fa-solid.fa-fingerprint.mr-1
+      Identity
+    .inspector-detail-card-body
+      .inspector-detail-row
+        .inspector-detail-label DB ID
+        .inspector-detail-value= chat.id
+      .inspector-detail-row
+        .inspector-detail-label Status
+        .inspector-detail-value
+          %span.badge{ class: inspector_status_badge(chat.status) }= chat.status
+      .inspector-detail-row
+        .inspector-detail-label Context
+        .inspector-detail-value
+          %span.badge{ class: inspector_execution_context_badge(chat.execution_context) }= chat.execution_context
+      .inspector-detail-row
+        .inspector-detail-label Title
+        .inspector-detail-value= chat.title.presence || "—"
+      .inspector-detail-row
+        .inspector-detail-label User
+        .inspector-detail-value
+          - if chat.user
+            %span.font-mono.text-xs= chat.user.email
+          - else
+            .text-text-muted —
+      .inspector-detail-row
+        .inspector-detail-label Created
+        .inspector-detail-value{ title: chat.created_at.iso8601 }= chat.created_at.strftime("%b %d, %Y at %I:%M:%S %p")
+      .inspector-detail-row
+        .inspector-detail-label Updated
+        .inspector-detail-value{ title: chat.updated_at.iso8601 }= chat.updated_at.strftime("%b %d, %Y at %I:%M:%S %p")
+
+  / ── Agent & Model Card ──
+  .inspector-detail-card
+    .inspector-detail-card-header
+      %i.fa-solid.fa-user-secret.mr-1
+      Agent & Model
+    .inspector-detail-card-body
+      - if chat.agent
+        .inspector-detail-row
+          .inspector-detail-label Agent
+          .inspector-detail-value= chat.agent.name
+        .inspector-detail-row
+          .inspector-detail-label Agent ID
+          .inspector-detail-value.font-mono= chat.agent.id
+        .inspector-detail-row
+          .inspector-detail-label Agent Model
+          .inspector-detail-value.font-mono= chat.agent.resolved_model_id.presence || "—"
+        .inspector-detail-row
+          .inspector-detail-label Temperature
+          .inspector-detail-value= chat.agent.temperature
+      - else
+        .inspector-detail-row
+          .inspector-detail-label Agent
+          .inspector-detail-value.text-text-muted No agent
+      - if chat.model
+        .inspector-detail-row
+          .inspector-detail-label Chat Model
+          .inspector-detail-value.font-mono= chat.model.model_id
+        .inspector-detail-row
+          .inspector-detail-label Provider
+          .inspector-detail-value= chat.model.provider
+        .inspector-detail-row
+          .inspector-detail-label Model DB ID
+          .inspector-detail-value= chat.model.id
+      - else
+        .inspector-detail-row
+          .inspector-detail-label Model
+          .inspector-detail-value.text-text-muted No model
+
+  / ── Tokens & Cost Card ──
+  .inspector-detail-card
+    .inspector-detail-card-header
+      %i.fa-solid.fa-chart-bar.mr-1
+      Tokens & Cost (incl. children)
+    .inspector-detail-card-body
+      .inspector-detail-row
+        .inspector-detail-label Total Cost
+        .inspector-detail-value.font-semibold= inspector_format_cost(total_cost)
+      .inspector-detail-row
+        .inspector-detail-label Input Tokens
+        .inspector-detail-value= inspector_format_tokens(token_totals[:input])
+      .inspector-detail-row
+        .inspector-detail-label Output Tokens
+        .inspector-detail-value= inspector_format_tokens(token_totals[:output])
+      .inspector-detail-row
+        .inspector-detail-label Cached Tokens
+        .inspector-detail-value= inspector_format_tokens(token_totals[:cached])
+      .inspector-detail-row
+        .inspector-detail-label Cache Creation
+        .inspector-detail-value= inspector_format_tokens(token_totals[:cache_creation])
+      .inspector-detail-row
+        .inspector-detail-label Thinking Tokens
+        .inspector-detail-value= inspector_format_tokens(token_totals[:thinking])
+
+  / ── Message Breakdown Card ──
+  .inspector-detail-card
+    .inspector-detail-card-header
+      %i.fa-solid.fa-list-ol.mr-1
+      Message Breakdown
+    .inspector-detail-card-body
+      .inspector-detail-row
+        .inspector-detail-label Total Messages
+        .inspector-detail-value.font-semibold= message_counts[:total]
+      .inspector-detail-row
+        .inspector-detail-label User
+        .inspector-detail-value= message_counts[:user]
+      .inspector-detail-row
+        .inspector-detail-label Assistant
+        .inspector-detail-value= message_counts[:assistant]
+      .inspector-detail-row
+        .inspector-detail-label System
+        .inspector-detail-value= message_counts[:system]
+      .inspector-detail-row
+        .inspector-detail-label Tool
+        .inspector-detail-value= message_counts[:tool]

@@ -1,0 +1,65 @@
+# frozen_string_literal: true
+
+module Admin
+  class AgentAlphaMessagesController < BaseController
+    include ChatUiSupport
+    include AgentAlphaSupport
+
+    layout false
+
+    def create
+      return head :unprocessable_content unless agent_alpha_configured?
+
+      enqueue_chat_message(
+        chat: agent_alpha_chat,
+        content: agent_alpha_message_content,
+        runtime_context: agent_alpha_runtime_context,
+      )
+    end
+
+    private
+
+    def agent_alpha_chat
+      @agent_alpha_chat ||= agent_alpha_chats.find(message_params[:chat_id])
+    end
+
+    def message_params
+      params.expect(message: [:content, :chat_id, :ui_context_token, :references])
+    end
+
+    def agent_alpha_message_content
+      ChatReferences::MessagePayload.pack(
+        content: message_params[:content],
+        references: agent_alpha_references,
+      )
+    end
+
+    def agent_alpha_runtime_context
+      ui_context = AgentAlpha::PageContext.verify(
+        message_params[:ui_context_token],
+        user: current_user,
+        tenant: current_tenant,
+      )
+      ui_context = ui_context_with_references(ui_context)
+
+      AgentAlpha::RuntimeContext.build(ui_context:, tenant: current_tenant)
+    end
+
+    def ui_context_with_references(ui_context)
+      return ui_context if agent_alpha_references.blank?
+
+      (ui_context || {}).deep_dup.tap do |context|
+        context["references"] = agent_alpha_references
+        context["reference_trigger"] ||= AgentAlpha::PageContext::DEFAULT_REFERENCE_TRIGGER
+      end
+    end
+
+    def agent_alpha_references
+      @agent_alpha_references ||= ChatReferences::SelectionResolver.new(
+        tenant: current_tenant,
+        operation: current_operation,
+        kinds: agent_alpha_reference_kinds,
+      ).resolve(message_params[:references])
+    end
+  end
+end

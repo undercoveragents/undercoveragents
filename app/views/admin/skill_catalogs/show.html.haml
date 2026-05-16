@@ -1,0 +1,76 @@
+- content_for(:title, "#{@skill_catalog.name} — #{APP_NAME}")
+- actions = []
+- new_skill = @skill_catalog.skills.new(source_type: "manual")
+- actions << policy_page_hero_action(@skill_catalog, :restore?, label: "Restore Default", url: restore_admin_skill_catalog_path(@skill_catalog), icon: "fa-solid fa-rotate-left", style: :secondary, method: :post, data: { controller: "confirm", confirm_title_value: "Restore Built-in Skill Catalog", confirm_message_value: "Restore #{@skill_catalog.name} and its built-in skills to the shipped defaults? Your custom changes will be replaced." }) if @skill_catalog.builtin?
+- actions << policy_page_hero_action(@skill_catalog, :update?, label: "Import Skill", url: import_admin_skill_catalog_skills_path(@skill_catalog), icon: "fa-solid fa-file-import", style: :secondary)
+- actions << policy_page_hero_action(new_skill, :create?, label: "New Skill", url: new_admin_skill_catalog_skill_path(@skill_catalog), icon: "fa-solid fa-plus", style: :secondary)
+- actions << policy_page_hero_action(@skill_catalog, :update?, label: "Edit", url: edit_admin_skill_catalog_path(@skill_catalog), icon: "fa-solid fa-pen", style: :secondary)
+- actions << policy_page_hero_action(@skill_catalog, :destroy?, label: "Delete", url: admin_skill_catalog_path(@skill_catalog), icon: "fa-solid fa-trash", style: :danger_outline, method: :delete, data: { controller: "confirm", confirm_title_value: "Delete Catalog", confirm_message_value: "Delete #{@skill_catalog.name} and all of its skills? This cannot be undone." })
+= render_page_hero(title: "Skill Catalog", variant: :compact, theme: :skills, title_icon: "fa-solid fa-book-open", record_title: @skill_catalog.name, back_link: { label: "Back to Skill Catalogs", url: admin_skill_catalogs_path }, actions:)
+
+- can_detach_agent = policy_allows?(@skill_catalog, :detach_agent?)
+- detach_agent_title = policy_tooltip(@skill_catalog, :detach_agent?)
+
+%div{ class: "grid grid-cols-1 xl:grid-cols-[minmax(0,1.4fr)_minmax(18rem,0.8fr)] gap-6 mb-6" }
+  .card
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-scroll.mr-2.text-accent
+        Runtime Model Behavior
+    .card-body
+      .detail-grid
+        .detail-item
+          .detail-label Prompt footprint
+          .detail-value Skill metadata only until activation
+        .detail-item
+          .detail-label Activation tool
+          .detail-value activate_skill
+        .detail-item
+          .detail-label Resource tool
+          .detail-value read_skill_resource when files exist
+        .detail-item
+          .detail-label Scope
+          .detail-value= @skill_catalog.operation.name
+        .detail-item
+          .detail-label Updated
+          .detail-value= @skill_catalog.updated_at.strftime("%B %d, %Y at %H:%M")
+        .detail-item
+          .detail-label Slug
+          .detail-value= @skill_catalog.slug
+
+  .card
+    .card-header
+      .flex.items-center.justify-between
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-robot.mr-2.text-accent
+          Attached Agents
+        = render "agents/add_select_dropdown",
+                 record: @skill_catalog,
+                 url: attach_agent_admin_skill_catalog_path(@skill_catalog),
+                 method: :post,
+                 field_name: :agent_id,
+                 options: @available_agents.map { |agent| [agent.name, agent.id] },
+                 empty_message: "All eligible agents already use this catalog."
+    .card-body
+      - if @assigned_agents.any?
+        .space-y-2
+          - @assigned_agents.each do |agent|
+            .flex.items-center.gap-2.p-2.rounded-lg.bg-surface-secondary
+              .entity-card__icon
+                %i.fa-solid.fa-user-secret
+              .flex-1.min-w-0
+                = link_to agent.name, admin_agent_path(agent), class: "text-sm font-medium text-text-primary truncate no-underline block leading-snug"
+                .text-xs.text-text-secondary= agent_model_display(agent)
+              = agent_status_badge(agent)
+              - if can_detach_agent
+                = button_to detach_agent_admin_skill_catalog_path(@skill_catalog), method: :delete, params: { agent_id: agent.id }, class: "btn btn-ghost btn-xs text-danger-400 hover:text-danger-600 shrink-0", title: "Detach agent", data: { controller: "confirm", confirm_title_value: "Detach Agent", confirm_message_value: "Remove #{@skill_catalog.name} from #{agent.name}?" } do
+                  %i.fa-solid.fa-xmark
+              - else
+                %button{ type: "button", class: disabled_action_classes("btn btn-ghost btn-xs text-danger-400 hover:text-danger-600 shrink-0", disabled: true), disabled: true, title: detach_agent_title }
+                  %i.fa-solid.fa-xmark
+      - else
+        .text-center.py-8
+          %i.fa-solid.fa-robot.text-2xl.text-text-muted.mb-3
+          %p.text-sm.text-text-secondary No agents use this catalog yet.
+
+= render "skill_catalogs/skills_section", skill_catalog: @skill_catalog, skills: @skills

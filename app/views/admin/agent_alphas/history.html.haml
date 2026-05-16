@@ -1,0 +1,26 @@
+- frame_data = { turbo_permanent: true }
+- frame_data[:chat_stream_frame_location] = admin_agent_alpha_path(history: 1)
+- frame_data[:chat_stream_header_title] = "Chat history"
+- frame_data[:chat_stream_header_target_id] = "agent-alpha-panel-title-value"
+= turbo_frame_tag "admin-agent-alpha-frame", data: frame_data do
+  = render "frame_state",
+           frame_location: admin_agent_alpha_path(history: 1),
+           header_title: "Chat history",
+           header_target_id: "agent-alpha-panel-title-value"
+  .ms-chat-history-view
+    - if @chats.empty?
+      .ms-chat-empty-state
+        %i.fa-solid.fa-comments
+        %p No conversations yet.
+    - else
+      .ms-chat-history-view-list
+        - @chats.each do |chat|
+          = link_to admin_agent_alpha_path(chat_id: chat.id), class: "ms-chat-history-view-item", data: { turbo_frame: "admin-agent-alpha-frame" } do
+            .ms-chat-history-view-item-icon
+              %i.fa-regular.fa-comment
+            .ms-chat-history-view-item-info
+              .ms-chat-history-view-item-title
+                %span{ id: chat.title_dom_id }= chat_display_title(chat)
+              .ms-chat-history-view-item-meta
+                %span #{chat.messages.count} messages
+                %span= chat.updated_at.strftime("%b %d, %H:%M")

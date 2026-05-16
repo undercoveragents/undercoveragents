@@ -1,0 +1,13 @@
+-# Expression Editor — contenteditable with @-mention variable insertion. Locals: value, variables, prop_key, placeholder, multiline (default true), rows (default 3), data_action
+- value ||= ""
+- variables ||= []
+- prop_key ||= ""
+- placeholder ||= ""
+- multiline = true unless local_assigns.key?(:multiline)
+- rows ||= 3
+- data_action ||= "blur->mission#updateNodeProp"
+.ms-expr-wrap{ data: { controller: "expression-editor", "expression-editor-variables-value": variables.to_json, "expression-editor-multiline-value": multiline } }
+  .ms-expr-editor{ contenteditable: "true", data: { "expression-editor-target": "editor", rows:, placeholder: } }
+  -# haml-lint:disable LineLength
+  %textarea.hidden{ data: { "expression-editor-target": "hidden", action: data_action, "prop-key": prop_key } }= value
+  .ms-expr-dropdown.hidden{ data: { "expression-editor-target": "dropdown" } }

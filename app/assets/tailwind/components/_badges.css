@@ -1,0 +1,59 @@
+/* ==========================================================================
+   Badges
+   ========================================================================== */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.0625rem 0.5rem;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  border-radius: 9999px;
+  line-height: 1.125rem;
+}
+
+.badge-brand {
+  background-color: var(--accent-subtle);
+  color: var(--accent);
+}
+
+.badge-success {
+  background-color: #dcfce7;
+  color: var(--color-success-600);
+
+  .dark & {
+    background-color: rgb(22 101 52 / 0.2);
+    color: var(--color-success-500);
+  }
+}
+
+.badge-warning {
+  background-color: #fef3c7;
+  color: var(--color-warning-600);
+
+  .dark & {
+    background-color: rgb(146 64 14 / 0.2);
+    color: var(--color-warning-500);
+  }
+}
+
+.badge-danger {
+  background-color: #fee2e2;
+  color: var(--color-danger-600);
+
+  .dark & {
+    background-color: rgb(153 27 27 / 0.2);
+    color: var(--color-danger-500);
+  }
+}
+
+.badge-secondary {
+  background-color: var(--surface-hover);
+  color: var(--text-muted);
+
+  .dark & {
+    background-color: rgb(100 116 139 / 0.15);
+    color: var(--text-muted);
+  }
+}

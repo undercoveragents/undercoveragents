@@ -1,0 +1,230 @@
+.tool-widget-config__card-header {
+  display: flex;
+  align-items: start;
+  justify-content: flex-start;
+  gap: 1rem;
+}
+
+.tool-widget-config__header-copy {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.tool-widget-config__header-note {
+  max-width: 44rem;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.tool-widget-summary__card-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.tool-widget-summary__header-copy {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.tool-widget-summary__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.tool-widget-summary__message-list {
+  border: 1px solid rgb(from var(--border-default) r g b / 0.9);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(180deg, rgb(from var(--surface-secondary) r g b / 0.96), rgb(from var(--surface-primary) r g b / 0.92)),
+    radial-gradient(circle at top left, rgb(from var(--accent) r g b / 0.08), transparent 60%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04);
+}
+
+.tool-widget-summary__message-heading {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.tool-widget-summary__message-items {
+  color: rgb(from var(--text-primary) r g b / 0.76);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+
+.tool-widget-config__grid,
+.tool-widget-config__message-grid,
+.tool-widget-summary__message-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.tool-widget-config__grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.tool-widget-config__message-grid,
+.tool-widget-summary__message-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.tool-widget-config__body {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.tool-widget-config__message-grid {
+  padding-top: 0.25rem;
+}
+
+.tool-widget-config__icon-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.tool-widget-config__icon-preset {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-default);
+  background-color: var(--surface-secondary);
+  color: var(--text-secondary);
+  font-size: 0.6875rem;
+  transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+}
+
+.tool-widget-config__mode-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.tool-widget-config__mode-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.65rem;
+  align-items: start;
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background-color: var(--surface-secondary);
+}
+
+.tool-widget-config__mode-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.tool-widget-config__mode-settings {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgb(from var(--border-default) r g b / 0.8);
+}
+
+.tool-widget-config__mode-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.tool-widget-config__mode-setting {
+  margin: 0;
+}
+
+.tool-widget-config__mode-setting .form-input {
+  width: 100%;
+}
+
+.tool-widget-config__mode-title,
+.tool-widget-config__preview-label,
+.tool-widget-summary__preview-label,
+.tool-widget-config__eyebrow {
+  color: var(--text-primary);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.tool-widget-config__mode-body {
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+.tool-widget-config__interval-row {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.tool-widget-config__interval-row .form-label {
+  font-size: 0.7rem;
+}
+
+.tool-widget-config__textarea {
+  min-height: 10rem;
+  white-space: pre-wrap;
+}
+
+.tool-widget-summary__icon-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tool-widget-summary__message-grid {
+  margin-bottom: 1rem;
+}
+
+.tool-widget-summary__message-list {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.9rem;
+}
+
+.tool-widget-summary__message-items {
+  margin: 0;
+  padding-left: 1.1rem;
+
+  li + li {
+    margin-top: 0.35rem;
+  }
+
+  li::marker {
+    color: rgb(from var(--accent) r g b / 0.72);
+  }
+}
+
+@media (width <= 1100px) {
+  .tool-widget-config__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tool-widget-config__card-header,
+  .tool-widget-summary__card-header {
+    flex-direction: column;
+  }
+
+  .tool-widget-summary__header-actions {
+    align-items: stretch;
+  }
+}
+
+@media (width <= 800px) {
+  .tool-widget-config__grid,
+  .tool-widget-config__mode-settings-grid,
+  .tool-widget-config__message-grid,
+  .tool-widget-summary__message-grid {
+    grid-template-columns: 1fr;
+  }
+}

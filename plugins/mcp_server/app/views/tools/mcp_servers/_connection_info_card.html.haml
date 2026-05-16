@@ -1,0 +1,45 @@
+/ ── MCP Connection Info Card ──
+/ Locals: tool, toolable, connector
+.card
+  .card-header
+    .flex.items-center.justify-between
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-link.mr-2.text-accent
+        Connection Details
+      .flex.items-center.gap-2
+        - if policy(tool).update?
+          = link_to edit_admin_tool_path(tool), class: "btn btn-secondary btn-xs" do
+            %i.fa-solid.fa-pen.mr-1
+            Edit
+  .card-body
+    - mcp_server = toolable.mcp_server
+    .detail-grid
+      .detail-item
+        .detail-label Connector
+        .detail-value
+          - if connector.present?
+            = link_to connector.name, admin_connector_path(connector), class: "text-accent no-underline"
+          - else
+            %span.text-text-muted Not configured
+      .detail-item
+        .detail-label Transport
+        .detail-value= mcp_server&.transport_label || "—"
+      .detail-item
+        .detail-label Endpoint
+        .detail-value.font-mono.text-xs.break-all.whitespace-normal= mcp_server&.display_endpoint || "—"
+      .detail-item
+        .detail-label Timeout
+        .detail-value= mcp_server.present? ? "#{mcp_server.request_timeout}ms" : "—"
+
+    - if mcp_server.present?
+      / ── Test Connection ──
+      .mt-4.pt-4.border-t.border-border-default{ data: { controller: "mcp-server-connector-test", mcp_server_connector_test_endpoint_value: admin_test_connection_mcp_server_connectors_path, mcp_server_connector_test_payload_value: { mcp_server: mcp_server.connection_test_params }.to_json } }
+        .flex.items-center.gap-3
+          %button.btn.btn-secondary{ type: "button", data: { action: "click->mcp-server-connector-test#test", mcp_server_connector_test_target: "testBtn" } }
+            %i.fa-solid.fa-plug-circle-check.mr-1
+            Test Connection
+          - if policy(tool).discover_schema?
+            = button_to discover_schema_admin_tool_path(tool), method: :post, class: "btn btn-secondary" do
+              %i.fa-solid.fa-arrows-rotate.mr-1
+              Discover Tools
+        .test-connection-result.mt-3{ data: { mcp_server_connector_test_target: "testResult" } }

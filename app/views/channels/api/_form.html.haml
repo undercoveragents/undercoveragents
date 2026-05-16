@@ -1,0 +1,66 @@
+.card.mb-6{ data: { controller: "api-client-form" } }
+  .card-header
+    %h3.text-sm.font-semibold.text-text-primary
+      %i.fa-solid.fa-shield-halved.mr-2.text-accent
+      Access Control
+  .card-body
+    .form-group.mb-4
+      = f.label :access_scope, class: "form-label" do
+        Mission Access Scope
+        %span.text-danger-500.ml-0.5 *
+      .space-y-2
+        %label.flex.items-center.gap-3.p-3.rounded-lg.border.border-border-default.cursor-pointer.hover:bg-surface-hover.transition-colors
+          = f.radio_button :access_scope, "all", class: "form-radio", data: { action: "change->api-client-form#toggleScope" }
+          .flex-1
+            .text-sm.font-medium.text-text-primary All Tenant Missions
+            .text-xs.text-text-secondary Every mission in this tenant is published through this API channel.
+        %label.flex.items-center.gap-3.p-3.rounded-lg.border.border-border-default.cursor-pointer.hover:bg-surface-hover.transition-colors
+          = f.radio_button :access_scope, "scoped", class: "form-radio", data: { action: "change->api-client-form#toggleScope" }
+          .flex-1
+            .text-sm.font-medium.text-text-primary Selected Missions Only
+            .text-xs.text-text-secondary Only the missions selected below are published through this API channel.
+
+    .form-group{ data: { "api-client-form-target": "missionSelect" }, class: channel.scope_scoped? ? "" : "hidden" }
+      = label_tag "channel_target[mission_ids][]", "Published Missions", class: "form-label"
+      .space-y-2
+        - available_missions.each do |mission|
+          %label.flex.items-center.gap-3.p-2.rounded-lg.hover:bg-surface-hover.cursor-pointer.transition-colors
+            = check_box_tag "channel_target[mission_ids][]", mission.id, selected_mission_ids.include?(mission.id.to_s), class: "form-check-input", id: "channel_mission_#{mission.id}"
+            .flex-1.min-w-0
+              .text-sm.font-medium.text-text-primary= mission.name
+              - if mission.description.present?
+                .text-xs.text-text-secondary.truncate= mission.description
+      .form-hint Select which missions this API channel can invoke when scope is limited.
+
+.card.mb-6
+  .card-header
+    %h3.text-sm.font-semibold.text-text-primary
+      %i.fa-solid.fa-robot.mr-2.text-accent
+      Published Agents
+  .card-body
+    .form-group
+      = label_tag "channel_target[agent_ids][]", "Agent Targets", class: "form-label"
+      .space-y-2
+        - available_agents.each do |agent|
+          %label.flex.items-center.gap-3.p-2.rounded-lg.hover:bg-surface-hover.cursor-pointer.transition-colors
+            = check_box_tag "channel_target[agent_ids][]", agent.id, selected_agent_ids.include?(agent.id.to_s), class: "form-check-input", id: "channel_agent_#{agent.id}"
+            .flex-1.min-w-0
+              .text-sm.font-medium.text-text-primary= agent.name
+              - if agent.description.present?
+                .text-xs.text-text-secondary.truncate= agent.description
+      .form-hint Selected agents are published alongside the mission targets on this API channel.
+
+.card.mb-6
+  .card-header
+    %h3.text-sm.font-semibold.text-text-primary
+      %i.fa-solid.fa-code.mr-2.text-accent
+      API Settings
+  .card-body
+    .form-grid
+      .form-group{ data: { controller: "choices", choices_search_value: "false" } }
+        = f.label :response_mode, "Response Mode", class: "form-label"
+        = select_tag "channel[response_mode]", options_for_select(Channels::Api::RESPONSE_MODES.map { |mode| [mode.titleize, mode] }, channel.response_mode), class: "form-input form-select", data: { choices_target: "select" }
+      .form-group
+        = f.label :callback_url, "Default Callback URL", class: "form-label"
+        = text_field_tag "channel[callback_url]", channel.callback_url, class: "form-input", placeholder: "https://example.com/callback"
+        .form-hint Optional default callback URL for async mission invocations.

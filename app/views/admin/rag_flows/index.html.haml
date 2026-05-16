@@ -1,0 +1,50 @@
+- content_for(:title, "RAG — #{APP_NAME}")
+= render_page_hero(title: "Source data prepared for grounded retrieval", description: "Configure retrieval, embedding, and storage pipelines for your knowledge bases.", variant: :dashboard, eyebrow: { label: "RAG", icon: "fa-solid fa-arrow-right-to-bracket" }, actions: [policy_page_hero_action(RagFlow, :create?, label: "New RAG", url: new_admin_rag_flow_path, icon: "fa-solid fa-plus", style: :primary)])
+
+- if @rag_flows.any?
+  .card-grid.card-grid--entities
+    - @rag_flows.each do |ip|
+      - can_toggle_rag = policy_allows?(ip, :toggle?)
+      - toggle_rag_title = policy_tooltip(ip, :toggle?, fallback: (ip.enabled? ? "Disable" : "Enable"))
+      .card.entity-card
+        .card-body.entity-card__body
+          .entity-card__header
+            .entity-card__identity
+              .entity-card__icon
+                %i.fa-solid.fa-arrow-right-to-bracket
+              .entity-card__identity-copy
+                %h3.entity-card__title
+                  = link_to ip.name, admin_rag_flow_path(ip), class: "text-text-primary no-underline hover:text-accent"
+            .entity-card__status
+              = rag_flow_status_badge(ip)
+
+          .entity-card__footer.justify-between
+            - if ip.last_run
+              .flex.items-center.gap-2.flex-wrap
+                %span.entity-card__metric
+                  %i.fa-solid.fa-play
+                  Last run #{time_ago_in_words(ip.last_run.created_at)} ago
+                = run_status_badge(ip.last_run)
+            - else
+              %span.entity-card__timestamp
+                %i.fa-solid.fa-clock
+                Never run
+            - if can_toggle_rag
+              = button_to toggle_admin_rag_flow_path(ip), method: :patch, class: "btn btn-ghost btn-xs", title: ip.enabled? ? "Disable" : "Enable" do
+                %i{ class: ip.enabled? ? "fa-solid fa-toggle-on text-green-500" : "fa-solid fa-toggle-off" }
+            - else
+              %button{ type: "button", class: disabled_action_classes("btn btn-ghost btn-xs", disabled: true), disabled: true, title: toggle_rag_title }
+                %i{ class: ip.enabled? ? "fa-solid fa-toggle-on text-green-500" : "fa-solid fa-toggle-off" }
+
+- else
+  - can_create_rag = policy_allows?(RagFlow, :create?)
+  - create_rag_title = policy_tooltip(RagFlow, :create?)
+  = render_page_empty_state(title: "No RAG yet", body: "Create your first RAG to start loading data into your knowledge bases.") do
+    - if can_create_rag
+      = link_to new_admin_rag_flow_path, class: "btn btn-primary" do
+        %i.fa-solid.fa-plus.mr-1
+        Create RAG
+    - else
+      %button{ type: "button", class: disabled_action_classes("btn btn-primary", disabled: true), disabled: true, title: create_rag_title }
+        %i.fa-solid.fa-plus.mr-1
+        Create RAG

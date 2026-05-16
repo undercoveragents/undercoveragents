@@ -1,0 +1,20 @@
+-# Single past run entry row
+- active_run_id = local_assigns.fetch(:active_run_id, nil)
+- is_active = run.id == active_run_id
+- status_cfg = run_status_config(run.status)
+- duration_ms = run.duration ? (run.duration * 1000).round(1) : nil
+
+.ms-debug-past-run{ id: "mission-past-run-#{run.id}", class: (is_active ? "ms-debug-past-run--active" : nil), data: { action: "click->mission-debug#loadPastRun", "run-id": run.id } }
+  -# haml-lint:disable InlineStyles
+  .ms-debug-past-run-dot{ style: "background: #{status_cfg[:color]}" }
+  .ms-debug-past-run-info
+    .ms-debug-past-run-header
+      %span.ms-debug-past-run-status= run.status.capitalize
+      - if duration_ms
+        %span.ms-debug-past-run-duration #{duration_ms}ms
+    .ms-debug-past-run-meta
+      = time_ago_in_words(run.created_at)
+      ago
+  - if run.error.present?
+    .ms-debug-past-run-error{ title: run.error }
+      %i.fa-solid.fa-triangle-exclamation

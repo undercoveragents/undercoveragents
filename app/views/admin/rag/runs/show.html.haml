@@ -1,0 +1,4 @@
+- content_for(:title, "Run ##{@run.id} — #{@rag_flow.name}")
+= turbo_stream_from "rag_run_#{@run.id}" if @run.running? || @run.pending?
+
+= render "rag/runs/run_detail", run: @run

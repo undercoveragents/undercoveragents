@@ -1,0 +1,62 @@
+%section
+  %h4 Operators
+  %table.ms-expr-guide-tbl
+    %tr
+      %td
+        %code ()
+      %td Grouping / precedence
+    %tr
+      %td
+        %code + &ensp; - &ensp; * &ensp; / &ensp; %
+      %td Arithmetic (modulo = %)
+    %tr
+      %td
+        %code **
+      %td Exponentiation
+    %tr
+      %td
+        %code < &ensp; > &ensp; <= &ensp; >=
+      %td Numeric comparison
+    %tr
+      %td
+        %code = &ensp; == &ensp; != &ensp; <>
+      %td Equality / inequality
+    %tr
+      %td
+        %code AND &ensp; OR &ensp; NOT
+      %td Logical operators
+    %tr
+      %td
+        %code &
+      %td Bitwise AND
+
+%section
+  %h4 Comparison Rules
+  %ul
+    %li
+      Strings must be
+      %strong single-quoted
+      inside expressions:
+      %code status = 'active'
+    %li
+      Use
+      %code =
+      or
+      %code ==
+      for equality,
+      %code !=
+      or
+      %code <>
+      for inequality.
+    %li
+      Boolean literals:
+      %code true
+      and
+      %code false
+      (case-insensitive).
+    %li
+      String comparison is
+      %strong case-insensitive.
+    %li
+      %code nil
+      and empty string are falsy in boolean context.

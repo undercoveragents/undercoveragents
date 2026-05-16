@@ -1,0 +1,42 @@
+- content_for(:title, "Preferences — #{APP_NAME}")
+- form_id = "system-preferences-form"
+- actions = [page_hero_form_action(label: "Save Preferences", form_id:, icon: "fa-solid fa-floppy-disk")]
+= render_page_hero(title: "Preferences", variant: :compact, title_icon: "fa-solid fa-sliders", actions:)
+
+= form_with(model: @preference, url: admin_preferences_path, method: :patch, local: true, id: form_id, data: { turbo_frame: "_top" }) do
+  = render "shared/forms/validation_errors",
+           record: @preference,
+           message: "#{pluralize(@preference.errors.count, "error")} prevented preferences from being saved:"
+
+  .grid.grid-cols-1.lg:grid-cols-2.gap-6.mb-6
+    .card{ data: { controller: "agent-form", agent_form_model_options_url_value: model_options_admin_agents_path(frame_id: "system_preference_model_select", field_prefix: "system_preference"), agent_form_frame_id_value: "system_preference_model_select", agent_form_llm_settings_value: true } }
+      .card-header
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-brain.mr-2.text-accent
+          Default Model
+      .card-body
+        .form-hint.mb-4
+          Configure the default LLM connection and model used by built-in system features
+          (e.g., mission designer AI chat, generate text nodes). This does not affect user-configured agents.
+        = render "shared/model_config", field_prefix: "system_preference", frame_id: "system_preference_model_select", connector_change_action: "change->agent-form#onConnectorChange", available_llm_connectors: @llm_connectors, available_models: @available_models || Model.none, selected_connector_id: @preference.llm_connector_id, selected_model_id: @preference.model_id, temperature_value: @preference.temperature, required: false, show_reasoning_settings: true, thinking_effort_value: @preference.thinking_effort, thinking_budget_value: @preference.thinking_budget, custom_params_value: @preference.custom_llm_params_json
+
+    .card{ data: { controller: "agent-form", agent_form_model_options_url_value: embedding_model_options_admin_agents_path(frame_id: "system_preference_embedding_model_select", field_prefix: "system_preference", field_name: "embedding_model_id"), agent_form_frame_id_value: "system_preference_embedding_model_select" } }
+      .card-header
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-vector-square.mr-2.text-accent
+          Default Embedding Model
+      .card-body
+        .form-hint.mb-4
+          Configure the default embedding model used for vector operations.
+        = render "shared/embedding_model_config", field_prefix: "system_preference", frame_id: "system_preference_embedding_model_select", connector_change_action: "change->agent-form#onConnectorChange", available_llm_connectors: @llm_connectors, available_models: @available_embedding_models || Model.none, selected_connector_id: @preference.embedding_connector_id, selected_model_id: @preference.embedding_model_id
+
+    .card{ data: { controller: "agent-form", agent_form_model_options_url_value: image_model_options_admin_agents_path(frame_id: "system_preference_image_model_select", field_prefix: "system_preference", field_name: "image_model_id"), agent_form_frame_id_value: "system_preference_image_model_select" } }
+      .card-header
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-image.mr-2.text-accent
+          Default Image Model
+      .card-body
+        .form-hint.mb-4
+          Configure the default image generation model. Used by generate image nodes unless
+          a specific model is chosen.
+        = render "shared/image_model_config", field_prefix: "system_preference", frame_id: "system_preference_image_model_select", connector_change_action: "change->agent-form#onConnectorChange", available_llm_connectors: @llm_connectors, available_models: @available_image_models || Model.none, selected_connector_id: @preference.image_connector_id, selected_model_id: @preference.image_model_id

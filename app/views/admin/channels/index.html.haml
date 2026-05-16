@@ -1,0 +1,42 @@
+- content_for(:title, "Channels - #{APP_NAME}")
+= render_page_hero(title: "Invocation channels for agents and missions", description: "Publish agents and missions through web chat, token APIs, and external messaging integrations.", variant: :dashboard, eyebrow: { label: "Channels", icon: "fa-solid fa-tower-broadcast" }, actions: [{ label: "New Channel", url: new_admin_channel_path, icon: "fa-solid fa-plus", style: :primary }])
+
+- if @channels.any?
+  .card-grid.card-grid--entities
+    - @channels.each do |channel|
+      - default_target = channel.channel_targets.find(&:default?) || channel.channel_targets.first
+      = link_to admin_channel_path(channel), class: "card entity-card entity-card--interactive no-underline", data: { turbo_frame: "app-content-frame" } do
+        .card-body.entity-card__body
+          .entity-card__header
+            .entity-card__identity
+              .entity-card__icon
+                - if channel.logo.attached?
+                  = image_tag channel.logo, class: "h-full w-full rounded-[inherit] object-cover"
+                - else
+                  %i{ class: channel.type_icon }
+              .entity-card__identity-copy
+                %h3.entity-card__title.text-text-primary= channel.name
+                %p.entity-card__subtitle
+                  = channel.type_label
+                  %span= "#{default_target.target_kind.titleize}: #{default_target.name}" if default_target
+            .entity-card__status.flex.items-center.gap-2
+              - if channel.default?
+                %span.badge.badge-accent Default
+              - if channel.enabled?
+                %span.badge.badge-success Active
+              - else
+                %span.badge.badge-danger Disabled
+
+          - if channel.description.present?
+            %p.entity-card__description.line-clamp-2= channel.description
+
+          .entity-card__footer.justify-between
+            %span.entity-card__timestamp
+              %i.fa-solid.fa-clock
+              Updated #{time_ago_in_words(channel.updated_at)} ago
+
+- else
+  = render_page_empty_state(title: "No channels yet", body: "Create your first channel to expose an agent or mission.") do
+    = link_to new_admin_channel_path, class: "btn btn-primary", data: { turbo_frame: "app-content-frame" } do
+      %i.fa-solid.fa-plus.mr-1
+      Create Channel

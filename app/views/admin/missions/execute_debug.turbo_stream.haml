@@ -1,0 +1,24 @@
+= turbo_stream.replace "mission-stream-subscription" do
+  #mission-stream-subscription
+    = turbo_stream_from "mission_debug_#{@run.id}"
+
+= turbo_stream.replace "mission-run-controls" do
+  = render "admin/missions/debug/run_controls", run_status: "running"
+
+= turbo_stream.replace "mission-run-status" do
+  = render "admin/missions/debug/run_status", run_status: "running"
+
+= turbo_stream.replace "mission-timeline-content" do
+  #mission-timeline-content
+    .ms-debug-timeline#mission-timeline-entries
+
+= turbo_stream.replace "mission-variables-content" do
+  = render "admin/missions/debug/variables", variables: {}, node_outputs: {}
+
+= turbo_stream.update "mission-node-events", ""
+
+-# Prepend new run entry to the history list and clear empty state
+= turbo_stream.remove "mission-past-runs-empty"
+-# prepend entry
+= turbo_stream.prepend "mission-past-runs" do
+  = render "admin/missions/debug/past_run_entry", run: @run, active_run_id: @run.id

@@ -1,0 +1,43 @@
+= turbo_frame_tag "node-properties" do
+  .ms-properties-panel{ data: { property_node_id: @presenter.node_id } }
+    -# haml-lint:disable InlineStyles
+    .ms-properties-type-badge{ style: "border-color: #{@presenter.node_color}; color: #{@presenter.node_color}" }
+      %i{ class: h(@presenter.node_icon) }
+      = @presenter.node_type_label
+    .ms-properties-header
+      .ms-properties-title
+        .ms-properties-title-block
+          %input.ms-properties-name-input{ type: "text", value: @presenter.node_label, data: { action: "blur->mission#updateNodeProp", "prop-key": "label" } }
+          %textarea.ms-properties-desc-input{ rows: 1, placeholder: "Add description...", data: { action: "blur->mission#updateNodeProp input->mission#autoResizeDescription", "prop-key": "description" } }= @presenter.node_description
+          %input.ms-properties-id{ type: "text", value: @presenter.variable_name, placeholder: "variable_name", data: { action: "blur->mission#updateNodeName", "prop-key": "name" } }
+
+      .ms-properties-header-actions
+        .ms-prop-context-menu
+          %button.ms-prop-context-trigger{ type: "button", data: { action: "click->mission#togglePropMenu" }, title: "Node actions" }
+            %i.fa-solid.fa-ellipsis-vertical
+          %ul.ms-prop-context-dropdown.hidden
+            %li
+              %button.ms-prop-context-item{ type: "button", data: { action: "click->mission#duplicateNode" } }
+                %i.fa-regular.fa-copy
+                Duplicate
+            %li
+              %button.ms-prop-context-item.ms-prop-context-item-danger{ type: "button", data: { action: "click->mission#deleteNode" } }
+                %i.fa-solid.fa-trash-can
+                Delete
+
+    .ms-properties-body
+      / ── Validation warnings ──
+      - unless @presenter.valid?
+        .ms-prop-validation-banner
+          - @presenter.validation_errors.each do |error|
+            .ms-prop-validation-item
+              %i.fa-solid.fa-triangle-exclamation
+              %span #{(error[:field] || error["field"]).to_s.tr("_", " ")}: #{error[:message] || error["message"]}
+
+      / ── Configuration section (type-specific) ──
+      - if @presenter.config_fields?
+        .ms-properties-section
+          .ms-properties-section-title
+            %i.fa-solid.fa-gear
+            Configuration
+          = render "admin/missions/node_properties/#{@presenter.node_type}", presenter: @presenter, llm_connectors: @llm_connectors

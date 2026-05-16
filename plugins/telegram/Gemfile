@@ -1,0 +1,4 @@
+# frozen_string_literal: true
+
+# Telegram Bot API
+gem "telegram-bot-ruby", require: "telegram/bot"

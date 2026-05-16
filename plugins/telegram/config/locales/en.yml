@@ -1,0 +1,14 @@
+en:
+  profile:
+    telegram_token_generated: "Telegram link token generated for %{channel}. Send the /link command to the bot to complete linking."
+    telegram_unlinked: "Telegram account unlinked from %{channel}."
+  connectors:
+    telegram:
+      not_telegram: "This action is only available for Telegram connectors."
+      bot_info_fetched: "Bot info fetched successfully! Username: @%{username}"
+      bot_info_failed: "Failed to fetch bot info: %{error}"
+  channels:
+    telegram:
+      not_telegram: "This action is only available for Telegram channels."
+      webhook_registered: "Telegram webhook registered successfully!"
+      webhook_failed: "Failed to register the Telegram webhook: %{error}"

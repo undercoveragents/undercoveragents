@@ -1,0 +1,19 @@
+/ ── Sort Node Configuration ──
+.ms-prop-field
+  %label.ms-prop-label
+    Collection
+    %span.ms-prop-required *
+  %textarea.ms-prop-textarea{ rows: 2, placeholder: "Variable name or JSON array", data: { action: "blur->mission#updateNodeProp", "prop-key": "collection" } }= presenter.data("collection")
+/ Field
+.ms-prop-field
+  %label.ms-prop-label Field (optional)
+  %input.ms-prop-input{ type: "text", placeholder: "e.g. name, price", value: presenter.data("field"), data: { action: "blur->mission#updateNodeProp", "prop-key": "field" } }
+  .ms-prop-hint
+    %i.fa-solid.fa-circle-info
+    For arrays of objects, specify which field to sort by.
+/ Direction
+.ms-prop-field
+  %label.ms-prop-label Direction
+  %select.ms-prop-select{ data: { action: "change->mission#updateNodeProp", "prop-key": "direction" } }
+    %option{ value: "asc", selected: presenter.data("direction", "asc") == "asc" } Ascending
+    %option{ value: "desc", selected: presenter.data("direction", "asc") == "desc" } Descending

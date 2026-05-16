@@ -1,0 +1,17 @@
+- content_for(:title, "Playground — #{APP_NAME}")
+- agent_select = render("admin/playground/chats/agent_select", agents: @agents, agent: @agent).presence
+- actions = [{ label: "New Chat", url: admin_playground_chats_path, icon: "fa-solid fa-plus", style: :primary, method: :post, disabled: true, title: "Select an agent first" }]
+= render_page_hero(title: "Playground", variant: :compact, title_icon: "fa-solid fa-flask", meta: [agent_select], actions:)
+.playground-container
+  = render "admin/playground/chats/sidebar", agents: @agents, agent: @agent, chats: [], pagy: nil, current_chat: nil
+
+  .playground-chat-area
+    .shared-chat__empty-state
+      .shared-chat__empty-icon
+        %i.fa-solid.fa-comments
+      - if @agents.empty?
+        %h3= t("playground.chats.no_available_agents.title")
+        %p= t("playground.chats.no_available_agents.description")
+      - else
+        %h3 Select an agent to start chatting
+        %p Choose an agent from the header to begin a playground session.

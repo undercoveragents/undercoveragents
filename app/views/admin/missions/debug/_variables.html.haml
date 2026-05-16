@@ -1,0 +1,36 @@
+-# Variables display — current variable snapshot
+- variables = local_assigns.fetch(:variables, {})
+- node_outputs = local_assigns.fetch(:node_outputs, {})
+- filtered_vars = variables.reject { |k, _| k.to_s.start_with?("_") }
+
+#mission-variables-content
+  .ms-debug-variables
+    - if filtered_vars.empty? && node_outputs.empty?
+      .ms-debug-empty.ms-debug-empty-sm
+        %i.fa-solid.fa-database
+        %span No variables yet
+    - else
+      - if filtered_vars.any?
+        .ms-debug-var-list
+          - filtered_vars.each do |key, value|
+            .ms-debug-var-row
+              %span.ms-debug-var-name= key
+              %span.ms-debug-var-value
+                - if file_output?(value)
+                  = file_download_link(value)
+                - else
+                  %pre= format_debug_output(value)
+
+      - if node_outputs.any?
+        .ms-debug-section-header
+          %i.fa-solid.fa-cube
+          Node Outputs
+        .ms-debug-var-list
+          - node_outputs.each do |node_id, output|
+            .ms-debug-var-row
+              %span.ms-debug-var-name= node_id
+              %span.ms-debug-var-value
+                - if file_output?(output)
+                  = file_download_link(output)
+                - else
+                  %pre= format_debug_output(output)

@@ -1,0 +1,77 @@
+key = "agent-alpha-skills"
+name = "Agent Alpha Skill Catalog Scenarios"
+description = "Delegation coverage for skill catalog and skill work."
+suite_type = "agent"
+target_builtin_agent_key = "agent_alpha"
+evaluation_temperature = 0.2
+fixture_key = "agent_alpha_benchmark"
+
+[[test_cases]]
+key = "skills-01"
+name = "Skills 01"
+category = "skills"
+complexity = "medium"
+position = 0
+match_type = "semantic"
+prompt = "Create a skill catalog named %{new_skill_catalog_name} for billing policies."
+expected_answer = "Skill Catalog Designer should create or clearly report the outcome for %{new_skill_catalog_name}."
+expected_child_builtin_key = "skill_catalog_designer"
+expected_tool_names = ["ask_agent_skill_catalog_designer"]
+disallow_child_chats = false
+required_keywords = ["%{new_skill_catalog_name}"]
+
+[[test_cases]]
+key = "skills-02"
+name = "Skills 02"
+category = "skills"
+complexity = "medium"
+position = 1
+match_type = "semantic"
+prompt = "Add a skill named %{new_skill_name} to %{benchmark_skill_catalog_name} about refund windows."
+expected_answer = "Skill Catalog Designer should add %{new_skill_name} to %{benchmark_skill_catalog_name}."
+expected_child_builtin_key = "skill_catalog_designer"
+expected_tool_names = ["ask_agent_skill_catalog_designer"]
+disallow_child_chats = false
+required_keywords = ["%{new_skill_name}"]
+
+[[test_cases]]
+key = "skills-03"
+name = "Skills 03"
+category = "skills"
+complexity = "high"
+position = 2
+match_type = "semantic"
+prompt = "Update skill %{benchmark_skill_name} in %{benchmark_skill_catalog_name} so it mentions enterprise plans."
+expected_answer = "Skill Catalog Designer should update %{benchmark_skill_name} in %{benchmark_skill_catalog_name} and confirm the skill now includes enterprise plan details."
+expected_child_builtin_key = "skill_catalog_designer"
+expected_tool_names = ["ask_agent_skill_catalog_designer"]
+disallow_child_chats = false
+required_keywords = ["%{benchmark_skill_name}", "enterprise plan"]
+
+[[test_cases]]
+key = "skills-04"
+name = "Skills 04"
+category = "skills"
+complexity = "high"
+position = 3
+match_type = "semantic"
+prompt = "Attach skill catalog %{benchmark_skill_catalog_name} to agent %{benchmark_agent_name}."
+expected_answer = "Skill Catalog Designer should attach %{benchmark_skill_catalog_name} to %{benchmark_agent_name}."
+expected_child_builtin_key = "skill_catalog_designer"
+expected_tool_names = ["ask_agent_skill_catalog_designer"]
+disallow_child_chats = false
+required_keywords = ["%{benchmark_skill_catalog_name}", "%{benchmark_agent_name}"]
+
+[[test_cases]]
+key = "skills-05"
+name = "Skills 05"
+category = "skills"
+complexity = "high"
+position = 4
+match_type = "semantic"
+prompt = "Create a skill named %{new_skill_name} in %{benchmark_skill_catalog_name} with steps for password resets."
+expected_answer = "Create %{new_skill_name} in %{benchmark_skill_catalog_name} and clearly report any skill-format caveat if the requested steps need to be represented differently."
+expected_child_builtin_key = "skill_catalog_designer"
+expected_tool_names = ["ask_agent_skill_catalog_designer"]
+disallow_child_chats = false
+required_keywords = ["%{new_skill_name}"]

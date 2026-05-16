@@ -1,0 +1,13 @@
+-# Past debug runs list
+- recent_runs = local_assigns.fetch(:recent_runs, [])
+- active_run_id = local_assigns.fetch(:active_run_id, nil)
+
+.ms-debug-past-runs#mission-past-runs
+  - if recent_runs.empty?
+    .ms-debug-empty#mission-past-runs-empty
+      %i.fa-solid.fa-history
+      %span No past executions yet
+  - else
+    - recent_runs.each do |run|
+      -# run entry
+      = render "admin/missions/debug/past_run_entry", run:, active_run_id:

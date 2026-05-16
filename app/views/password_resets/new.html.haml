@@ -1,0 +1,15 @@
+- content_for(:title, "Forgot Password — #{APP_NAME}")
+
+= form_tag password_resets_path, class: "auth-form" do
+  .form-group
+    %label.form-label{ for: "email" } Email
+    %input.form-input#email{ type: "email", name: "email", placeholder: "Enter your email address", autofocus: true, required: true }
+
+  %button.btn.btn-primary.w-full{ type: "submit" }
+    %i.fa-solid.fa-paper-plane.mr-2
+    Send Reset Link
+
+  .auth-links
+    = link_to new_session_path, class: "auth-link" do
+      %i.fa-solid.fa-arrow-left.mr-1
+      Back to Sign In

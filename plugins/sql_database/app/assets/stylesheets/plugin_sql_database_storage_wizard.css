@@ -1,0 +1,46 @@
+.sql-storage-wizard__note-card,
+.sql-storage-wizard__requirements {
+  padding: 0.9rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 10%, var(--color-border-default));
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-surface-card) 92%, white),
+    color-mix(in srgb, var(--accent) 5%, var(--color-surface-card))
+  );
+}
+
+.sql-storage-wizard__note-card p,
+.sql-storage-wizard__requirements-list {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.sql-storage-wizard__note-card code,
+.sql-storage-wizard__requirements-list code {
+  padding: 0.05rem 0.32rem;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--color-text-primary);
+  font-size: 0.73rem;
+}
+
+.sql-storage-wizard__requirements {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.sql-storage-wizard__requirements-title {
+  margin: 0;
+  font-size: 0.79rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.sql-storage-wizard__requirements-list {
+  display: grid;
+  gap: 0.45rem;
+  padding-left: 1rem;
+}

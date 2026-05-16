@@ -1,0 +1,75 @@
+key = "agent-alpha-test-suite"
+name = "Agent Alpha Test Suite Designer Scenarios"
+description = "Delegation coverage for test suite design and execution work."
+suite_type = "agent"
+target_builtin_agent_key = "agent_alpha"
+evaluation_temperature = 0.2
+fixture_key = "agent_alpha_benchmark"
+
+[[test_cases]]
+key = "test-suite-01"
+name = "Test Suite 01"
+category = "test_suite"
+complexity = "medium"
+position = 0
+match_type = "semantic"
+prompt = "Create a test suite named %{new_test_suite_name} for agent %{benchmark_agent_name}."
+expected_answer = "Test Suite Designer should create or clearly report the outcome for %{new_test_suite_name}."
+expected_child_builtin_key = "test_suite_designer"
+expected_tool_names = ["ask_agent_test_suite_designer"]
+disallow_child_chats = false
+required_keywords = ["%{new_test_suite_name}"]
+
+[[test_cases]]
+key = "test-suite-02"
+name = "Test Suite 02"
+category = "test_suite"
+complexity = "high"
+position = 1
+match_type = "semantic"
+prompt = "Add a test case to %{benchmark_test_suite_name} that asks about refunds and expects a concise answer."
+expected_answer = "Test Suite Designer should add the requested test case to %{benchmark_test_suite_name}."
+expected_child_builtin_key = "test_suite_designer"
+expected_tool_names = ["ask_agent_test_suite_designer"]
+disallow_child_chats = false
+
+[[test_cases]]
+key = "test-suite-03"
+name = "Test Suite 03"
+category = "test_suite"
+complexity = "high"
+position = 2
+match_type = "semantic"
+prompt = "Run test suite %{benchmark_test_suite_name}."
+expected_answer = "Run %{benchmark_test_suite_name} and summarize the resulting pass/fail outcome for the latest run."
+expected_child_builtin_key = "test_suite_designer"
+expected_tool_names = ["ask_agent_test_suite_designer"]
+disallow_child_chats = false
+
+[[test_cases]]
+key = "test-suite-04"
+name = "Test Suite 04"
+category = "test_suite"
+complexity = "high"
+position = 3
+match_type = "semantic"
+prompt = "Read the latest run for %{benchmark_test_suite_name}."
+expected_answer = "Test Suite Designer should inspect the latest run for %{benchmark_test_suite_name} and summarize it."
+expected_child_builtin_key = "test_suite_designer"
+expected_tool_names = ["ask_agent_test_suite_designer"]
+disallow_child_chats = false
+required_keywords = ["%{benchmark_test_suite_name}"]
+
+[[test_cases]]
+key = "test-suite-05"
+name = "Test Suite 05"
+category = "test_suite"
+complexity = "high"
+position = 4
+match_type = "semantic"
+prompt = "Create a mission test suite named %{new_test_suite_name} for mission %{benchmark_mission_name}."
+expected_answer = "Test Suite Designer should create or clearly report the outcome for %{new_test_suite_name} against %{benchmark_mission_name}."
+expected_child_builtin_key = "test_suite_designer"
+expected_tool_names = ["ask_agent_test_suite_designer"]
+disallow_child_chats = false
+required_keywords = ["%{new_test_suite_name}"]

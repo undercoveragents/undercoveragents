@@ -1,0 +1,67 @@
+- action = tool.persisted? ? admin_tool_path(tool) : admin_tools_path
+- method = tool.persisted? ? :patch : :post
+- available_connectors = current_tenant.connectors.sql_databases.enabled.ordered
+- available_llm_connectors = current_tenant.connectors.llm_providers.enabled.ordered
+- form_id = local_assigns.fetch(:form_id, "tool-form")
+
+- llm_provider = toolable.llm_connector
+- provider = llm_provider.provider if llm_provider&.connector_type == "llm_provider"
+- available_models = provider.present? ? Model.where(provider:).order(:name).select(:model_id, :name, :provider) : Model.none
+
+= form_with url: action, method:, local: true, html: { class: "connector-form", id: form_id } do |f|
+  = hidden_field_tag :tool_type, "sql_query"
+
+  = render "shared/forms/validation_errors", record: tool, resource_name: "tool"
+
+  .grid.grid-cols-1.xl:grid-cols-2.gap-6
+    .card.h-full{ data: { controller: "tool-llm-config", tool_llm_config_model_options_url_value: model_options_admin_agents_path(frame_id: "tool_model_select", field_prefix: "sql_query"), tool_llm_config_frame_id_value: "tool_model_select" } }
+      .card-header
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-brain.mr-2.text-accent
+          LLM Configuration
+      .card-body
+        .form-group.mb-4
+          %label.form-label LLM Configuration Source
+          .flex.flex-col.gap-3
+            %label.flex.items-start.gap-3.cursor-pointer
+              = radio_button_tag "sql_query[llm_config_source]", "inherit", toolable.llm_config_source != "custom", class: "form-radio mt-0.5", data: { action: "change->tool-llm-config#onSourceChange" }
+              .flex-1
+                .text-sm.font-medium.text-text-primary Inherit from parent agent
+                .text-xs.text-text-muted.mt-0.5
+                  Use the LLM connection, model, and temperature configured on the agent that calls this tool.
+            %label.flex.items-start.gap-3.cursor-pointer
+              = radio_button_tag "sql_query[llm_config_source]", "custom", toolable.llm_config_source == "custom", class: "form-radio mt-0.5", data: { action: "change->tool-llm-config#onSourceChange" }
+              .flex-1
+                .text-sm.font-medium.text-text-primary Custom LLM configuration
+                .text-xs.text-text-muted.mt-0.5
+                  Configure a dedicated LLM connection, model, and temperature for SQL generation.
+
+        .mt-4{ data: { tool_llm_config_target: "customConfig" } }
+          = render "shared/model_config", field_prefix: "sql_query", frame_id: "tool_model_select", connector_change_action: "change->tool-llm-config#onConnectorChange", available_llm_connectors:, available_models:, selected_connector_id: toolable.llm_connector_id, selected_model_id: toolable.model_id, temperature_value: toolable.temperature || 0.1
+
+    .card.h-full
+      .card-header
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-gear.mr-2.text-accent
+          Tool Configuration
+      .card-body.space-y-6
+        .space-y-4
+          %div{ class: "text-xs font-semibold uppercase tracking-[0.08em] text-text-muted" } Basic Information
+          = render "tools/shared/basic_info_fields", f:, tool:, toolable:
+
+        .border-t.border-border-default.pt-6
+          %div{ class: "text-xs font-semibold uppercase tracking-[0.08em] text-text-muted mb-4" } SQL Database Connector
+          - if available_connectors.any?
+            .form-group{ data: { controller: "choices", choices_search_value: "false" } }
+              = f.label "sql_query[connector_id]", class: "form-label" do
+                Connector
+                %span.text-danger-500.ml-0.5 *
+              = f.select "sql_query[connector_id]", options_for_select(available_connectors.map { |c| [c.name, c.id] }, toolable.connector_id), { include_blank: "Select a connector…" }, class: "form-input form-select", required: true, data: { choices_target: "select" }
+              .form-hint Select the SQL database connector this tool will query.
+          - else
+            .text-center.py-8
+              %i.fa-solid.fa-plug.text-2xl.text-text-muted.mb-3
+              %p.text-sm.text-text-secondary.mb-2 No enabled SQL database connectors available.
+              = link_to new_admin_connector_path(type: "sql_database"), class: "btn btn-secondary btn-sm" do
+                %i.fa-solid.fa-plus.mr-1
+                Create a Connector

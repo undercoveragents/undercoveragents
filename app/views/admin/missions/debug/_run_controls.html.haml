@@ -1,0 +1,17 @@
+-# Run/Stop/Reset buttons
+- run_status = local_assigns.fetch(:run_status, "none")
+- is_running = run_status == "running"
+
+#mission-run-controls
+  - if is_running
+    %button.ms-run-btn.ms-run-btn-stop{ type: "button", title: "Stop execution", data: { action: "click->mission-debug#stopRun" } }
+      %i.fa-solid.fa-stop
+      %span Stop
+  - else
+    %button.ms-run-btn.ms-run-btn-play{ type: "button", title: "Run mission", data: { action: "click->mission-debug#startRun" } }
+      %i.fa-solid.fa-play
+      %span Run
+
+  %button.ms-run-btn.ms-run-btn-reset{ type: "button", title: "Reset execution", data: { action: "click->mission-debug#resetRun" } }
+    %i.fa-solid.fa-rotate-left
+    %span Reset

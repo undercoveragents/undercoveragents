@@ -1,0 +1,22 @@
+.test-case-item.animate-fade-in{ id: "test-case-#{test_case.id}" }
+  .flex.items-start.gap-4
+    .test-case-number
+      = test_case.position
+    .flex-1.min-w-0
+      .flex.items-center.gap-2.mb-2
+        = test_case_match_type_badge(test_case)
+        .text-xs.text-text-muted
+          \##{test_case.id}
+
+      .mb-2
+        .text-xs.font-semibold.text-text-muted.uppercase.tracking-wide.mb-1 Prompt
+        %p.text-sm.text-text-primary= test_case.prompt
+
+      .mb-2
+        .text-xs.font-semibold.text-text-muted.uppercase.tracking-wide.mb-1 Expected Answer
+        %p.text-sm.text-text-secondary= test_case.expected_answer.truncate(300)
+
+    .flex.items-center.gap-1.flex-shrink-0
+      - if policy(test_suite).update?
+        = button_to admin_test_suite_test_case_path(test_suite, test_case), method: :delete, class: "btn btn-ghost btn-xs text-danger-500", data: { controller: "confirm", confirm_title_value: "Delete Test Case", confirm_message_value: "Are you sure you want to delete this test case?" } do
+          %i.fa-solid.fa-trash

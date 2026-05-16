@@ -1,0 +1,33 @@
+!!!
+%html{ class: initial_theme_root_class, data: initial_theme_root_data }
+  %head
+    = render "layouts/head", title: content_for(:title) || "Playground — #{APP_NAME}"
+
+  %body{ data: { controller: "theme" } }
+    .playground-layout
+      / ── Left Navigation Bar ──
+      .playground-nav
+        = link_to admin_root_path, class: "playground-nav-brand", title: "Back to Dashboard" do
+          .flex.items-center.justify-center.w-8.h-8.rounded-lg.bg-brand-600
+            %i.fa-solid.fa-atom.text-white
+
+        .playground-nav-links
+          = link_to admin_playground_chats_path, class: "playground-nav-link#{" active" if request.path.start_with?("/admin/playground")}", title: "Playground" do
+            %i.fa-solid.fa-flask
+          = link_to admin_inspector_chats_path, class: "playground-nav-link#{" active" if request.path.start_with?("/admin/inspector")}", title: "Inspector" do
+            %i.fa-solid.fa-microscope
+          = link_to scoped_agents_path, class: "playground-nav-link", title: "Agents" do
+            %i.fa-solid.fa-user-secret
+          = link_to admin_root_path, class: "playground-nav-link", title: "Dashboard" do
+            %i.fa-solid.fa-gauge-high
+
+        .playground-nav-footer
+          %button.playground-nav-link{ data: { action: "click->theme#toggle" }, type: "button", title: "Toggle theme" }
+            %i.fa-solid.fa-sun.hidden{ data: { theme_target: "sunIcon" } }
+            %i.fa-solid.fa-moon.hidden{ data: { theme_target: "moonIcon" } }
+
+      / ── Main Content Area ──
+      .playground-main
+        = yield
+
+    = render "shared/toast"

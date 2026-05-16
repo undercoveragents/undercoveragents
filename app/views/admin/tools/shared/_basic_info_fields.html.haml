@@ -1,0 +1,18 @@
+- resolved_toolable = local_assigns[:toolable] || tool.toolable
+
+.form-group.mb-4
+  = f.label "tool[name]", class: "form-label" do
+    Name
+    %span.text-danger-500.ml-0.5 *
+  = f.text_field "tool[name]", value: tool.name, class: "form-input", placeholder: "e.g. HR Database Query", required: true
+  .form-hint A unique name to identify this tool.
+
+.form-group.mb-4
+  = f.label "tool[description]", "Description", class: "form-label"
+  = f.text_area "tool[description]", value: tool.description, class: "form-input", placeholder: "Brief description of what this tool does", rows: 3
+
+- if resolved_toolable.respond_to?(:tool_compaction_policy)
+  .form-group{ data: { controller: "choices", choices_search_value: "false" } }
+    = f.label "#{resolved_toolable.class.type_key}[tool_compaction_policy]", "Chat History Compaction", class: "form-label"
+    = f.select "#{resolved_toolable.class.type_key}[tool_compaction_policy]", tool_compaction_policy_options, { selected: resolved_toolable.tool_compaction_policy.presence || "" }, { class: "form-select", data: { choices_target: "select" } }
+    .form-hint Controls how past tool-result messages for this tool are sent back to the LLM. Use "Drop all" for fire-and-forget tools whose output is never needed again.

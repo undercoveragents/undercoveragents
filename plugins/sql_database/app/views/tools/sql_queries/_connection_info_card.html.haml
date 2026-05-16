@@ -1,0 +1,89 @@
+/ ── Connection Info Card ──
+/ Locals: tool, toolable, connector
+.card
+  .card-header
+    .flex.items-center.justify-between
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-gear.mr-2.text-accent
+        Configuration
+      .flex.items-center.gap-2
+        - if policy(tool).update?
+          = link_to edit_admin_tool_path(tool), class: "btn btn-secondary btn-xs" do
+            %i.fa-solid.fa-pen.mr-1
+            Edit
+  .card-body
+    - sql_database = toolable.sql_database
+    .detail-grid
+      .detail-item
+        .detail-label Connector
+        .detail-value
+          - if connector.present?
+            = link_to connector.name, admin_connector_path(connector), class: "text-accent no-underline"
+          - else
+            %span.text-text-muted Not configured
+      .detail-item
+        .detail-label Adapter
+        .detail-value= sql_database&.adapter_type&.titleize || "—"
+      .detail-item
+        .detail-label Host
+        .detail-value= sql_database&.display_host || "—"
+      .detail-item
+        .detail-label Schema
+        .detail-value= sql_database&.schema_name || "—"
+      .detail-item
+        .detail-label SSL
+        - if sql_database.present?
+          .detail-value= sql_database.ssl_enabled? ? "Enabled" : "Disabled"
+        - else
+          .detail-value —
+      .detail-item
+        .detail-label Read Only
+        - if sql_database.present?
+          .detail-value= sql_database.read_only? ? "Yes" : "No"
+        - else
+          .detail-value —
+      .detail-item
+        .detail-label Max Results
+        .detail-value= sql_database.present? ? number_with_delimiter(sql_database.max_results) : "—"
+      .detail-item
+        .detail-label LLM Configuration
+        .detail-value
+          - if toolable.use_custom_llm_config?
+            %span.badge.badge-info Custom
+          - else
+            %span.badge.badge-secondary Inherit from agent
+      - if toolable.use_custom_llm_config?
+        .detail-item
+          .detail-label LLM Connection
+          .detail-value
+            - if toolable.llm_connector.present?
+              = link_to toolable.llm_connector.name, admin_connector_path(toolable.llm_connector), class: "text-accent no-underline"
+            - else
+              %span.text-text-muted Not configured
+        .detail-item
+          .detail-label Model
+          .detail-value= toolable.model_id.presence || "Not configured"
+        .detail-item
+          .detail-label Temperature
+          .detail-value
+            - if toolable.temperature.present?
+              = toolable.temperature
+              %span.text-text-muted.ml-1 (#{temperature_label(toolable.temperature)})
+            - else
+              %span.text-text-muted Not configured
+      .detail-item
+        .detail-label Chat History Compaction
+        .detail-value= tool_compaction_policy_label(toolable)
+
+    - if sql_database.present?
+      / ── Test Connection ──
+      .mt-4.pt-4.border-t.border-border-default{ data: { controller: "sql-database-connector-test", sql_database_connector_test_endpoint_value: admin_test_connection_sql_database_connectors_path, sql_database_connector_test_payload_value: { sql_database: sql_database.connection_test_params }.to_json } }
+        .flex.items-center.gap-3
+          %button.btn.btn-secondary{ type: "button", data: { action: "click->sql-database-connector-test#test", sql_database_connector_test_target: "testBtn" } }
+            %i.fa-solid.fa-plug-circle-check.mr-1
+            Test Connection
+          - if policy(tool).discover_schema?
+            = button_to discover_schema_admin_tool_path(tool), method: :post, class: "btn btn-secondary" do
+              %i.fa-solid.fa-sitemap.mr-1
+              Discover Schema
+        .test-connection-result.mt-3{ data: { sql_database_connector_test_target: "testResult" } }

@@ -1,0 +1,69 @@
+.ui-wizard__panel#sql-source-step-source
+  = render "shared/wizard/section_head",
+           step:,
+           copy: "Pick whether this step should read directly from a table/view or from a hand-written SELECT query."
+  .ui-wizard__mode-grid
+    %label.ui-wizard__mode-option
+      = f.radio_button :source_mode,
+                       "table",
+                       checked: source_mode == "table",
+                       class: "ui-wizard__mode-input",
+                       data: { action: "change->wizard-preview#preview" }
+      .ui-wizard__mode-card
+        %span.ui-wizard__mode-icon
+          %i.fa-solid.fa-table
+        %strong Pick a table or view
+        %p Use discovered schema metadata to keep the source aligned.
+    %label.ui-wizard__mode-option
+      = f.radio_button :source_mode,
+                       "query",
+                       checked: source_mode == "query",
+                       class: "ui-wizard__mode-input",
+                       data: { action: "change->wizard-preview#preview" }
+      .ui-wizard__mode-card
+        %span.ui-wizard__mode-icon
+          %i.fa-solid.fa-code
+        %strong Write a custom query
+        %p Start from a read-only SELECT statement and inspect it before saving.
+
+  - if source_mode == "table"
+    .ui-wizard__source-body
+      .form-group.mt-4{ data: { controller: "choices" } }
+        = f.label :selected_object_name, "Table or View", class: "form-label"
+        = f.select :selected_object_name,
+                   options_for_select(state.object_options, steppable.selected_object_name),
+                   { include_blank: "Select a table or view..." },
+                   class: "form-input form-select",
+                   disabled: steppable.connector_id.blank? || state.object_options.empty?,
+                   data: { action: "change->wizard-preview#preview", choices_target: "select" }
+        = f.hidden_field :selected_object_type, value: state.selected_object_type
+        .form-hint The wizard loads tables, views, and materialized views from the connector schema.
+      .form-group.mt-4
+        = f.label :query, "Generated Query", class: "form-label"
+        = f.text_area :query,
+                      value: state.query_value,
+                      class: "form-input font-mono text-sm",
+                      rows: 5,
+                      readonly: true
+        .form-hint The preview updates as you refine the selected columns and record limit.
+  - else
+    .ui-wizard__source-body
+      .form-group.mt-4
+        = f.label :query, class: "form-label" do
+          SQL Query
+          %span.text-danger-500.ml-0.5 *
+        = f.text_area :query,
+                      value: state.query_value,
+                      class: "form-input font-mono text-sm",
+                      rows: 5,
+                      placeholder: "SELECT id, plain_text, title FROM kb_documents"
+        .form-hint Use a read-only SELECT query. Analyze it to load the returned columns.
+      .ui-wizard__action-row
+        %p.ui-wizard__action-note Run inspection after each structural query change so the field lists stay aligned with the query output.
+        = button_tag type: "button", class: "btn btn-secondary btn-sm", data: { action: "click->wizard-preview#preview" } do
+          %i.fa-solid.fa-flask.mr-1
+          Analyze Query
+
+  .ui-wizard__status{ class: "is-#{status.kind}" }
+    %i.fa-solid{ class: status_icon }
+    %p= status.message

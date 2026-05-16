@@ -1,0 +1,18 @@
+- frame_data = { turbo_permanent: true }
+- frame_data[:chat_stream_frame_location] = admin_agent_alpha_path(chat_id: @chat.id)
+- frame_data[:chat_stream_header_title] = @chat.display_title_for_ui
+- frame_data[:chat_stream_header_target_id] = @chat.title_dom_id
+= turbo_frame_tag "admin-agent-alpha-frame", data: frame_data do
+  = render "frame_state",
+           frame_location: admin_agent_alpha_path(chat_id: @chat.id),
+           header_title: @chat.display_title_for_ui,
+           header_target_id: @chat.title_dom_id
+  -# spacer between sibling renders
+  = render "shared/chat/shell",
+           chat: @chat,
+           messages: @messages,
+           component: @chat_component,
+           form_url: admin_agent_alpha_messages_path,
+           cancel_url: cancel_admin_agent_alpha_path(chat_id: @chat.id),
+           poll_url: admin_agent_alpha_path(chat_id: @chat.id, format: :turbo_stream),
+           hidden_fields: { chat_id: @chat.id, ui_context_token: nil }

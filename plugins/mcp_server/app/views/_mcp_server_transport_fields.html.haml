@@ -1,0 +1,113 @@
+= turbo_frame_tag "mcp_transport_fields" do
+  - transport = connector.transport_type || "stdio"
+
+  - case transport
+  - when "stdio"
+    / ── STDIO Transport ──
+    .card.mb-6
+      .card-header
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-terminal.mr-2.text-accent
+          STDIO Command
+        %p.text-xs.text-text-muted.mt-1 Run a local command that speaks the MCP protocol via stdin/stdout.
+      .card-body
+        .form-grid
+          .form-group.col-span-full
+            = label_tag "mcp_server[command]", class: "form-label" do
+              Command
+              %span.text-danger-500.ml-0.5 *
+            = text_field_tag "mcp_server[command]", connector.command, class: "form-input font-mono", placeholder: "e.g. npx, python, uvx, docker", required: true
+            .form-hint The executable to run. Must be available on your system PATH.
+
+          .form-group.col-span-full
+            = label_tag "mcp_server[args_text]", "Arguments", class: "form-label"
+            = text_area_tag "mcp_server[args_text]", (connector.parsed_args.join("\n") if connector.parsed_args.any?), class: "form-input font-mono", rows: 3, placeholder: "One argument per line, e.g.:\n-m\nmcp_server"
+            .form-hint One argument per line. These are passed to the command above.
+
+          .form-group.col-span-full
+            = label_tag "mcp_server[env_vars_text]", "Environment Variables", class: "form-label"
+            = text_area_tag "mcp_server[env_vars_text]", (connector.parsed_env_vars.map { |k, v| "#{k}=#{v}" }.join("\n") if connector.parsed_env_vars.any?), class: "form-input font-mono", rows: 3, placeholder: "KEY=VALUE format, one per line:\nDEBUG=1\nAPI_KEY=sk-..."
+            .form-hint
+              Environment variables passed to the process.
+              %code KEY=VALUE
+              format, one per line.
+
+    / ── Example Servers ──
+    .card.mb-6
+      .card-header
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-lightbulb.mr-2.text-yellow-500
+          Example Configurations
+      .card-body
+        .grid.grid-cols-1.md:grid-cols-2.gap-4
+          .mcp-example-card
+            %h4.text-sm.font-semibold.text-text-primary
+              %i.fa-solid.fa-folder.mr-1.text-blue-400
+              Filesystem
+            %p.text-xs.text-text-secondary.mb-2 Access local files and directories
+            .text-xs.font-mono.p-2.rounded.bg-surface-secondary.text-text-secondary
+              %div Command: npx
+              %div
+                Args:
+                %br
+                \-y
+                %br
+                @modelcontextprotocol/server-filesystem
+                %br
+                /path/to/directory
+
+          .mcp-example-card
+            %h4.text-sm.font-semibold.text-text-primary
+              %i.fa-solid.fa-code.mr-1.text-green-400
+              GitHub
+            %p.text-xs.text-text-secondary.mb-2 Access GitHub repositories and issues
+            .text-xs.font-mono.p-2.rounded.bg-surface-secondary.text-text-secondary
+              %div Command: npx
+              %div
+                Args:
+                %br
+                \-y
+                %br
+                @modelcontextprotocol/server-github
+              %div
+                Env:
+                %br
+                GITHUB_PERSONAL_ACCESS_TOKEN=ghp_...
+
+          .mcp-example-card
+            %h4.text-sm.font-semibold.text-text-primary
+              %i.fa-solid.fa-magnifying-glass.mr-1.text-purple-400
+              Brave Search
+            %p.text-xs.text-text-secondary.mb-2 Web search via Brave Search API
+            .text-xs.font-mono.p-2.rounded.bg-surface-secondary.text-text-secondary
+              %div Command: npx
+              %div
+                Args:
+                %br
+                \-y
+                %br
+                @modelcontextprotocol/server-brave-search
+              %div
+                Env:
+                %br
+                BRAVE_API_KEY=BSA...
+
+          .mcp-example-card
+            %h4.text-sm.font-semibold.text-text-primary
+              %i.fa-solid.fa-memory.mr-1.text-orange-400
+              Memory
+            %p.text-xs.text-text-secondary.mb-2 Give agents persistent knowledge graph memory
+            .text-xs.font-mono.p-2.rounded.bg-surface-secondary.text-text-secondary
+              %div Command: npx
+              %div
+                Args:
+                %br
+                \-y
+                %br
+                @modelcontextprotocol/server-memory
+
+  - when "sse"
+    = render "mcp_server_http_fields", connector:, icon: "fa-satellite-dish", title: "SSE Connection", description: "Connect to a remote MCP server via Server-Sent Events.", url_placeholder: "https://mcp.example.com/sse", url_hint: "The SSE endpoint URL of the MCP server."
+
+  - when "streamable_http"
+    = render "mcp_server_http_fields", connector:, icon: "fa-globe", title: "Streamable HTTP Connection", description: "Connect via Streamable HTTP protocol — supports OAuth and modern MCP servers.", url_placeholder: "https://mcp.example.com/mcp", url_hint: "The HTTP endpoint URL of the MCP server."

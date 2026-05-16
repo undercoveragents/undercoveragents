@@ -1,0 +1,30 @@
+/ ── MCP Tool Visibility Summary ──
+/ Locals: tool, toolable
+- if toolable.tools_discovered?
+  .card
+    .card-header
+      .flex.items-center.justify-between
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-filter.mr-2.text-accent
+          Tool Visibility
+        .flex.items-center.gap-3
+          - total = toolable.all_discovered_tool_names.size
+          - if toolable.all_tools_selected?
+            %span.badge.badge-brand
+              All #{total} tools visible
+          - else
+            %span.badge.bg-surface-secondary.text-text-secondary
+              #{toolable.selected_tool_names.size} of #{total} tools visible
+          - if policy(tool).edit_visibility?
+            = link_to edit_visibility_admin_tool_path(tool), class: "btn btn-secondary btn-xs" do
+              %i.fa-solid.fa-pen.mr-1
+              Edit Visibility
+    .card-body
+      - if toolable.all_tools_selected?
+        %p.text-sm.text-text-muted
+          All discovered MCP tools are available to agents using this tool.
+      - else
+        .flex.flex-wrap.gap-2.mb-3
+          - toolable.selected_tool_names.each do |name|
+            %span.badge.badge-brand= name
+        %p.text-sm.text-text-muted Only the tools listed above are available to agents.

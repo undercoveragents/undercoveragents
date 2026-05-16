@@ -1,0 +1,91 @@
+- action = connector.persisted? ? admin_connector_path(connector) : admin_connectors_path
+- method = connector.persisted? ? :patch : :post
+- form_id = local_assigns.fetch(:form_id, "connector-form")
+
+.connector-form-container
+  = form_with url: action, method:, local: true, html: { class: "connector-form", id: form_id } do |f|
+    = hidden_field_tag :connector_type, "telegram"
+
+    = render "shared/forms/validation_errors", record: connector, resource_name: "connector"
+
+    / ── Basic Information (shared) ──
+    = render "connectors/forms/shared/basic_info", f:, connector:
+
+    / ── Setup Guide ──
+    .card.mb-6
+      .card-header
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-book-open.mr-2.text-accent
+          How to Set Up Telegram
+      .card-body
+        .space-y-4
+          .flex.items-start.gap-3
+            .flex.items-center.justify-center.w-7.h-7.rounded-full.bg-brand-600.text-white.text-xs.font-bold.shrink-0 1
+            .flex-1
+              %p.text-sm.font-medium.text-text-primary Open Telegram and search for @BotFather
+              %p.text-xs.text-text-muted
+                BotFather is the official Telegram bot for creating and managing bots.
+                = link_to "Open BotFather", "https://t.me/BotFather", target: "_blank", class: "text-accent no-underline ml-1", rel: "noopener"
+
+          .flex.items-start.gap-3
+            .flex.items-center.justify-center.w-7.h-7.rounded-full.bg-brand-600.text-white.text-xs.font-bold.shrink-0 2
+            .flex-1
+              %p.text-sm.font-medium.text-text-primary
+                Send the command
+                %code.text-xs.bg-surface-secondary.px-1.py-0.5.rounded /newbot
+              %p.text-xs.text-text-muted BotFather will guide you through the process of naming your bot and choosing a username.
+
+          .flex.items-start.gap-3
+            .flex.items-center.justify-center.w-7.h-7.rounded-full.bg-brand-600.text-white.text-xs.font-bold.shrink-0 3
+            .flex-1
+              %p.text-sm.font-medium.text-text-primary Copy the bot token provided by BotFather
+              %p.text-xs.text-text-muted
+                It looks like
+                %code.text-xs.bg-surface-secondary.px-1.py-0.5.rounded 123456789:ABCdefGHIjklMNOpqrsTUVwxyz
+                — paste it in the field below.
+
+          .flex.items-start.gap-3
+            .flex.items-center.justify-center.w-7.h-7.rounded-full.bg-brand-600.text-white.text-xs.font-bold.shrink-0 4
+            .flex-1
+              %p.text-sm.font-medium.text-text-primary Customize your bot (optional)
+              %p.text-xs.text-text-muted
+                Use BotFather commands like
+                %code.text-xs.bg-surface-secondary.px-1.py-0.5.rounded /setdescription
+                and
+                %code.text-xs.bg-surface-secondary.px-1.py-0.5.rounded /setuserpic
+                to set a description and profile photo.
+
+    / ── Bot Token ──
+    .card.mb-6
+      .card-header
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-brands.fa-telegram.mr-2.text-accent
+          Telegram Configuration
+      .card-body
+        .form-grid
+          .form-group
+            = f.label "telegram[bot_token]", class: "form-label" do
+              Bot Token
+              %span.text-danger-500.ml-0.5 *
+            = f.password_field "telegram[bot_token]", value: (connector.persisted? ? nil : connector.bot_token), class: "form-input", placeholder: (connector.persisted? ? "Leave blank to keep current" : "Paste your bot token from BotFather"), required: !connector.persisted?
+            .form-hint The secret token provided by BotFather. Stored encrypted.
+
+    / ── Webhook Info ──
+    - if connector.persisted?
+      .card.mb-6
+        .card-header
+          %h3.text-sm.font-semibold.text-text-primary
+            %i.fa-solid.fa-satellite-dish.mr-2.text-accent
+            Webhook Status
+        .card-body
+          - if connector.webhook_url.present?
+            .flex.items-center.gap-2.mb-3
+              .w-2.h-2.rounded-full.bg-success-500
+              %span.text-sm.text-success-500.font-medium Webhook active
+            .text-xs.text-text-muted.font-mono.break-all= connector.webhook_url
+          - else
+            .flex.items-center.gap-2
+              .w-2.h-2.rounded-full.bg-warning-500
+              %span.text-sm.text-warning-500.font-medium
+                Webhook not configured.
+                Create a Telegram channel with this connector and register the webhook from that channel.

@@ -1,0 +1,60 @@
+- auth_open = presenter.http_auth_type != "none" || presenter.http_headers.any?
+
+%details.llm-settings-inline-accordion.ms-http-request-accordion{ open: auth_open }
+  %summary.llm-settings-inline-accordion__summary.ms-http-request-accordion__summary
+    .ms-http-request-accordion__summary-copy
+      %span.ms-http-request-accordion__summary-title Authorization
+      %span.ms-http-request-accordion__summary-meta Credentials and request headers
+    %i.fa-solid.fa-chevron-down.llm-settings-inline-accordion__chevron
+  .llm-settings-inline-accordion__body.ms-http-request-accordion__body
+    .ms-http-request-grid
+      .ms-prop-field.ms-prop-field--dense.ms-http-request-grid__full
+        %label.ms-prop-label Authorization
+        %select.ms-prop-select{ data: { action: "change->mission#updateNodeProp change->http-request-node#sync", "prop-key": "auth_type", "http-request-node-target": "authType" } }
+          - [["none", "No authorization"], ["bearer", "Bearer token"], ["basic", "Basic auth"], ["api_key", "API key"]].each do |value, label|
+            %option{ value:, selected: presenter.http_auth_type == value }= label
+        .ms-prop-hint Keep auth scoped to this node so the mission stays portable across environments.
+
+      .ms-http-request-section.ms-http-request-grid__full{ hidden: presenter.http_auth_type != "bearer", data: { "http-request-node-target": "authSection", "auth-mode": "bearer" } }
+        .ms-http-request-grid
+          .ms-prop-field.ms-prop-field--dense.ms-http-request-grid__full
+            %label.ms-prop-label Bearer Token
+            = render "shared/expression_editor", value: presenter.data("auth_bearer_token"), variables: selectable_variables, prop_key: "auth_bearer_token", placeholder: "{{secrets.api_token}}", multiline: false, rows: 1
+
+      .ms-http-request-section.ms-http-request-grid__full{ hidden: presenter.http_auth_type != "basic", data: { "http-request-node-target": "authSection", "auth-mode": "basic" } }
+        .ms-http-request-grid
+          .ms-prop-field.ms-prop-field--dense
+            %label.ms-prop-label Username
+            = render "shared/expression_editor", value: presenter.data("auth_username"), variables: selectable_variables, prop_key: "auth_username", placeholder: "service_account", multiline: false, rows: 1
+          .ms-prop-field.ms-prop-field--dense
+            %label.ms-prop-label Password
+            = render "shared/expression_editor", value: presenter.data("auth_password"), variables: selectable_variables, prop_key: "auth_password", placeholder: "{{secrets.password}}", multiline: false, rows: 1
+
+      .ms-http-request-section.ms-http-request-grid__full{ hidden: presenter.http_auth_type != "api_key", data: { "http-request-node-target": "authSection", "auth-mode": "api_key" } }
+        .ms-http-request-grid
+          .ms-prop-field.ms-prop-field--dense
+            %label.ms-prop-label Key Name
+            %input.ms-prop-input{ type: "text", value: presenter.data("auth_api_key_name"), placeholder: "X-API-Key", data: { action: "blur->mission#updateNodeProp", "prop-key": "auth_api_key_name" } }
+          .ms-prop-field.ms-prop-field--dense
+            %label.ms-prop-label Location
+            %select.ms-prop-select{ data: { action: "change->mission#updateNodeProp", "prop-key": "auth_api_key_in" } }
+              - [["header", "Header"], ["query", "Query parameter"]].each do |value, label|
+                %option{ value:, selected: presenter.data("auth_api_key_in", "header") == value }= label
+          .ms-prop-field.ms-prop-field--dense.ms-http-request-grid__full
+            %label.ms-prop-label Key Value
+            = render "shared/expression_editor", value: presenter.data("auth_api_key_value"), variables: selectable_variables, prop_key: "auth_api_key_value", placeholder: "{{secrets.api_key}}", multiline: false, rows: 1
+
+      .ms-prop-field.ms-prop-field--dense.ms-http-request-grid__full
+        %label.ms-prop-label.ms-prop-label--spread
+          %span.ms-prop-label__text Headers
+          %button.ms-prop-add-btn{ type: "button", data: { action: "click->mission#addKvRow", list_target: "propHeaders", key_placeholder: "Header", value_placeholder: "Value", value_mode: "expression" } }
+            %i.fa-solid.fa-plus
+        .ms-prop-kv-list{ data: { "mission-target": "propHeaders", "kv-type": "headers", "prop-key": "headers", "kv-value-mode": "expression", "kv-variables": selectable_variables.to_json } }
+          - presenter.http_headers.each do |key, value|
+            .ms-prop-kv-row
+              %input.ms-prop-kv-key{ type: "text", placeholder: "Header", value: key, data: { action: "blur->mission#syncKv" } }
+              %span.ms-prop-kv-sep =
+              = render "shared/expression_editor", value:, variables: selectable_variables, prop_key: "", placeholder: "Value", multiline: false, rows: 1, data_action: "blur->mission#syncKv input->mission#syncKv"
+              %button.ms-prop-kv-remove{ type: "button", data: { action: "click->mission#removeKvRow" } }
+                %i.fa-solid.fa-xmark
+        .ms-prop-hint Add only the headers you control directly. Authorization modes inject their own credentials automatically.

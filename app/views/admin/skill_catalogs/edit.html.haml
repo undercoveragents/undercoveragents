@@ -1,0 +1,6 @@
+- content_for(:title, "Edit #{@skill_catalog.name} — #{APP_NAME}")
+- form_id = "skill-catalog-form"
+- back_link = { label: "Back to #{@skill_catalog.name}", url: admin_skill_catalog_path(@skill_catalog) }
+= render_page_hero(title: "Edit Skill Catalog", variant: :compact, theme: :skills, title_icon: "fa-solid fa-book-open", record_title: @skill_catalog.name, back_link:, actions: [page_hero_form_action(label: "Update Catalog", form_id:)])
+-# haml-lint sibling render separator
+= render "form", form_id:, skill_catalog: @skill_catalog

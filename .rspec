@@ -1,0 +1,6 @@
+--require spec_helper
+-I spec
+--format progress
+--color
+--order random
+--default-path .

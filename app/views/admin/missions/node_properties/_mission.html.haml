@@ -1,0 +1,45 @@
+/ ── Sub-Mission Node Configuration ──
+- io_fields_url = mission_io_fields_admin_mission_path(presenter.mission)
+- selected_mission_id = presenter.data("mission_id")
+- input_variables = presenter.data_raw("input_variables") || {}
+.ms-prop-field
+  %label.ms-prop-label
+    Sub-Mission
+    %span.ms-prop-required *
+  %select.ms-prop-select{ data: { action: "change->mission#updateSubMission", "io-fields-url": io_fields_url } }
+    %option{ value: "" } Select a mission...
+    - Mission.where(operation: presenter.mission.operation).where.not(id: presenter.mission.id).order(:name).each do |m|
+      %option{ value: m.id, selected: m.id.to_s == selected_mission_id.to_s }= m.name
+
+/ ── Input Variable Mapping ──
+- if selected_mission_id.present?
+  - sub_mission = Mission.find_by(id: selected_mission_id)
+  - if sub_mission
+    - input_node = (sub_mission.flow_data["nodes"] || []).find { |n| n["type"] == "input" }
+    - fields = input_node ? (input_node.dig("data", "fields") || []) : []
+    - unless fields.empty?
+      .ms-prop-field
+        %label.ms-prop-label
+          Input Variables
+        .ms-prop-sub-mission-fields{ data: { "mission-input-fields": "" } }
+          - fields.select { |f| f["variable_name"].present? }.each do |f|
+            - current_value = input_variables[f["variable_name"]].to_s
+            .ms-prop-sub-mission-row{ data: { "sub-mission-var": f["variable_name"] } }
+              %label.ms-prop-label.ms-prop-label-sm
+                = f["variable_name"]
+                - if f["required"]
+                  %span.ms-prop-required *
+                %span.ms-prop-type-hint= f["field_type"] || "string"
+              = render "shared/expression_editor", value: current_value, variables: presenter.selectable_upstream_variables, prop_key: "", placeholder: "Value or {{variable}}", multiline: false, rows: 1, data_action: "blur->mission#syncSubMissionInput input->mission#syncSubMissionInput"
+    - if fields.empty?
+      .ms-prop-field
+        .ms-prop-sub-mission-fields{ data: { "mission-input-fields": "" } }
+          .ms-prop-hint
+            %i.fa-solid.fa-circle-info
+            This mission has no input fields.
+  - else
+    .ms-prop-field
+      .ms-prop-sub-mission-fields{ data: { "mission-input-fields": "" } }
+- else
+  .ms-prop-field
+    .ms-prop-sub-mission-fields{ data: { "mission-input-fields": "" } }

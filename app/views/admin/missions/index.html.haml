@@ -1,0 +1,55 @@
+- content_for(:title, "Missions — #{APP_NAME}")
+= render_page_hero(title: "Composable execution, orchestrated across your graph", description: "Design and manage visual AI missions.", variant: :dashboard, eyebrow: { label: "Missions", icon: "fa-solid fa-diagram-project" }, actions: [policy_page_hero_action(Mission, :create?, label: "New Mission", url: new_admin_mission_path, icon: "fa-solid fa-plus", style: :primary)])
+
+- if @missions.any?
+  .card-grid.card-grid--entities
+    - @missions.each do |mission|
+      - can_open_designer = policy_allows?(mission, :designer?)
+      - designer_title = policy_tooltip(mission, :designer?)
+      - if can_open_designer
+        = link_to designer_admin_mission_path(mission), class: "card entity-card entity-card--interactive no-underline" do
+          .card-body.entity-card__body
+            .entity-card__header
+              .entity-card__identity
+                .entity-card__icon
+                  %i.fa-solid.fa-project-diagram
+                .entity-card__identity-copy
+                  %h3.entity-card__title= mission.name
+
+            - if mission.description.present?
+              %p.entity-card__description.line-clamp-2= mission.description
+
+            .entity-card__footer
+              %span.entity-card__timestamp
+                %i.fa-solid.fa-clock
+                Updated #{time_ago_in_words(mission.updated_at)} ago
+      - else
+        .card.entity-card.opacity-80{ title: designer_title }
+          .card-body.entity-card__body
+            .entity-card__header
+              .entity-card__identity
+                .entity-card__icon
+                  %i.fa-solid.fa-project-diagram
+                .entity-card__identity-copy
+                  %h3.entity-card__title= mission.name
+
+            - if mission.description.present?
+              %p.entity-card__description.line-clamp-2= mission.description
+
+            .entity-card__footer
+              %span.entity-card__timestamp
+                %i.fa-solid.fa-clock
+                Updated #{time_ago_in_words(mission.updated_at)} ago
+
+- else
+  - can_create_mission = policy_allows?(Mission, :create?)
+  - create_mission_title = policy_tooltip(Mission, :create?)
+  = render_page_empty_state(title: "No missions yet", body: "Design your first mission to orchestrate AI agents and tools visually.") do
+    - if can_create_mission
+      = link_to new_admin_mission_path, class: "btn btn-primary" do
+        %i.fa-solid.fa-plus.mr-1
+        Create Mission
+    - else
+      %button{ type: "button", class: disabled_action_classes("btn btn-primary", disabled: true), disabled: true, title: create_mission_title }
+        %i.fa-solid.fa-plus.mr-1
+        Create Mission

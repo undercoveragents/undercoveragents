@@ -1,0 +1,106 @@
+- existing_mode = storage_mode == "existing"
+- field_options = state.chunk_field_options
+- field_select_disabled = field_options.empty?
+- documents_table_name = steppable.documents_table.presence || "documents"
+- chunks_table_name = steppable.chunks_table.presence || "chunks"
+- preview_content_field = steppable.content_field.presence || "content"
+- preview_embedding_field = steppable.embedding_field.presence || "embedding"
+- preview_document_reference_field = steppable.document_reference_field.presence || "document_id"
+- metadata_columns = steppable.metadata_field_mappings.values.filter_map { |value| value.to_s.strip.presence }.uniq
+
+.ui-wizard__panel#sql-storage-step-schema
+  = render "shared/wizard/section_head",
+           step:,
+           copy: "Define how chunk rows are stored. Existing mode validates the chosen columns; new mode lets you name the columns that will be created."
+
+  - if existing_mode
+    .ui-wizard__source-body
+      .grid.grid-cols-1.md:grid-cols-3.gap-4.mt-4
+        .form-group{ data: { controller: "choices" } }
+          = f.label :content_field, class: "form-label" do
+            Content Column
+            %span.text-danger-500.ml-0.5 *
+          = f.select :content_field,
+                     options_for_select(field_options, steppable.content_field),
+                     { include_blank: "Select the chunk text column..." },
+                     class: "form-input form-select",
+                     disabled: field_select_disabled,
+                     required: true,
+                     data: { action: "change->wizard-preview#preview", choices_target: "select" }
+          .form-hint The chunk text column must already exist in the selected chunks table.
+        .form-group{ data: { controller: "choices" } }
+          = f.label :embedding_field, class: "form-label" do
+            Embedding Column
+            %span.text-danger-500.ml-0.5 *
+          = f.select :embedding_field,
+                     options_for_select(field_options, steppable.embedding_field),
+                     { include_blank: "Select the vector column..." },
+                     class: "form-input form-select",
+                     disabled: field_select_disabled,
+                     required: true,
+                     data: { action: "change->wizard-preview#preview", choices_target: "select" }
+          .form-hint Match this to the pgvector column that stores each chunk embedding.
+        .form-group{ data: { controller: "choices" } }
+          = f.label :document_reference_field, class: "form-label" do
+            Document Reference Column
+            %span.text-danger-500.ml-0.5 *
+          = f.select :document_reference_field,
+                     options_for_select(field_options, steppable.document_reference_field),
+                     { include_blank: "Select the document reference column..." },
+                     class: "form-input form-select",
+                     disabled: field_select_disabled,
+                     required: true,
+                     data: { action: "change->wizard-preview#preview", choices_target: "select" }
+          .form-hint This column links chunk rows back to the document row returned by the insert.
+      .sql-storage-wizard__requirements.mt-4
+        %p.sql-storage-wizard__requirements-title Existing schema checklist
+        %ul.sql-storage-wizard__requirements-list
+          %li Documents table must include id and content_hash.
+          %li Chunks table must include the chosen content, embedding, and document reference columns.
+          %li Tables remain untouched; the wizard only validates what already exists.
+  - else
+    .ui-wizard__source-body
+      .grid.grid-cols-1.md:grid-cols-3.gap-4.mt-4
+        .form-group
+          = f.label :content_field, class: "form-label" do
+            Content Column
+            %span.text-danger-500.ml-0.5 *
+          = f.text_field :content_field,
+                         value: steppable.content_field || "content",
+                         class: "form-input",
+                         placeholder: "content",
+                         required: true
+          .form-hint The chunk text column created in the chunks table.
+        .form-group
+          = f.label :embedding_field, class: "form-label" do
+            Embedding Column
+            %span.text-danger-500.ml-0.5 *
+          = f.text_field :embedding_field,
+                         value: steppable.embedding_field || "embedding",
+                         class: "form-input",
+                         placeholder: "embedding",
+                         required: true
+          .form-hint The pgvector column created for embeddings.
+        .form-group
+          = f.label :document_reference_field, class: "form-label" do
+            Document Reference Column
+            %span.text-danger-500.ml-0.5 *
+          = f.text_field :document_reference_field,
+                         value: steppable.document_reference_field || "document_id",
+                         class: "form-input",
+                         placeholder: "document_id",
+                         required: true
+          .form-hint The foreign-key-style column that links chunk rows back to documents.
+      .sql-storage-wizard__requirements.mt-4
+        %p.sql-storage-wizard__requirements-title Generated schema preview
+        %ul.sql-storage-wizard__requirements-list
+          %li #{documents_table_name}: id, content_hash, created_at.
+          %li #{chunks_table_name}: #{preview_document_reference_field}, #{preview_content_field}, #{preview_embedding_field}, created_at.
+          - if metadata_columns.any?
+            %li Configured document metadata columns: #{metadata_columns.join(", ")}.
+          - else
+            %li Explicit document metadata columns are only added when you configure metadata mappings.
+
+  .ui-wizard__status{ class: "is-#{status.kind}" }
+    %i.fa-solid{ class: status_icon }
+    %p= status.message

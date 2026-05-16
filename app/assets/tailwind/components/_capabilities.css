@@ -1,0 +1,28 @@
+/* ==========================================================================
+   Capabilities — Agent capability configuration panels
+   ========================================================================== */
+
+.capability-card {
+  @apply border border-border-default rounded-lg mb-4 last:mb-0;
+
+  .capability-header {
+    @apply flex items-center justify-between p-4 gap-4;
+  }
+
+  .capability-icon {
+    @apply flex items-center justify-center w-8 h-8 rounded-lg shrink-0;
+    @apply bg-accent/10 text-accent;
+  }
+
+  .capability-title {
+    @apply text-sm font-semibold text-text-primary;
+  }
+
+  .capability-description {
+    @apply text-xs text-text-muted mt-0.5;
+  }
+
+  .capability-body {
+    @apply border-t border-border-default p-4;
+  }
+}

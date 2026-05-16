@@ -1,0 +1,6 @@
+- active ||= false
+- css_class = "sidebar-link#{" active" if active}"
+
+%a{ href: path, class: css_class, title: label, data: { turbo_frame: "app-content-frame", action: "click->admin-sidebar#activateLink" } }
+  %i.sidebar-link-icon{ class: icon }
+  %span.sidebar-link-text= label

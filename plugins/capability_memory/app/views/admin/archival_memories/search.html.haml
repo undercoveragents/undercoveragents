@@ -1,0 +1,49 @@
+- content_for(:title, "Search Archival Memory — #{@agent.name} — Admin — Undercover Agents")
+= render_page_hero(title: "Search Results", variant: :compact, title_icon: "fa-solid fa-search", record_title: @agent.name, back_link: { label: "Back to Archival Memory", url: admin_agent_archival_memories_path(@agent) })
+
+/ ── Re-run Search Form ──
+.card.mb-6
+  .card-header
+    %h3.text-sm.font-semibold.text-text-primary
+      %i.fa-solid.fa-search.mr-2.text-accent
+      Refine Search
+  .card-body
+    = form_with url: search_admin_agent_archival_memories_path(@agent), method: :post, local: true, class: "flex items-end gap-3" do
+      .flex-1
+        = label_tag :query, "Query", class: "form-label"
+        = text_field_tag :query, @query, class: "form-input", placeholder: "Search archival memories..."
+      .w-48
+        = label_tag :tags, "Tags (comma-separated)", class: "form-label"
+        = text_field_tag :tags, @tags&.join(", "), class: "form-input", placeholder: "e.g. rails, prefs"
+      .w-48
+        = label_tag :user_id, "Filter by User", class: "form-label"
+        = select_tag :user_id, options_from_collection_for_select(@users, :id, :email, @selected_user&.id), prompt: "All users", class: "form-input"
+      = submit_tag "Search", class: "btn btn-primary"
+
+/ ── Results ──
+.card
+  .card-header
+    %h3.text-sm.font-semibold.text-text-primary
+      %i.fa-solid.fa-list.mr-2.text-accent
+      Results
+      %span.badge.badge-default.ml-2= @results.size
+  .card-body
+    - if @results.empty?
+      .text-center.py-8
+        %i.fa-solid.fa-magnifying-glass.text-2xl.text-text-muted.mb-2
+        %p.text-sm.text-text-secondary No memories matched your search.
+        = link_to "Clear Search", admin_agent_archival_memories_path(@agent), class: "btn btn-secondary btn-sm mt-3"
+    - else
+      .space-y-3
+        - @results.each do |result|
+          .flex.items-start.gap-3.p-3.rounded-lg.bg-surface-secondary
+            .flex-1.min-w-0
+              .flex.items-start.justify-between.gap-2.mb-1
+                %p.text-sm.text-text-primary.whitespace-pre-wrap.break-words= result[:content].truncate(300)
+                - if result[:score]
+                  %span.badge.badge-default.text-xs.shrink-0 Score: #{result[:score].round(3)}
+              .flex.items-center.gap-2.mt-2
+                - Array(result[:tags]).each do |tag|
+                  %span.badge.badge-default.text-xs= tag
+            = button_to admin_agent_archival_memory_path(@agent, result[:id]), method: :delete, class: "btn btn-ghost btn-xs text-text-muted shrink-0", data: { controller: "confirm", confirm_title_value: "Delete Memory", confirm_message_value: "Delete this archival memory entry? This cannot be undone." } do
+              %i.fa-solid.fa-trash

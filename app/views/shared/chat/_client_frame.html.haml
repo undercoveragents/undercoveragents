@@ -1,0 +1,36 @@
+- brand_link_options ||= {}
+- new_chat_button_options ||= {}
+- sidebar_footer_options ||= {}
+
+.chat-layout{ data: { controller: "chat-sidebar", chat_sidebar_collapsed_value: false } }
+  .chat-sidebar{ data: { chat_sidebar_target: "sidebar" } }
+    .chat-sidebar-header
+      .chat-sidebar-brand
+        = link_to brand_url, { class: "chat-brand-link", title: client_name }.deep_merge(brand_link_options) do
+          .flex.items-center.gap-2
+            - if current_client&.dig(:logo_url)
+              = image_tag current_client[:logo_url], alt: client_name, class: "chat-brand-logo"
+            - else
+              = image_tag "logo.png", alt: client_name, class: "chat-brand-logo"
+            - if current_client&.dig(:title).present?
+              %span.chat-brand-name.lexxy-content= sanitize current_client[:title]
+            - else
+              %span.chat-brand-name= client_name
+        %button.chat-sidebar-toggle{ type: "button", data: { action: "click->chat-sidebar#toggle" }, title: current_client_label(:sidebar_toggle_label) }
+          %i.fa-solid.fa-chevron-left
+
+      = button_to new_chat_url, { method: :post, class: "chat-new-btn", title: current_client_label(:new_chat_label) }.deep_merge(new_chat_button_options) do
+        %i.fa-solid.fa-pen-to-square.mr-2
+        = current_client_label(:new_chat_label)
+
+    .chat-sidebar-list{ data: { chat_sidebar_target: "chatList" } }
+      = sidebar_list
+
+    .chat-sidebar-footer{ sidebar_footer_options }
+      = sidebar_footer
+
+  .chat-main
+    %button.chat-sidebar-open-btn{ type: "button", data: { action: "click->chat-sidebar#open" }, title: current_client_label(:sidebar_open_label) }
+      %i.fa-solid.fa-chevron-right
+    = main_content
+    = footer_content

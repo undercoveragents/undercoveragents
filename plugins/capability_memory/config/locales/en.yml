@@ -1,0 +1,17 @@
+en:
+  capabilities:
+    memory:
+      updated: "Memory capability updated."
+  memory_blocks:
+    created: "Memory block created and attached."
+    updated: "Memory block updated."
+    destroyed: "Memory block deleted."
+    attached: "Memory block attached."
+    detached: "Memory block detached."
+    not_found: "Memory block not found."
+    read_only: "This memory block is read-only and cannot be modified."
+  archival_memories:
+    created: "Archival memory stored."
+    destroyed: "Archival memory deleted."
+    no_connector: "No embedding connector configured for this memory capability."
+    no_user: "Please select a user."

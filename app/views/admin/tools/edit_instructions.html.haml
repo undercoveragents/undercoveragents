@@ -1,0 +1,9 @@
+- content_for(:title, "Edit #{@tool.name} Instructions — #{APP_NAME}")
+- form_id = "tool-instructions-form"
+- back_link = { label: "Back to #{@tool.name}", url: admin_tool_path(@tool) }
+= render_page_hero(title: "Edit Instructions", variant: :compact, title_icon: "fa-solid fa-scroll", record_title: @tool.name, back_link:, meta: [tag.span(tool_type_label(@tool), class: "badge badge-neutral")], actions: [page_hero_form_action(label: "Update Instructions", form_id:)])
+
+= form_with model: @tool, url: admin_tool_path(@tool), method: :patch, local: true, html: { class: "connector-form", id: form_id } do |f|
+  %input{ type: "hidden", name: "tool[edit_context]", value: "instructions" }
+  = render "shared/forms/validation_errors", record: @tool, resource_name: "tool"
+  = render "form_instructions_fields", f:, tool: @tool, toolable: @toolable, available_llm_connectors: @available_llm_connectors

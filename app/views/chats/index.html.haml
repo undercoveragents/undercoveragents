@@ -1,0 +1,17 @@
+- client_name = current_client&.dig(:name) || APP_NAME
+- content_for(:title, client_name)
+- component = build_chat_component(variant: :client, allow_attachments: false, allow_drag_drop: false)
+
+%div{ class: component.root_classes }
+  .shared-chat__messages
+    .shared-chat__empty-state
+      .shared-chat__empty-icon
+        %i{ class: component.empty_state_icon }
+      - if current_client&.dig(:welcome_message).present?
+        .lexxy-content= sanitize current_client[:welcome_message]
+      - else
+        %h3= current_client_label(:welcome_heading)
+        - if @agent
+          %p= current_client_label(:welcome_body)
+        - else
+          %p= current_client_label(:no_agent_body)

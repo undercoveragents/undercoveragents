@@ -1,0 +1,58 @@
+- telegram_connectors = connectors.select { |connector| connector.connector_type == "telegram" }
+
+.card.mb-6
+  .card-header
+    %h3.text-sm.font-semibold.text-text-primary
+      %i.fa-brands.fa-telegram.mr-2.text-accent
+      Telegram Delivery
+  .card-body
+    .form-grid
+      .form-group{ data: { controller: "choices", choices_search_value: "true" } }
+        = f.label :connector_id, class: "form-label" do
+          Telegram Connector
+          %span.text-danger-500.ml-0.5 *
+        = select_tag "channel[connector_id]",
+                     options_from_collection_for_select(telegram_connectors, :id, :name, channel.connector_id),
+                     include_blank: "Select a Telegram connector…",
+                     class: "form-input form-select",
+                     required: true,
+                     data: { choices_target: "select" }
+        .form-hint
+          Use a dedicated Telegram connector for this channel so the webhook and bot identity stay isolated.
+
+      .form-group{ data: { controller: "choices", choices_search_value: "true" } }
+        = label_tag "channel_target[agent_id]", class: "form-label" do
+          Agent
+          %span.text-danger-500.ml-0.5 *
+        = hidden_field_tag "channel_target[target_kind]", "agent"
+        = select_tag "channel_target[agent_id]",
+                     options_for_select(available_agents.map { |agent| [agent.name, agent.id] }, selected_agent_id),
+                     include_blank: "Select an agent…",
+                     class: "form-input form-select",
+                     required: true,
+                     data: { choices_target: "select" }
+        .form-hint The selected agent will answer incoming Telegram conversations on this channel.
+
+.card.mb-6
+  .card-header
+    %h3.text-sm.font-semibold.text-text-primary
+      %i.fa-solid.fa-message.mr-2.text-accent
+      Conversation Settings
+  .card-body
+    .form-grid
+      .form-group
+        = f.label :welcome_message, class: "form-label"
+        = text_area_tag "channel[welcome_message]", channel.welcome_message, class: "form-input", rows: 4
+        .form-hint Sent when a linked user starts chatting with the bot.
+
+      .form-group
+        = f.label :max_history_messages, class: "form-label"
+        = number_field_tag "channel[max_history_messages]", channel.max_history_messages, min: 1, max: 500, step: 1, class: "form-input"
+        .form-hint Stored for parity with the legacy Telegram flow and future history windowing.
+
+      .form-group
+        .form-check
+          = hidden_field_tag "channel[streaming_enabled]", "0", id: nil
+          = check_box_tag "channel[streaming_enabled]", "1", channel.streaming_enabled, class: "form-check-input"
+          = label_tag "channel_streaming_enabled", "Stream partial replies", class: "form-check-label"
+        .form-hint.ml-6 Use Telegram draft updates while the final assistant reply is still streaming.

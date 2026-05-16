@@ -1,0 +1,8 @@
+= turbo_stream.before "chats-load-more" do
+  - @chats.each do |chat|
+    = render "chats/chat_item", chat:, current_chat: nil
+- if @pagy_chats.next
+  = turbo_stream.replace "chats-load-more" do
+    = render "chats/load_more", pagy: @pagy_chats
+- else
+  = turbo_stream.remove "chats-load-more"

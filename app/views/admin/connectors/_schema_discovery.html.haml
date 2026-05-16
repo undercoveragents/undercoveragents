@@ -1,0 +1,112 @@
+/ ── Schema Discovery (SQL Database only) ──
+- if connector.connector_type == "sql_database"
+  .card.mb-6
+    .card-header
+      .flex.items-center.justify-between
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-sitemap.mr-2.text-accent
+          Database Schema
+        .flex.items-center.gap-3
+          - if connector.schema_discovered?
+            .text-xs.text-text-muted
+              Last discovered #{time_ago_in_words(connector.schema_discovered_at)} ago
+          = button_to discover_schema_connector_path(connector), method: :post, class: "btn btn-secondary btn-xs" do
+            %i.fa-solid.fa-arrows-rotate.mr-1
+            Refresh
+    .card-body
+      - if connector.schema_discovered?
+        - selected_names = connector.selected_object_names
+        .schema-tree{ data: { controller: "schema-tree" } }
+          / ── Expand / Collapse All ──
+          .flex.items-center.gap-2.mb-4
+            %button.btn.btn-secondary.btn-xs{ type: "button", data: { action: "click->schema-tree#expandAll" } }
+              %i.fa-solid.fa-expand.mr-1
+              Expand All
+            %button.btn.btn-secondary.btn-xs{ type: "button", data: { action: "click->schema-tree#collapseAll" } }
+              %i.fa-solid.fa-compress.mr-1
+              Collapse All
+
+          / ── Tables ──
+          - tables = connector.tables
+          - if tables.any?
+            .schema-tree-section.mb-4
+              %button.schema-tree-header{ type: "button", data: { action: "click->schema-tree#toggle", schema_tree_node_id: "tables" } }
+                %i.fa-solid.fa-chevron-right.schema-tree-chevron{ data: { chevron: "" } }
+                %i.fa-solid.fa-table.schema-tree-icon
+                %span.schema-tree-label Tables
+                %span.schema-tree-count= tables.size
+              .schema-tree-children.hidden{ data: { schema_tree_content: "tables" } }
+                - tables.each_with_index do |table, idx|
+                  - visible = selected_names.include?(table["name"])
+                  .schema-tree-node{ class: ("opacity-40" unless visible) }
+                    %button.schema-tree-item{ type: "button", data: { action: "click->schema-tree#toggle", schema_tree_node_id: "table-#{idx}" } }
+                      %i.fa-solid.fa-chevron-right.schema-tree-chevron{ data: { chevron: "" } }
+                      %i.fa-solid.fa-table.schema-tree-icon
+                      %span.schema-tree-item-name= table["name"]
+                      - unless visible
+                        %span.text-xs.text-text-muted.ml-1 (hidden)
+                      - if table["columns"].present?
+                        %span.schema-tree-count= pluralize(table["columns"].size, "column")
+                    - if table["columns"].present?
+                      .schema-tree-children.hidden{ data: { schema_tree_content: "table-#{idx}" } }
+                        - table["columns"].each do |col|
+                          .schema-tree-leaf
+                            %i.fa-solid.fa-columns.schema-tree-leaf-icon
+                            %span.schema-tree-col-name= col["name"]
+                            %span.schema-tree-col-type= col["type"]
+
+          / ── Views ──
+          - views = connector.views
+          - if views.any?
+            .schema-tree-section.mb-4
+              %button.schema-tree-header{ type: "button", data: { action: "click->schema-tree#toggle", schema_tree_node_id: "views" } }
+                %i.fa-solid.fa-chevron-right.schema-tree-chevron{ data: { chevron: "" } }
+                %i.fa-solid.fa-eye.schema-tree-icon
+                %span.schema-tree-label Views
+                %span.schema-tree-count= views.size
+              .schema-tree-children.hidden{ data: { schema_tree_content: "views" } }
+                - views.each_with_index do |view, idx|
+                  - visible = selected_names.include?(view["name"])
+                  .schema-tree-node{ class: ("opacity-40" unless visible) }
+                    %button.schema-tree-item{ type: "button", data: { action: "click->schema-tree#toggle", schema_tree_node_id: "view-#{idx}" } }
+                      %i.fa-solid.fa-chevron-right.schema-tree-chevron{ data: { chevron: "" } }
+                      %i.fa-solid.fa-eye.schema-tree-icon
+                      %span.schema-tree-item-name= view["name"]
+                      - unless visible
+                        %span.text-xs.text-text-muted.ml-1 (hidden)
+                      - if view["columns"].present?
+                        %span.schema-tree-count= pluralize(view["columns"].size, "column")
+                    - if view["columns"].present?
+                      .schema-tree-children.hidden{ data: { schema_tree_content: "view-#{idx}" } }
+                        - view["columns"].each do |col|
+                          .schema-tree-leaf
+                            %i.fa-solid.fa-columns.schema-tree-leaf-icon
+                            %span.schema-tree-col-name= col["name"]
+                            %span.schema-tree-col-type= col["type"]
+
+          / ── Materialized Views ──
+          - mat_views = connector.materialized_views
+          - if mat_views.any?
+            .schema-tree-section.mb-4
+              %button.schema-tree-header{ type: "button", data: { action: "click->schema-tree#toggle", schema_tree_node_id: "matviews" } }
+                %i.fa-solid.fa-chevron-right.schema-tree-chevron{ data: { chevron: "" } }
+                %i.fa-solid.fa-layer-group.schema-tree-icon
+                %span.schema-tree-label Materialized Views
+                %span.schema-tree-count= mat_views.size
+              .schema-tree-children.hidden{ data: { schema_tree_content: "matviews" } }
+                - mat_views.each do |mv|
+                  - visible = selected_names.include?(mv["name"])
+                  .schema-tree-node{ class: ("opacity-40" unless visible) }
+                    .schema-tree-item
+                      %i.fa-solid.fa-layer-group.schema-tree-icon
+                      %span.schema-tree-item-name= mv["name"]
+                      - unless visible
+                        %span.text-xs.text-text-muted.ml-1 (hidden)
+
+      - else
+        .text-center.py-8
+          %i.fa-solid.fa-database.text-3xl.mb-3.text-text-muted
+          %p.text-sm.mb-4.text-text-muted Schema has not been discovered yet.
+          = button_to discover_schema_connector_path(connector), method: :post, class: "btn btn-primary" do
+            %i.fa-solid.fa-sitemap.mr-1
+            Discover Schema

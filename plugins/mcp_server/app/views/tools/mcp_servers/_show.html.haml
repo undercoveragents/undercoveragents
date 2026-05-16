@@ -1,0 +1,23 @@
+/ ── MCP Server Show Section ──
+/ Locals: tool
+- toolable = tool.toolable
+
+/ ── Configuration ──
+.card.mb-6
+  .card-header
+    %h3.text-sm.font-semibold.text-text-primary
+      %i.fa-solid.fa-gear.mr-2.text-accent
+      Configuration
+  .card-body
+    .detail-grid
+      .detail-item
+        .detail-label Connector
+        .detail-value
+          - if toolable.connector.present?
+            = link_to toolable.connector.name, admin_connector_path(toolable.connector), class: "text-accent no-underline"
+          - else
+            %span.text-text-muted Not configured
+
+= render "tools/mcp_servers/tool_visibility_card", tool:, toolable:
+-# section separator
+= render "tools/mcp_servers/tool_discovery", tool:, toolable:

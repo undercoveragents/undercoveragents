@@ -1,0 +1,24 @@
+en:
+  tools:
+    created: "Tool created successfully."
+    updated: "Tool updated successfully."
+    widget_updated: "Chat widget updated successfully."
+    deleted: "Tool deleted successfully."
+    enabled: "Tool enabled."
+    disabled: "Tool disabled."
+    schema_discovered: "Database schema discovered successfully."
+    schema_discovery_not_supported: "Discovery is not supported for this tool type."
+    schema_discovery_required: "Please run discovery before editing visibility."
+    visibility_updated: "Visibility updated successfully."
+    tools_discovered:
+      one: "Discovered %{count} tool from MCP server."
+      other: "Discovered %{count} tools from MCP server."
+    schema_analysis_started: "Schema analysis started. This may take a few minutes — the page will update when complete."
+    schema_analysis_not_supported: "Schema analysis is not supported for this tool type."
+    schema_analysis_not_configured: "Please configure an LLM connector and model for schema analysis first."
+    schema_analysis_already_running: "Schema analysis is already in progress."
+    instruction_generation_started: "Instruction generation started. The page will update when complete."
+    instruction_generation_not_supported: "Instruction generation is not supported for this tool type."
+    instruction_generation_already_running: "Instruction generation is already in progress."
+    schema_analysis_required_for_instructions: "Please complete AI schema analysis before generating instructions."
+

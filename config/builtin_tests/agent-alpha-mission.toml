@@ -1,0 +1,215 @@
+key = "agent-alpha-mission"
+name = "Agent Alpha Mission Designer Scenarios"
+description = "Delegation coverage for mission design work."
+suite_type = "agent"
+target_builtin_agent_key = "agent_alpha"
+evaluation_temperature = 0.2
+fixture_key = "agent_alpha_benchmark"
+
+[[test_cases]]
+key = "mission-01"
+name = "Mission 01"
+category = "mission"
+complexity = "medium"
+position = 0
+match_type = "semantic"
+prompt = "Create a mission named %{new_mission_name} with one text input, one LLM step, and one output that summarizes support tickets."
+expected_answer = "Mission Designer should handle the request and create or clearly report the outcome for %{new_mission_name}."
+expected_child_builtin_key = "mission_designer"
+expected_tool_names = ["ask_agent_mission_designer"]
+disallow_child_chats = false
+required_keywords = ["%{new_mission_name}"]
+
+[[test_cases]]
+key = "mission-02"
+name = "Mission 02"
+category = "mission"
+complexity = "medium"
+position = 1
+match_type = "semantic"
+prompt = "Create a mission named %{new_mission_name} that classifies inbound requests as billing, bug, or question."
+expected_answer = "Create %{new_mission_name} as a classification mission for billing, bug, or question and report the created workflow outcome."
+expected_child_builtin_key = "mission_designer"
+expected_tool_names = ["ask_agent_mission_designer"]
+disallow_child_chats = false
+required_keywords = ["%{new_mission_name}"]
+
+[[test_cases]]
+key = "mission-03"
+name = "Mission 03"
+category = "mission"
+complexity = "high"
+position = 2
+match_type = "semantic"
+prompt = "Update %{benchmark_mission_name} so the final output is JSON with summary and priority fields."
+expected_answer = "Update %{benchmark_mission_name} so the final output becomes structured JSON with summary and priority fields."
+expected_child_builtin_key = "mission_designer"
+expected_tool_names = ["ask_agent_mission_designer"]
+disallow_child_chats = false
+required_keywords = ["summary", "priority"]
+
+[[test_cases]]
+key = "mission-04"
+name = "Mission 04"
+category = "mission"
+complexity = "medium"
+position = 3
+match_type = "semantic"
+prompt = "Rename %{benchmark_mission_name} to %{renamed_mission_name}."
+expected_answer = "Mission Designer should rename the mission to %{renamed_mission_name}."
+expected_child_builtin_key = "mission_designer"
+expected_tool_names = ["ask_agent_mission_designer"]
+disallow_child_chats = false
+required_keywords = ["%{renamed_mission_name}"]
+
+[[test_cases]]
+key = "mission-05"
+name = "Mission 05"
+category = "mission"
+complexity = "high"
+position = 4
+match_type = "semantic"
+prompt = "Add an input field named customer_note to %{benchmark_mission_name}."
+expected_answer = "Mission Designer should update %{benchmark_mission_name} and add the customer_note input field."
+expected_child_builtin_key = "mission_designer"
+expected_tool_names = ["ask_agent_mission_designer"]
+disallow_child_chats = false
+required_keywords = ["customer_note"]
+
+[[test_cases]]
+key = "mission-06"
+name = "Mission 06"
+category = "mission"
+complexity = "high"
+position = 5
+match_type = "semantic"
+prompt = "Add another input field named customer_email to %{benchmark_mission_name}."
+expected_answer = "Mission Designer should update %{benchmark_mission_name} and add the customer_email input field."
+expected_child_builtin_key = "mission_designer"
+expected_tool_names = ["ask_agent_mission_designer"]
+disallow_child_chats = false
+required_keywords = ["customer_email"]
+
+[[test_cases]]
+key = "mission-07"
+name = "Mission 07"
+category = "mission"
+complexity = "high"
+position = 6
+match_type = "semantic"
+prompt = "Run a debug pass on %{benchmark_mission_name} with sample input 'Refund request for duplicate charge'."
+expected_answer = "Run a debug pass on %{benchmark_mission_name} and summarize whether the sample input ran cleanly, what output it produced, and any notable blockers or passthrough behavior."
+expected_child_builtin_key = "mission_designer"
+expected_tool_names = ["ask_agent_mission_designer"]
+disallow_child_chats = false
+
+[[test_cases]]
+key = "mission-08"
+name = "Mission 08"
+category = "mission"
+complexity = "high"
+position = 7
+match_type = "semantic"
+prompt = "Validate %{benchmark_mission_name} and fix obvious flow issues if you find any."
+expected_answer = "Mission Designer should validate %{benchmark_mission_name} and report clearly whether it was already valid or needed fixes."
+expected_child_builtin_key = "mission_designer"
+expected_tool_names = ["ask_agent_mission_designer"]
+disallow_child_chats = false
+
+[[test_cases]]
+key = "mission-09"
+name = "Mission 09"
+category = "mission"
+complexity = "medium"
+position = 8
+match_type = "semantic"
+prompt = "Create a mission named %{new_mission_name} that drafts a welcome email from name and plan inputs."
+expected_answer = "Create %{new_mission_name} as a mission that drafts a welcome email from name and plan inputs and report the created outcome."
+expected_child_builtin_key = "mission_designer"
+expected_tool_names = ["ask_agent_mission_designer"]
+disallow_child_chats = false
+required_keywords = ["%{new_mission_name}"]
+
+[[test_cases]]
+key = "mission-10"
+name = "Mission 10"
+category = "mission"
+complexity = "medium"
+position = 9
+match_type = "semantic"
+prompt = "Update %{benchmark_mission_name} so its description mentions refund triage."
+expected_answer = "Update %{benchmark_mission_name} so its description explicitly mentions refund triage."
+expected_child_builtin_key = "mission_designer"
+expected_tool_names = ["ask_agent_mission_designer"]
+disallow_child_chats = false
+required_keywords = ["refund triage"]
+
+[[test_cases]]
+key = "mission-11"
+name = "Mission 11"
+category = "mission"
+complexity = "medium"
+position = 10
+match_type = "semantic"
+prompt = "Create a mission named %{new_mission_name} that extracts sentiment and recommends the next support step."
+expected_answer = "Mission Designer should create or clearly report the outcome for %{new_mission_name}."
+expected_child_builtin_key = "mission_designer"
+expected_tool_names = ["ask_agent_mission_designer"]
+disallow_child_chats = false
+required_keywords = ["%{new_mission_name}"]
+
+[[test_cases]]
+key = "mission-12"
+name = "Mission 12"
+category = "mission"
+complexity = "medium"
+position = 11
+match_type = "semantic"
+prompt = "Create a mission named %{new_mission_name} that takes a support note and outputs a concise follow-up reply."
+expected_answer = "Mission Designer should create or clearly report the outcome for %{new_mission_name}."
+expected_child_builtin_key = "mission_designer"
+expected_tool_names = ["ask_agent_mission_designer"]
+disallow_child_chats = false
+required_keywords = ["%{new_mission_name}"]
+
+[[test_cases]]
+key = "mission-13"
+name = "Mission 13"
+category = "mission"
+complexity = "high"
+position = 12
+match_type = "semantic"
+prompt = "Update %{benchmark_mission_name} so the final output includes both summary and next_action."
+expected_answer = "Mission Designer should update %{benchmark_mission_name} so the output includes summary and next_action."
+expected_child_builtin_key = "mission_designer"
+expected_tool_names = ["ask_agent_mission_designer"]
+disallow_child_chats = false
+required_keywords = ["next_action"]
+
+[[test_cases]]
+key = "mission-14"
+name = "Mission 14"
+category = "mission"
+complexity = "medium"
+position = 13
+match_type = "semantic"
+prompt = "Create a mission named %{new_mission_name} that rewrites raw customer feedback into a polite executive summary."
+expected_answer = "Create %{new_mission_name} to rewrite raw customer feedback into a polite executive summary and report the created outcome."
+expected_child_builtin_key = "mission_designer"
+expected_tool_names = ["ask_agent_mission_designer"]
+disallow_child_chats = false
+required_keywords = ["%{new_mission_name}"]
+
+[[test_cases]]
+key = "mission-15"
+name = "Mission 15"
+category = "mission"
+complexity = "medium"
+position = 14
+match_type = "semantic"
+prompt = "Create %{new_mission_name} as the simplest possible input to LLM to output FAQ-answering flow."
+expected_answer = "Create %{new_mission_name} as a very simple input-to-LLM FAQ-answering mission and report the created outcome."
+expected_child_builtin_key = "mission_designer"
+expected_tool_names = ["ask_agent_mission_designer"]
+disallow_child_chats = false
+required_keywords = ["%{new_mission_name}"]

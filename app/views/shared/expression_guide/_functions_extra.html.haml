@@ -1,0 +1,56 @@
+%section
+  %h4 String Functions
+  %dl.ms-expr-guide-fn-list
+    %dt
+      %code LEN(s)
+    %dd Character count.
+    %dt
+      %code LEFT(s, n) &ensp; RIGHT(s, n)
+    %dd First / last n characters.
+    %dt
+      %code MID(s, start, len)
+    %dd Substring (1-based start).
+    %dt
+      %code FIND(needle, haystack)
+    %dd 1-based position or nil.
+    %dt
+      %code SUBSTITUTE(s, old, new)
+    %dd Replace first occurrence.
+    %dt
+      %code CONCAT(a, b, ...)
+    %dd Join strings together.
+    %dt
+      %code CONTAINS(needle, haystack)
+    %dd True when haystack includes needle.
+
+%section
+  %h4 Collection Functions
+  %dl.ms-expr-guide-fn-list
+    %dt
+      %code MAP(list, expr)
+    %dd Transform each element.
+    %dt
+      %code FILTER(list, expr)
+    %dd Keep elements matching a condition.
+    %dt
+      %code ALL(list, expr)
+    %dd True when every element matches.
+    %dt
+      %code ANY(list, expr)
+    %dd True when at least one matches.
+    %dt
+      %code PLUCK(list, key)
+    %dd Extract a field from each element.
+
+%section
+  %h4 Math Module
+  %dl.ms-expr-guide-fn-list
+    %dt
+      %code SIN COS TAN
+    %dd Trigonometry (radians).
+    %dt
+      %code SQRT CBRT LOG LOG2 LOG10
+    %dd Roots and logs.
+    %dt
+      %code PI E
+    %dd Constants.

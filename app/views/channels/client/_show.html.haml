@@ -1,0 +1,50 @@
+.grid.grid-cols-1.lg:grid-cols-2.gap-6.mb-6
+  .card
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-sliders.mr-2.text-accent
+        Configuration
+    .card-body
+      .detail-grid
+        .detail-item
+          .detail-label Agent
+          .detail-value
+            - if channel.client_agent
+              = link_to channel.client_agent.name, admin_agent_path(channel.client_agent), class: "text-accent no-underline", data: { turbo_frame: "app-content-frame" }
+            - else
+              %span.text-text-muted No agent assigned
+        .detail-item
+          .detail-label Default
+          .detail-value= channel.default? ? "Yes" : "No"
+        .detail-item
+          .detail-label Logo
+          .detail-value
+            - if channel.logo.attached?
+              = image_tag channel.logo, class: "w-16 h-16 rounded object-cover"
+            - else
+              %span.text-text-muted No logo uploaded
+        .detail-item
+          .detail-label Created
+          .detail-value= channel.created_at.strftime("%B %d, %Y at %H:%M")
+
+  .card
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-file-lines.mr-2.text-accent
+        Content Preview
+    .card-body.space-y-4
+      - if channel.title.present?
+        .detail-item
+          .detail-label Title
+          .detail-value.lexxy-content= sanitize channel.title
+      - if channel.welcome_message.present?
+        .detail-item
+          .detail-label Welcome Message
+          .detail-value.lexxy-content= sanitize channel.welcome_message
+      - if channel.footer.present?
+        .detail-item
+          .detail-label Footer
+          .detail-value.lexxy-content= sanitize channel.footer
+      - unless channel.title.present? || channel.welcome_message.present? || channel.footer.present?
+        .text-center.py-4
+          %p.text-sm.text-text-muted No content configured yet.

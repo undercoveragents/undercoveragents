@@ -1,0 +1,4 @@
+/ ── Model Select (Agent) ──
+/ Delegates to shared model_select partial with agent-specific field names.
+/ Locals: available_models (Array of Model), selected_model_id (String or nil)
+= render "shared/model_select", frame_id: "agent_model_select", field_prefix: "agent", available_models:, selected_model_id:

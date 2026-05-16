@@ -1,0 +1,227 @@
+key = "agent-alpha-knowledge"
+name = "Agent Alpha Knowledge Scenarios"
+description = "Direct-answer product knowledge coverage for Agent Alpha."
+suite_type = "agent"
+target_builtin_agent_key = "agent_alpha"
+evaluation_temperature = 0.2
+fixture_key = "agent_alpha_benchmark"
+
+[[test_cases]]
+key = "knowledge-01"
+name = "Knowledge 01"
+category = "knowledge"
+complexity = "low"
+position = 0
+match_type = "semantic"
+prompt = "What is Agent Alpha responsible for inside Undercover Agents?"
+expected_answer = "Agent Alpha is the in-app assistant for product questions, direct guidance, and routing mission, agent, tool, channel, skill, and test-suite work to the right specialist designer."
+disallow_child_chats = true
+
+[[test_cases]]
+key = "knowledge-02"
+name = "Knowledge 02"
+category = "knowledge"
+complexity = "low"
+position = 1
+match_type = "semantic"
+prompt = "When should Agent Alpha delegate to a specialist designer instead of answering directly?"
+expected_answer = "Agent Alpha should delegate by default for create, update, debug, import, restore, run, validate, or troubleshooting work on missions, agents, tools, channels, skills, or test suites."
+disallow_child_chats = true
+
+[[test_cases]]
+key = "knowledge-03"
+name = "Knowledge 03"
+category = "knowledge"
+complexity = "low"
+position = 2
+match_type = "semantic"
+prompt = "What is the difference between an Agent and a Mission in this product?"
+expected_answer = "Agents are configurable assistants with tools, skills, subagents, and capabilities. Missions are workflow graphs for multi-step orchestration."
+disallow_child_chats = true
+
+[[test_cases]]
+key = "knowledge-04"
+name = "Knowledge 04"
+category = "knowledge"
+complexity = "low"
+position = 3
+match_type = "semantic"
+prompt = "What are skill catalogs for?"
+expected_answer = "Skill catalogs group reusable knowledge and skills so agents can discover and activate what they need at runtime instead of loading every detailed instruction into each prompt."
+disallow_child_chats = true
+
+[[test_cases]]
+key = "knowledge-05"
+name = "Knowledge 05"
+category = "knowledge"
+complexity = "medium"
+position = 4
+match_type = "semantic"
+prompt = "Why is Headquarter special, and what can or cannot be edited there?"
+expected_answer = "Headquarter is the browse-first system workspace. Operation-owned resources there are generally read-only except for explicit built-in restore flows."
+disallow_child_chats = true
+
+[[test_cases]]
+key = "knowledge-06"
+name = "Knowledge 06"
+category = "knowledge"
+complexity = "medium"
+position = 5
+match_type = "semantic"
+prompt = "How should an admin test an agent before rolling it out widely?"
+expected_answer = "Use Playground for interactive testing, review transcripts in Inspector, and use test suites when you want repeatable benchmark coverage."
+disallow_child_chats = true
+
+[[test_cases]]
+key = "knowledge-07"
+name = "Knowledge 07"
+category = "knowledge"
+complexity = "medium"
+position = 6
+match_type = "semantic"
+prompt = "What is the difference between a client channel and an API channel?"
+expected_answer = "Client channels brand the end-user chat experience, while API channels expose a target through programmatic invocation and token-based access."
+disallow_child_chats = true
+
+[[test_cases]]
+key = "knowledge-08"
+name = "Knowledge 08"
+category = "knowledge"
+complexity = "low"
+position = 7
+match_type = "semantic"
+prompt = "What is Playground used for?"
+expected_answer = "Playground is the interactive sandbox for testing agent behavior and comparing responses before publishing changes."
+disallow_child_chats = true
+
+[[test_cases]]
+key = "knowledge-09"
+name = "Knowledge 09"
+category = "knowledge"
+complexity = "low"
+position = 8
+match_type = "semantic"
+prompt = "What is Inspector used for?"
+expected_answer = "Inspector is the admin surface for testing agents and inspecting transcripts, tool activity, and runtime behavior in detail."
+disallow_child_chats = true
+
+[[test_cases]]
+key = "knowledge-10"
+name = "Knowledge 10"
+category = "knowledge"
+complexity = "low"
+position = 9
+match_type = "semantic"
+prompt = "How are tools different from connectors?"
+expected_answer = "Connectors store authenticated connectivity to external systems, while tools turn those connections or internal resources into runtime abilities for agents and missions."
+disallow_child_chats = true
+
+[[test_cases]]
+key = "knowledge-11"
+name = "Knowledge 11"
+category = "knowledge"
+complexity = "medium"
+position = 10
+match_type = "semantic"
+prompt = "What happens if the default model is not configured?"
+expected_answer = "When the default model is missing, system-preference-backed AI features fail until System Preferences is configured, while explicitly configured records can still work."
+disallow_child_chats = true
+
+[[test_cases]]
+key = "knowledge-12"
+name = "Knowledge 12"
+category = "knowledge"
+complexity = "medium"
+position = 11
+match_type = "semantic"
+prompt = "How does Agent Alpha use the current page context?"
+expected_answer = "Agent Alpha uses structured current-page context from the admin UI so it can keep discovery and delegation scoped to the visible record, page, or workspace."
+disallow_child_chats = true
+
+[[test_cases]]
+key = "knowledge-13"
+name = "Knowledge 13"
+category = "knowledge"
+complexity = "medium"
+position = 12
+match_type = "semantic"
+prompt = "Can Agent Alpha edit records itself, or does it rely on other builtins?"
+expected_answer = "Agent Alpha relies on specialist designer builtins for record creation, updates, debugging, and non-CRUD actions instead of doing domain-specific edits directly."
+disallow_child_chats = true
+
+[[test_cases]]
+key = "knowledge-14"
+name = "Knowledge 14"
+category = "knowledge"
+complexity = "low"
+position = 13
+match_type = "semantic"
+prompt = "Which product areas can Agent Alpha help with?"
+expected_answer = "Agent Alpha can help with agents, missions, tools, channels, skill catalogs, skills, and test suites, plus general product guidance."
+disallow_child_chats = true
+
+[[test_cases]]
+key = "knowledge-15"
+name = "Knowledge 15"
+category = "knowledge"
+complexity = "low"
+position = 14
+match_type = "semantic"
+prompt = "What are test suites for?"
+expected_answer = "Test suites provide repeatable evaluation for agents or missions, including semantic comparison, regression coverage, and persisted run history."
+disallow_child_chats = true
+
+[[test_cases]]
+key = "knowledge-16"
+name = "Knowledge 16"
+category = "knowledge"
+complexity = "medium"
+position = 15
+match_type = "semantic"
+prompt = "What is the difference between mission debug runs and test suites?"
+expected_answer = "Mission debug runs inspect one workflow execution in detail, while test suites run multiple repeatable cases and score or compare the results over time."
+disallow_child_chats = true
+
+[[test_cases]]
+key = "knowledge-17"
+name = "Knowledge 17"
+category = "knowledge"
+complexity = "medium"
+position = 16
+match_type = "semantic"
+prompt = "How do Tenants and Operations relate to each other?"
+expected_answer = "A Tenant is the top-level boundary for users and shared configuration. Operations are workspace-style scopes inside a tenant for agents, missions, tools, skills, and RAG flows."
+disallow_child_chats = true
+
+[[test_cases]]
+key = "knowledge-18"
+name = "Knowledge 18"
+category = "knowledge"
+complexity = "medium"
+position = 17
+match_type = "semantic"
+prompt = "Why would Agent Alpha ever call list_resources before delegating?"
+expected_answer = "Agent Alpha should use list_resources only for narrow discovery, such as disambiguating a specific ID, confirming a small inventory request, or handling a designer-reported blocker."
+disallow_child_chats = true
+
+[[test_cases]]
+key = "knowledge-19"
+name = "Knowledge 19"
+category = "knowledge"
+complexity = "medium"
+position = 18
+match_type = "semantic"
+prompt = "How does the shared page context help Agent Alpha stay scoped?"
+expected_answer = "The shared page context carries the current page, object, operation, and related routing details so Agent Alpha stays anchored to the visible admin state."
+disallow_child_chats = true
+
+[[test_cases]]
+key = "knowledge-20"
+name = "Knowledge 20"
+category = "knowledge"
+complexity = "medium"
+position = 19
+match_type = "semantic"
+prompt = "After a designer changes a record, what does Agent Alpha usually do next?"
+expected_answer = "After a designer change, Agent Alpha reads the result, may take one narrow follow-up step for blockers or warnings, and then gives a short summary or handoff."
+disallow_child_chats = true

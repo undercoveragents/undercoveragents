@@ -1,0 +1,24 @@
+-# Reset debug panel to empty state
+
+= turbo_stream.replace "mission-timeline-content" do
+  #mission-timeline-content
+    .ms-debug-empty
+      %i.fa-solid.fa-play-circle
+      %span Run the mission to see execution timeline
+
+= turbo_stream.replace "mission-variables-content" do
+  = render "admin/missions/debug/variables", variables: {}, node_outputs: {}
+
+= turbo_stream.replace "mission-run-controls" do
+  = render "admin/missions/debug/run_controls", run_status: "none"
+
+= turbo_stream.replace "mission-run-status" do
+  = render "admin/missions/debug/run_status", run_status: "none"
+
+= turbo_stream.replace "mission-past-runs" do
+  = render "admin/missions/debug/past_runs", recent_runs: @recent_runs, active_run_id: nil
+
+= turbo_stream.replace "mission-stream-subscription" do
+  #mission-stream-subscription
+
+= turbo_stream.update "mission-node-events", ""

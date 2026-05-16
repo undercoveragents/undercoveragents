@@ -1,0 +1,55 @@
+- action = connector.persisted? ? admin_connector_path(connector) : admin_connectors_path
+- method = connector.persisted? ? :patch : :post
+- form_id = local_assigns.fetch(:form_id, "connector-form")
+
+.connector-form-container
+  = form_with url: action, method:, local: true, html: { class: "connector-form", id: form_id } do |f|
+    = hidden_field_tag :connector_type, "authentication"
+
+    = render "shared/forms/validation_errors", record: connector, resource_name: "connector"
+
+    / ── Basic Information (shared) ──
+    = render "connectors/forms/shared/basic_info", f:, connector:
+
+    / ── Provider Selection ──
+    .card.mb-6
+      .card-header
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-shield-halved.mr-2.text-accent
+          Authentication Provider
+      .card-body
+        .form-grid
+          .form-group{ data: { controller: "choices", choices_search_value: "false" } }
+            = f.label "authentication[provider]", class: "form-label" do
+              Provider
+              %span.text-danger-500.ml-0.5 *
+            = f.select "authentication[provider]", options_for_select(Connectors::Authentication::PROVIDERS.map { |p| [p.titleize, p] }, connector.provider), { include_blank: "Select a provider..." }, class: "form-input form-select", data: { choices_target: "select" }, required: true
+            .form-hint Google uses only Client ID and Client Secret. Keycloak also requires Site URL and Realm.
+
+    / ── Provider Configuration ──
+    .card.mb-6
+      .card-header
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-key.mr-2.text-accent
+          Provider Configuration
+      .card-body
+        .form-grid
+          .form-group
+            = f.label "authentication[site_url]", "Site URL", class: "form-label"
+            = f.url_field "authentication[site_url]", value: connector.site_url, class: "form-input", placeholder: "https://keycloak.example.com", required: connector.provider == "keycloak"
+            .form-hint Required for Keycloak. Leave blank for Google.
+
+          .form-group
+            = f.label "authentication[realm]", "Realm", class: "form-label"
+            = f.text_field "authentication[realm]", value: connector.realm, class: "form-input", placeholder: "master", required: connector.provider == "keycloak"
+            .form-hint Required for Keycloak. Leave blank for Google.
+
+          .form-group
+            = f.label "authentication[client_id]", "Client ID", class: "form-label"
+            = f.text_field "authentication[client_id]", value: connector.client_id, class: "form-input", placeholder: "event-horizon", required: true
+            .form-hint The client identifier registered with the provider.
+
+          .form-group
+            = f.label "authentication[client_secret]", "Client Secret", class: "form-label"
+            = f.password_field "authentication[client_secret]", value: nil, class: "form-input", placeholder: (connector.persisted? ? "Leave blank to keep current" : "Enter client secret"), required: !connector.persisted?
+            .form-hint The client secret (stored encrypted).

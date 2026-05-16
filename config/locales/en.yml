@@ -1,0 +1,83 @@
+# Files in the config/locales directory are used for internationalization and
+# are automatically loaded by Rails. If you want to use locales other than
+# English, add the necessary files in this directory.
+#
+# To use the locales, use `I18n.t`:
+#
+#     I18n.t "hello"
+#
+# In views, this is aliased to just `t`:
+#
+#     <%= t("hello") %>
+#
+# To use a different locale, set it with `I18n.locale`:
+#
+#     I18n.locale = :es
+#
+# This would use the information in config/locales/es.yml.
+#
+# To learn more about the API, please read the Rails Internationalization guide
+# at https://guides.rubyonrails.org/i18n.html.
+#
+# Be aware that YAML interprets the following case-insensitive strings as
+# booleans: `true`, `false`, `on`, `off`, `yes`, `no`. Therefore, these strings
+# must be quoted to be interpreted as strings. For example:
+#
+#     en:
+#       "yes": yup
+#       enabled: "ON"
+
+en:
+  hello: "Hello world"
+  shared:
+    not_authorized: "This action is not permitted on a read-only version."
+    not_found: "Record not found."
+  test_suites:
+    created: "Test suite was successfully created."
+    updated: "Test suite was successfully updated."
+    deleted: "Test suite was successfully deleted."
+    cannot_run: "Cannot run this test suite. Ensure it is active and has test cases."
+  test_cases:
+    created: "Test case was successfully created."
+    updated: "Test case was successfully updated."
+    deleted: "Test case was successfully deleted."
+  test_suite_runs:
+    cancelled: "Test run has been cancelled."
+  missions:
+    updated: "Mission updated."
+    deleted: "Mission deleted."
+    saved: "Mission saved."
+  models:
+    refresh_started: "Model refresh started. This may take a few moments."
+  preferences:
+    updated: "Preferences updated."
+  tenants:
+    created: "Tenant created."
+    updated: "Tenant updated."
+    deleted: "Tenant deleted."
+    default_tenant_cannot_delete: "The default tenant cannot be deleted."
+  admin:
+    users:
+      created: "User was successfully created."
+      updated: "User was successfully updated."
+      deleted: "User was successfully deleted."
+      cannot_delete_self: "You cannot delete your own account."
+    clients:
+      created: "Client was successfully created."
+      updated: "Client was successfully updated."
+      deleted: "Client was successfully deleted."
+      cannot_delete_last: "Cannot delete the last client."
+  api_clients:
+    created: "API client was successfully created."
+    updated: "API client was successfully updated."
+    deleted: "API client was successfully deleted."
+    enabled: "API client has been enabled."
+    disabled: "API client has been disabled."
+    token_regenerated: "API token has been regenerated. Copy the new token now — it will not be shown again."
+  channels:
+    created: "Channel was successfully created."
+    updated: "Channel was successfully updated."
+    deleted: "Channel was successfully deleted."
+    enabled: "Channel has been enabled."
+    disabled: "Channel has been disabled."
+    token_regenerated: "Channel token has been regenerated. Copy the new token now — it will not be shown again."

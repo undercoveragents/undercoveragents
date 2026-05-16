@@ -1,0 +1,192 @@
+plugins:
+  - rubocop-rails
+  - rubocop-rspec
+  - rubocop-rspec_rails
+  - rubocop-performance
+  - rubocop-factory_bot
+  - rubocop-capybara
+  - rubocop-rake
+
+AllCops:
+  TargetRailsVersion: 8.0
+  TargetRubyVersion: 4.0
+  DisplayStyleGuide: true
+  ExtraDetails: true
+  NewCops: enable
+  Exclude:
+    - "bin/**/*"
+    - 'db/**/*'
+    - "node_modules/**/*"
+    - "vendor/**/*"
+    - "tmp/**/*"
+    - "log/**/*"
+    - "public/**/*"
+    - "storage/**/*"
+    - "config/puma.rb"
+
+# --- Style ---
+
+Style/Documentation:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: always
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Style/StringLiteralsInInterpolation:
+  EnforcedStyle: double_quotes
+
+Style/SymbolArray:
+  EnforcedStyle: brackets
+
+Style/WordArray:
+  EnforcedStyle: brackets
+
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: consistent_comma
+
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: consistent_comma
+
+Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: consistent_comma
+
+Style/HashSyntax:
+  EnforcedShorthandSyntax: always
+
+# --- Layout ---
+
+Layout/ClassStructure:
+  Enabled: true
+  Categories:
+    associations:
+      - belongs_to
+      - belongs_to_user
+      - has_one
+      - has_many
+      - has_and_belongs_to_many
+    active_record_macros:
+      - has_rich_text
+      - has_one_attached
+      - has_many_attached
+      - enum
+      - translatable_enum
+    callbacks:
+      - after_initialize
+      - before_validation
+      - after_validation
+      - before_save
+      - around_save
+      - before_create
+      - before_update
+      - before_destroy
+      - around_create
+      - around_update
+      - around_destroy
+      - after_create
+      - after_update
+      - after_destroy
+      - after_save
+      - after_commit
+      - after_create_commit
+      - after_update_commit
+      - after_rollback
+    nested_attributes:
+      - accepts_nested_attributes_for
+      - validates_associated
+    scopes:
+      - scope
+      - default_scope
+    validations:
+      - validate
+      - validates
+  ExpectedOrder:
+    - module_inclusion
+    - constants
+    - public_attribute_macros
+    - active_record_macros
+    - associations
+    - nested_attributes
+    - public_delegate
+    - scopes
+    - macros
+    - validations
+    - callbacks
+    - public_class_methods
+    - initializer
+    - class_methods
+    - instance_methods
+    - protected_attribute_macros
+    - protected_methods
+    - private_attribute_macros
+    - private_delegate
+    - private_methods
+
+Layout/LineLength:
+  Max: 120
+  AllowedPatterns:
+    - "^\\s*#"
+
+# --- Metrics ---
+
+Metrics/BlockLength:
+  Exclude:
+    - "spec/**/*"
+    - "plugins/**/spec/**/*"
+    - "config/**/*"
+    - "lib/tasks/**/*"
+    - "Gemfile"
+
+Metrics/MethodLength:
+  Max: 20
+
+Metrics/ClassLength:
+  Max: 250
+
+Metrics/ModuleLength:
+  Max: 200
+
+Metrics/AbcSize:
+  Max: 25
+
+# --- Rails ---
+
+Rails/SkipsModelValidations:
+  Enabled: true
+  AllowedMethods:
+    - "touch"
+
+Rails/UnknownEnv:
+  Environments:
+    - production
+    - development
+    - test
+
+# --- RSpec ---
+
+RSpec/SpecFilePathFormat:
+  Exclude:
+    - "plugins/**/*"
+
+RSpec/ExampleLength:
+  Max: 25
+
+RSpec/MultipleExpectations:
+  Max: 5
+
+RSpec/NestedGroups:
+  Max: 4
+
+RSpec/MultipleMemoizedHelpers:
+  Max: 10
+
+# --- Performance ---
+
+Performance/DeletePrefix:
+  Enabled: true
+
+Performance/DeleteSuffix:
+  Enabled: true

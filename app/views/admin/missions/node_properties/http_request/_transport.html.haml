@@ -1,0 +1,43 @@
+- transport_open = !presenter.http_verify_ssl? || presenter.http_retry_enabled? || presenter.data_raw("connect_timeout").present? || presenter.data_raw("read_timeout").present? || presenter.data_raw("write_timeout").present?
+
+%details.llm-settings-inline-accordion.ms-http-request-accordion{ open: transport_open }
+  %summary.llm-settings-inline-accordion__summary.ms-http-request-accordion__summary
+    .ms-http-request-accordion__summary-copy
+      %span.ms-http-request-accordion__summary-title Transport
+      %span.ms-http-request-accordion__summary-meta SSL, timeouts, and retry behavior
+    %i.fa-solid.fa-chevron-down.llm-settings-inline-accordion__chevron
+  .llm-settings-inline-accordion__body.ms-http-request-accordion__body
+    .ms-http-request-toggle-row
+      %label.ms-http-request-toggle
+        %input{ type: "checkbox", checked: presenter.http_verify_ssl?, data: { action: "change->mission#updateNodeProp", "prop-key": "verify_ssl", "value-type": "boolean" } }
+        .ms-http-request-toggle__body
+          %span.ms-http-request-toggle__title Verify SSL Certificates
+          %span.ms-http-request-toggle__meta Disable only for known internal endpoints or short-lived debugging.
+
+    .ms-http-request-toggle-row
+      %label.ms-http-request-toggle
+        %input{ type: "checkbox", checked: presenter.http_retry_enabled?, data: { action: "change->mission#updateNodeProp change->http-request-node#sync", "prop-key": "retry_enabled", "value-type": "boolean", "http-request-node-target": "retryEnabled" } }
+        .ms-http-request-toggle__body
+          %span.ms-http-request-toggle__title Retry on Failures
+          %span.ms-http-request-toggle__meta Retries transport errors and transient responses such as 429 or 503.
+
+    .ms-http-request-grid{ hidden: !presenter.http_retry_enabled?, data: { "http-request-node-target": "retryFields" } }
+      .ms-prop-field.ms-prop-field--dense
+        %label.ms-prop-label{ for: "http-max-retries" } Max Retries
+        %input.ms-prop-input#http-max-retries{ type: "number", min: "0", step: "1", value: presenter.data_raw("max_retries") || Missions::Nodes::HttpRequest::DEFAULT_MAX_RETRIES, data: { action: "change->mission#updateNodeProp", "prop-key": "max_retries", "value-type": "integer" } }
+      .ms-prop-field.ms-prop-field--dense
+        %label.ms-prop-label{ for: "http-retry-interval" } Retry Interval (ms)
+        %input.ms-prop-input#http-retry-interval{ type: "number", min: "0", step: "50", value: presenter.data_raw("retry_interval_ms") || Missions::Nodes::HttpRequest::DEFAULT_RETRY_INTERVAL_MS, data: { action: "change->mission#updateNodeProp", "prop-key": "retry_interval_ms", "value-type": "integer" } }
+
+    .ms-http-request-inline-section
+      .ms-http-request-inline-section__title Timeouts
+      .ms-http-request-grid
+        .ms-prop-field.ms-prop-field--dense
+          %label.ms-prop-label{ for: "http-connect-timeout" } Connection Timeout
+          %input.ms-prop-input#http-connect-timeout{ type: "number", min: "0", step: "0.1", value: presenter.data_raw("connect_timeout"), placeholder: Missions::Nodes::HttpRequest::REQUEST_TIMEOUT, data: { action: "change->mission#updateNodeProp", "prop-key": "connect_timeout", "value-type": "float" } }
+        .ms-prop-field.ms-prop-field--dense
+          %label.ms-prop-label{ for: "http-read-timeout" } Read Timeout
+          %input.ms-prop-input#http-read-timeout{ type: "number", min: "0", step: "0.1", value: presenter.data_raw("read_timeout"), placeholder: Missions::Nodes::HttpRequest::REQUEST_TIMEOUT, data: { action: "change->mission#updateNodeProp", "prop-key": "read_timeout", "value-type": "float" } }
+        .ms-prop-field.ms-prop-field--dense
+          %label.ms-prop-label{ for: "http-write-timeout" } Write Timeout
+          %input.ms-prop-input#http-write-timeout{ type: "number", min: "0", step: "0.1", value: presenter.data_raw("write_timeout"), placeholder: Missions::Nodes::HttpRequest::REQUEST_TIMEOUT, data: { action: "change->mission#updateNodeProp", "prop-key": "write_timeout", "value-type": "float" } }

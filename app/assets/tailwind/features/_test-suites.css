@@ -1,0 +1,723 @@
+/* ==========================================================================
+   Test Suites — Feature Styles
+   ========================================================================== */
+
+/* ── Mini Progress Bar (Suite Cards & History) ── */
+.test-mini-progress-bar {
+  height: 0.375rem;
+  border-radius: 9999px;
+  background-color: var(--surface-hover);
+  overflow: hidden;
+  min-width: 4rem;
+}
+
+.test-mini-progress-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Latest Run Indicator ── */
+.test-suite-latest-run {
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  background-color: var(--surface-secondary);
+  border: 1px solid var(--border-default);
+}
+
+/* ── Run History Item ── */
+.test-run-history-item {
+  display: block;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  background-color: var(--surface-secondary);
+  border: 1px solid var(--border-default);
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: var(--surface-hover);
+    border-color: var(--accent);
+    transform: translateX(2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+}
+
+/* ==========================================================================
+   Test Run — Progress Bar (WOW Effect)
+   ========================================================================== */
+
+.test-run-progress-section {
+  padding: 1.5rem;
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  margin-top: 1rem;
+}
+
+.test-progress-bar-track {
+  width: 100%;
+  height: 0.75rem;
+  border-radius: 9999px;
+  background-color: var(--surface-hover);
+  overflow: hidden;
+  position: relative;
+}
+
+.test-progress-bar-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, var(--color-brand-500), var(--color-brand-400));
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.test-progress-animated {
+  animation: progress-pulse 2s ease-in-out infinite;
+}
+
+.test-progress-shimmer {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0%   { left: -100%; }
+  100% { left: 100%; }
+}
+
+@keyframes progress-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.85; }
+}
+
+/* ==========================================================================
+   Test Run — Counter Cards
+   ========================================================================== */
+
+.test-run-counters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.test-counter-card {
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.25rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.test-counter-value {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+  transition: transform 0.3s ease;
+}
+
+.test-counter-label {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-top: 0.25rem;
+}
+
+.test-counter-passed {
+  border-left: 3px solid var(--color-success-500);
+
+  .test-counter-value { color: var(--color-success-500); }
+}
+
+.test-counter-failed {
+  border-left: 3px solid var(--color-danger-500);
+
+  .test-counter-value { color: var(--color-danger-500); }
+}
+
+.test-counter-error {
+  border-left: 3px solid var(--color-warning-500);
+
+  .test-counter-value { color: var(--color-warning-500); }
+}
+
+.test-counter-rate {
+  border-left: 3px solid var(--color-brand-500);
+
+  .test-counter-value { color: var(--color-brand-500); }
+}
+
+/* ==========================================================================
+   Test Result Cards — Dynamic States with Animations
+   ========================================================================== */
+
+.test-results-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.test-result-card {
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Status-specific left border glow */
+  &.test-result-pending {
+    border-left: 3px solid var(--color-neutral-400);
+    opacity: 0.7;
+  }
+
+  &.test-result-running {
+    border-left: 3px solid var(--color-brand-500);
+    box-shadow: 0 0 0 1px var(--color-brand-500), 0 0 20px -5px rgba(99, 102, 241, 0.3);
+    animation: result-running-glow 2s ease-in-out infinite;
+  }
+
+  &.test-result-evaluating {
+    border-left: 3px solid var(--color-warning-500);
+    box-shadow: 0 0 0 1px var(--color-warning-500), 0 0 15px -5px rgba(245, 158, 11, 0.2);
+    animation: result-eval-pulse 1.5s ease-in-out infinite;
+  }
+
+  &.test-result-passed {
+    border-left: 3px solid var(--color-success-500);
+    animation: result-pass-entrance 0.5s ease-out;
+  }
+
+  &.test-result-failed {
+    border-left: 3px solid var(--color-danger-500);
+    animation: result-fail-entrance 0.4s ease-out;
+  }
+
+  &.test-result-error {
+    border-left: 3px solid var(--color-warning-500);
+  }
+
+  /* Highlight effect when a card just got updated via Turbo */
+  &.test-result-just-updated {
+    animation: result-highlight 1.5s ease-out;
+  }
+}
+
+.test-result-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+}
+
+.test-result-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+  position: relative;
+  font-size: var(--font-size-sm);
+  transition: all 0.3s ease;
+
+  &.test-result-indicator-pending {
+    background-color: var(--surface-hover);
+    color: var(--text-muted);
+  }
+
+  &.test-result-indicator-running {
+    background: linear-gradient(135deg, var(--color-brand-500), var(--color-brand-600));
+    color: white;
+  }
+
+  &.test-result-indicator-evaluating {
+    background: linear-gradient(135deg, var(--color-warning-500), var(--color-warning-600));
+    color: white;
+  }
+
+  &.test-result-indicator-passed {
+    background: linear-gradient(135deg, var(--color-success-500), var(--color-success-600));
+    color: white;
+  }
+
+  &.test-result-indicator-failed {
+    background: linear-gradient(135deg, var(--color-danger-500), var(--color-danger-600));
+    color: white;
+  }
+
+  &.test-result-indicator-error {
+    background: linear-gradient(135deg, var(--color-warning-500), var(--color-danger-500));
+    color: white;
+  }
+}
+
+/* Pulse ring around running indicator */
+.test-pulse-ring {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid var(--color-brand-400);
+  animation: pulse-ring 1.5s ease-out infinite;
+}
+
+.test-result-body {
+  padding: 0 1.25rem 1.25rem;
+  border-top: 1px solid var(--border-default);
+}
+
+.test-result-section {
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  background-color: var(--surface-secondary);
+}
+
+.test-result-section-label {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.test-result-section-content {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.test-result-analysis {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  background-color: var(--surface-secondary);
+  border-left: 3px solid var(--accent);
+}
+
+/* ── Score Bar ── */
+.test-result-score-bar {
+  margin-top: 1rem;
+}
+
+.test-score-track {
+  height: 0.5rem;
+  border-radius: 9999px;
+  background-color: var(--surface-hover);
+  overflow: hidden;
+}
+
+.test-score-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.test-score-pass {
+  background: linear-gradient(90deg, var(--color-success-500), #86efac);
+}
+
+.test-score-fail {
+  background: linear-gradient(90deg, var(--color-danger-500), #fca5a5);
+}
+
+/* ==========================================================================
+   Test Run — Running & Evaluating Animations
+   ========================================================================== */
+
+.test-running-animation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem;
+}
+
+.test-running-dots {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.test-running-dot {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 50%;
+  background-color: var(--color-brand-500);
+  animation: running-dot-bounce 1.4s ease-in-out infinite;
+
+  &:nth-child(2) { animation-delay: 0.16s; }
+  &:nth-child(3) { animation-delay: 0.32s; }
+}
+
+.test-evaluating-animation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem;
+}
+
+/* ── Run Icon Box ── */
+.test-run-icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: var(--radius-xl);
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+
+  &.test-run-icon-pending {
+    background-color: var(--surface-hover);
+    color: var(--text-muted);
+  }
+
+  &.test-run-icon-running,
+  &.test-run-icon-evaluating {
+    background: linear-gradient(135deg, var(--color-brand-500), var(--color-brand-700));
+    color: white;
+    animation: icon-glow 2s ease-in-out infinite;
+  }
+
+  &.test-run-icon-completed {
+    background: linear-gradient(135deg, var(--color-success-500), var(--color-success-600));
+    color: white;
+  }
+
+  &.test-run-icon-failed,
+  &.test-run-icon-cancelled {
+    background: linear-gradient(135deg, var(--color-danger-500), var(--color-danger-600));
+    color: white;
+  }
+}
+
+/* ── Test Case Item ── */
+.test-case-item {
+  display: flex;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  background-color: var(--surface-secondary);
+  border: 1px solid var(--border-default);
+  margin-bottom: 0.75rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: var(--accent);
+    background-color: var(--surface-hover);
+  }
+}
+
+.test-case-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background-color: var(--accent-subtle);
+  color: var(--accent);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* ── Test Cases Table ── */
+.test-cases-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th {
+    padding: 0.5rem 1rem;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    text-align: left;
+    border-bottom: 1px solid var(--border-default);
+    background-color: var(--surface-secondary);
+  }
+
+  td {
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--border-default);
+    vertical-align: middle;
+    max-width: 20rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    transition: background-color 0.15s ease;
+
+    &:hover {
+      background-color: var(--surface-hover);
+    }
+
+    &:last-child td {
+      border-bottom: none;
+    }
+  }
+}
+
+.test-case-row {
+  &.animate-fade-in {
+    animation: fade-in 0.3s ease-out;
+  }
+}
+
+/* ── Generation Loading State ── */
+.test-generation-loading {
+  display: flex;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--accent-subtle), var(--surface-card));
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+/* ── Run Button Pulse ── */
+.test-run-btn {
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    animation: btn-shimmer 3s infinite;
+  }
+}
+
+/* ==========================================================================
+   Keyframes
+   ========================================================================== */
+
+@keyframes pulse-ring {
+  0%   { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+@keyframes result-running-glow {
+  0%, 100% { box-shadow: 0 0 0 1px var(--color-brand-500), 0 0 20px -5px rgba(99, 102, 241, 0.3); }
+  50%      { box-shadow: 0 0 0 1px var(--color-brand-400), 0 0 30px -3px rgba(99, 102, 241, 0.5); }
+}
+
+@keyframes result-eval-pulse {
+  0%, 100% { box-shadow: 0 0 0 1px var(--color-warning-500), 0 0 15px -5px rgba(245, 158, 11, 0.2); }
+  50%      { box-shadow: 0 0 0 1px var(--color-warning-400), 0 0 25px -3px rgba(245, 158, 11, 0.4); }
+}
+
+@keyframes result-pass-entrance {
+  0%   { transform: scale(0.97); opacity: 0.5; border-left-color: transparent; }
+  50%  { transform: scale(1.01); }
+  100% { transform: scale(1); opacity: 1; border-left-color: var(--color-success-500); }
+}
+
+@keyframes result-fail-entrance {
+  0%   { transform: translateX(-4px); opacity: 0.5; }
+  25%  { transform: translateX(3px); }
+  50%  { transform: translateX(-2px); }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes result-highlight {
+  0%   { background-color: rgba(99, 102, 241, 0.1); }
+  100% { background-color: var(--surface-card); }
+}
+
+@keyframes running-dot-bounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40%           { transform: scale(1); }
+}
+
+@keyframes icon-glow {
+  0%, 100% { box-shadow: 0 0 15px -3px rgba(99, 102, 241, 0.3); }
+  50%      { box-shadow: 0 0 25px -3px rgba(99, 102, 241, 0.5); }
+}
+
+@keyframes btn-shimmer {
+  0%   { transform: translateX(-100%); }
+  50%  { transform: translateX(100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Scale in animation (for check/x marks) */
+.animate-scale-in {
+  animation: scale-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Slide down animation (for result body) */
+.animate-slide-down {
+  animation: slide-down 0.4s ease-out;
+}
+
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 500px;
+  }
+}
+
+/* ==========================================================================
+   Future: Training Mode Styles (Reserved)
+   ========================================================================== */
+
+.test-result-training-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.75rem;
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #7c3aed, #a78bfa);
+  color: white;
+}
+
+/* ==========================================================================
+   Test Run — Status Bar (Combined Progress + Counters)
+   ========================================================================== */
+
+.test-run-status-bar-section {
+  padding: 1rem 1.5rem;
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  margin-top: 1rem;
+}
+
+/* ==========================================================================
+   Test Run — Compact Results Table
+   ========================================================================== */
+
+.test-results-table {
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.test-results-header,
+.test-result-summary {
+  display: grid;
+  grid-template-columns: 2.5rem 2.5rem 1fr 4.5rem 4.75rem 4.75rem 5rem 4rem 2rem;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 1rem;
+}
+
+.test-results-header {
+  padding-top: 0.625rem;
+  padding-bottom: 0.625rem;
+  background-color: var(--surface-secondary);
+  border-bottom: 1px solid var(--border-default);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.test-result-summary {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: var(--surface-hover);
+  }
+}
+
+.test-result-row {
+  border-bottom: 1px solid var(--border-default);
+  transition: background-color 0.2s ease;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &.test-result-row-running {
+    background-color: color-mix(in srgb, var(--color-brand-500) 4%, transparent);
+  }
+
+  &.test-result-row-evaluating {
+    background-color: color-mix(in srgb, var(--color-warning-500) 4%, transparent);
+  }
+
+  &.test-result-row-passed {
+    background-color: color-mix(in srgb, var(--color-success-500) 2%, transparent);
+  }
+
+  &.test-result-row-failed {
+    background-color: color-mix(in srgb, var(--color-danger-500) 2%, transparent);
+  }
+}
+
+.test-col-num {
+  text-align: center;
+}
+
+.test-col-status {
+  text-align: center;
+}
+
+.test-col-prompt {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.test-col-duration,
+.test-col-score,
+.test-col-input-tokens,
+.test-col-output-tokens,
+.test-col-cost {
+  text-align: right;
+}
+
+.test-col-toggle {
+  text-align: center;
+}
+
+/* ── Expand/Collapse icon rotation ── */
+.test-expand-icon {
+  transition: transform 0.2s ease;
+
+  &.rotate-90 {
+    transform: rotate(90deg);
+  }
+}
+
+/* ── Detail panel animation ── */
+.test-result-detail {
+  animation: slide-down 0.3s ease-out;
+}

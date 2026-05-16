@@ -1,0 +1,45 @@
+/ ── Dashboard Charts ──
+- chart_opts = { chart: { backgroundColor: "transparent", style: { fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif" } }, credits: { enabled: false } }
+- axis_style = { labels: { style: { color: "var(--text-muted)" } }, lineColor: "var(--border-default)", tickColor: "var(--border-default)", gridLineColor: "rgba(148, 163, 184, 0.12)", gridLineWidth: 1 }
+- y_axis_style = axis_style.merge(title: nil, gridLineColor: "rgba(148, 163, 184, 0.18)", gridLineWidth: 1)
+- area_opts = chart_opts.deep_merge(plotOptions: { area: { fillOpacity: 0.1 } }, xAxis: axis_style, yAxis: y_axis_style.merge(allowDecimals: false), legend: { enabled: false })
+
+.dash-charts-section.mb-6
+  .dash-charts-header
+    %h3.dash-charts-title
+      %i.fa-solid.fa-chart-line.mr-2
+      Activity — Last 30 Days
+
+  .grid.grid-cols-1.lg:grid-cols-2.gap-5
+
+    / ── Conversations ──
+    .dash-chart-card
+      .dash-chart-header
+        .dash-chart-dot.dash-chart-dot--brand
+        %span Conversations
+      .dash-chart-body
+        = area_chart presenter.chats_by_day, colors: ["var(--accent)"], library: area_opts
+
+    / ── Messages ──
+    .dash-chart-card
+      .dash-chart-header
+        .dash-chart-dot.dash-chart-dot--green
+        %span Messages
+      .dash-chart-body
+        = area_chart presenter.messages_by_day, colors: ["#22c55e"], library: area_opts
+
+    / ── Token Usage ──
+    .dash-chart-card
+      .dash-chart-header
+        .dash-chart-dot.dash-chart-dot--amber
+        %span Token Usage
+      .dash-chart-body
+        = area_chart presenter.tokens_by_day, colors: ["var(--accent)", "#f59e0b"], library: chart_opts.deep_merge(plotOptions: { area: { fillOpacity: 0.08, stacking: "normal" } }, xAxis: axis_style, yAxis: y_axis_style, legend: { itemStyle: { color: "var(--text-secondary)" } })
+
+    / ── Tool Calls ──
+    .dash-chart-card
+      .dash-chart-header
+        .dash-chart-dot.dash-chart-dot--rose
+        %span Tool Calls
+      .dash-chart-body
+        = column_chart presenter.tool_calls_by_day, colors: ["var(--accent)"], library: chart_opts.deep_merge(plotOptions: { column: { borderRadius: 4, borderWidth: 0 } }, xAxis: axis_style, yAxis: y_axis_style.merge(allowDecimals: false), legend: { enabled: false })

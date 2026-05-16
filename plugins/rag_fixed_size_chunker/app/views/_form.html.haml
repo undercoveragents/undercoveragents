@@ -1,0 +1,21 @@
+/ ── Chunk Size ──
+.form-group.mb-4
+  = f.label :chunk_size, class: "form-label" do
+    Chunk Size (characters)
+    %span.text-danger-500.ml-0.5 *
+  = f.number_field :chunk_size, value: steppable.chunk_size || 1000, class: "form-input", min: 1, max: 50_000, required: true
+  .form-hint Maximum number of characters per chunk.
+
+/ ── Chunk Overlap ──
+.form-group.mb-4
+  = f.label :chunk_overlap, class: "form-label" do
+    Chunk Overlap (characters)
+    %span.text-danger-500.ml-0.5 *
+  = f.number_field :chunk_overlap, value: steppable.chunk_overlap || 200, class: "form-input", min: 0, max: 10_000, required: true
+  .form-hint Number of overlapping characters between consecutive chunks to preserve context.
+
+/ ── Separator ──
+.form-group
+  = f.label :separator, "Separator", class: "form-label"
+  = f.text_field :separator, value: steppable.separator, class: "form-input", placeholder: "Leave blank for character-level splitting"
+  .form-hint Optional. Character(s) to split on before applying size limits. Common: space, newline.

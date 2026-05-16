@@ -1,0 +1,78 @@
+/* ==========================================================================
+   Dialog — HTML <dialog> based modal component
+   ========================================================================== */
+
+.dialog {
+  border: none;
+  padding: 0;
+  margin: auto;
+  max-width: 36rem;
+  width: calc(100% - 2rem);
+  border-radius: var(--radius-xl);
+  background-color: var(--surface-card);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  color: var(--text-primary);
+
+  &::backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+  }
+
+  &[open] {
+    animation: dialog-enter 0.2s ease-out;
+  }
+}
+
+.dialog-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.dialog-title {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.dialog-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-md);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: var(--surface-hover);
+    color: var(--text-primary);
+  }
+}
+
+.dialog-body {
+  padding: 1.5rem;
+}
+
+@keyframes dialog-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}

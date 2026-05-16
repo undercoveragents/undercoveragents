@@ -1,0 +1,10 @@
+- if messages.empty?
+  .shared-chat__empty-state{ data: { chat_target: "emptyState" } }
+    .shared-chat__empty-icon
+      %i{ class: component.empty_state_icon }
+    - if component.empty_state_title.present?
+      %h3= component.empty_state_title
+    - if component.empty_state_body.present?
+      %p= component.empty_state_body
+- else
+  = render partial: "shared/chat/message_entries", locals: { messages:, chat: }

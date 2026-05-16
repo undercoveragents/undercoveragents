@@ -1,0 +1,16 @@
+- return if objects.empty?
+
+.schema-tree-section.mb-4
+  %button.schema-tree-header{ type: "button", data: { action: "click->table-visibility#toggleGroup", table_visibility_group_param: group_id } }
+    %i.fa-solid.fa-chevron-right.schema-tree-chevron{ data: { table_visibility_target: "groupChevron", group: group_id } }
+    %i{ class: "fa-solid #{icon} schema-tree-icon" }
+    %span.schema-tree-label= label
+    %span.schema-tree-count= objects.size
+  .schema-tree-children.hidden{ data: { table_visibility_target: "groupContent", group: group_id } }
+    - objects.each do |obj|
+      - checked = selected_names.include?(obj["name"])
+      .schema-tree-leaf.flex.items-center.gap-2
+        %input.form-check-input{ type: "checkbox", name: "sql_query[selected_objects][]", value: obj["name"], id: "obj_#{obj["name"]}", checked:, data: { table_visibility_target: "checkbox", action: "change->table-visibility#updateCounter" } }
+        %label.form-check-label.cursor-pointer{ for: "obj_#{obj["name"]}" }
+          %i{ class: "fa-solid #{icon} schema-tree-leaf-icon" }
+          %span.schema-tree-item-name= obj["name"]

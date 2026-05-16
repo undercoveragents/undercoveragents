@@ -1,0 +1,120 @@
+- content_for(:title, "Agents inspector — #{APP_NAME}")
+= render_page_hero(title: "Runtime traces, inspectable down to each chat", description: "Browse and inspect all chat sessions, filter by any parameter.", variant: :dashboard, eyebrow: { label: "Agents Inspector", icon: "fa-solid fa-comments" })
+
+/ ── Filters ──
+.card.mb-6
+  .card-body
+    = search_form_for @q, url: admin_inspector_chats_path, html: { class: "inspector-filters" } do |f|
+      .inspector-filters-row
+        .inspector-filter-group
+          = f.label :id_eq, "ID", class: "inspector-filter-label"
+          = f.text_field :id_eq, placeholder: "Search by ID…", class: "form-input form-input-sm"
+
+        .inspector-filter-group
+          = f.label :title_cont, "Title", class: "inspector-filter-label"
+          = f.text_field :title_cont, placeholder: "Search by title…", class: "form-input form-input-sm"
+
+        .inspector-filter-group
+          = f.label :execution_context_eq, "Context", class: "inspector-filter-label"
+          %div{ data: { controller: "choices", choices_search_value: "false" } }
+            = f.select :execution_context_eq, options_for_select(@filter_options[:execution_contexts]), { include_blank: "All" }, class: "form-input form-input-sm", data: { choices_target: "select" }
+
+        .inspector-filter-group
+          = f.label :agent_id_eq, "Agent", class: "inspector-filter-label"
+          %div{ data: { controller: "choices", choices_search_value: "true" } }
+            = f.select :agent_id_eq, options_for_select(@filter_options[:agents]), { include_blank: "All" }, class: "form-input form-input-sm", data: { choices_target: "select" }
+
+        .inspector-filter-group
+          = f.label :model_id_eq, "Model", class: "inspector-filter-label"
+          %div{ data: { controller: "choices", choices_search_value: "true" } }
+            = f.select :model_id_eq, options_for_select(@filter_options[:models]), { include_blank: "All" }, class: "form-input form-input-sm", data: { choices_target: "select" }
+
+        .inspector-filter-group
+          %label.inspector-filter-label{ for: "operation" } Operation
+          %div{ data: { controller: "choices", choices_search_value: "false" } }
+            %select.form-input.form-input-sm#operation{ name: "operation", data: { choices_target: "select" } }
+              = options_for_select([["All", ""]] + @filter_options[:operations], params[:operation])
+
+      .inspector-filters-row.mt-3
+        .inspector-filter-group
+          %label.inspector-filter-label.flex.items-center.gap-2
+            = check_box_tag "q[parent_chat_id_null]", "1", params.dig(:q, :parent_chat_id_null) == "1"
+            Root chats only
+
+        .inspector-filter-group
+          %label.inspector-filter-label.flex.items-center.gap-2
+            = check_box_tag "q[parent_chat_id_not_null]", "1", params.dig(:q, :parent_chat_id_not_null) == "1"
+            Child chats only
+
+        .inspector-filter-actions
+          = f.submit "Filter", class: "btn btn-primary btn-sm"
+          = link_to "Clear", admin_inspector_chats_path, class: "btn btn-secondary btn-sm" if inspector_filter_active?(params)
+
+/ ── Results ──
+- if @chats.any?
+  .card
+    .inspector-table-wrapper
+      %table.inspector-table
+        %thead
+          %tr
+            %th.inspector-th ID
+            %th.inspector-th Title
+            %th.inspector-th Status
+            %th.inspector-th Context
+            %th.inspector-th Agent
+            %th.inspector-th Operation
+            %th.inspector-th Model
+            %th.inspector-th Messages
+            %th.inspector-th Parent
+            %th.inspector-th Children
+            %th.inspector-th Updated
+        %tbody
+          - @chats.each do |chat|
+            %tr.inspector-tr
+              %td.inspector-td.font-mono.text-text-muted= chat.id
+              %td.inspector-td
+                = link_to admin_inspector_chat_path(chat), class: "text-accent no-underline hover:underline font-medium" do
+                  = truncate(chat.display_title, length: 50)
+              %td.inspector-td
+                %span.badge{ class: inspector_status_badge(chat.status) }= chat.status
+              %td.inspector-td
+                %span.badge{ class: inspector_execution_context_badge(chat.execution_context) }= chat.execution_context
+              %td.inspector-td
+                - if chat.agent
+                  = truncate(chat.agent.name, length: 20)
+                - else
+                  %span.text-text-muted —
+              %td.inspector-td
+                - if chat.agent&.operation
+                  %span.badge.badge-neutral= chat.agent.operation.name
+                - else
+                  %span.text-text-muted —
+              %td.inspector-td.font-mono
+                = chat.model&.model_id || "—"
+              %td.inspector-td.text-center
+                = chat.messages_count
+              %td.inspector-td
+                - if chat.parent_chat_id
+                  = link_to "##{chat.parent_chat_id}", admin_inspector_chat_path(chat.parent_chat_id), class: "text-accent no-underline hover:underline"
+                - else
+                  %span.text-text-muted —
+              %td.inspector-td.text-center
+                - child_count = chat.child_chats_count
+                - if child_count.positive?
+                  %span.badge.badge-neutral= child_count
+                - else
+                  %span.text-text-muted —
+              %td.inspector-td.text-text-muted.text-xs
+                #{time_ago_in_words(chat.updated_at)} ago
+    .inspector-table-footer
+      .text-xs.text-text-muted
+        != @pagy.info_tag
+      .inspector-pagy-nav
+        != @pagy.series_nav(aria_label: "Chat pages")
+- else
+  - body = if inspector_filter_active?(params)
+    - "No chats match your current filters. Try adjusting or clearing them."
+  - else
+    - "No chat sessions have been created yet."
+  = render_page_empty_state(title: "No chats found", body:) do
+    = link_to "Clear Filters", admin_inspector_chats_path, class: "btn btn-primary" if inspector_filter_active?(params)

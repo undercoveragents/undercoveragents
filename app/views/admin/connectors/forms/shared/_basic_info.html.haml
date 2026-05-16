@@ -1,0 +1,20 @@
+/ ── Basic Information ──
+/ Shared partial: renders name and description fields for any connector type.
+/ Locals: f (form builder), connector (Connector record)
+.card.mb-6
+  .card-header
+    %h3.text-sm.font-semibold.text-text-primary
+      %i.fa-solid.fa-tag.mr-2.text-accent
+      Basic Information
+  .card-body
+    .form-grid
+      .form-group
+        = f.label "connector[name]", class: "form-label" do
+          Name
+          %span.text-danger-500.ml-0.5 *
+        = f.text_field "connector[name]", value: connector.name, class: "form-input", placeholder: "e.g. Production Analytics DB", required: true
+        .form-hint A unique name to identify this connector.
+
+      .form-group
+        = f.label "connector[description]", "Description", class: "form-label"
+        = f.text_field "connector[description]", value: connector.description, class: "form-input", placeholder: "Brief description of this data source"

@@ -1,0 +1,18 @@
+.ms-palette-section
+  %button.ms-palette-section-header{ type: "button", data: { action: "click->mission#toggleSection" } }
+    .ms-palette-section-left
+      %i{ class: section_icon }
+      %span= section_label
+      %span.ms-palette-section-count= items.size
+    %i.fa-solid.fa-chevron-up.ms-palette-chevron
+
+  .ms-palette-section-items
+    - items.each do |item|
+      .ms-palette-item{ draggable: "true", data: { action: "dragstart->mission#onPaletteDragStart dragend->mission#onPaletteDragEnd", node_type: item[:type], node_data: { label: item[:label], icon: item[:icon], color: item[:color], model: item[:model], temperature: item[:temperature], status: item[:status], toolType: item[:toolType], output_ports: item[:output_ports] }.compact.to_json, singleton: item[:singleton] || nil }.compact }
+        -# haml-lint:disable InlineStyles
+        .ms-palette-item-icon{ style: "color: #{item[:color]}" }
+          %i{ class: item[:icon] }
+        -# haml-lint:enable InlineStyles
+        .ms-palette-item-info
+          .ms-palette-item-name= item[:label]
+          .ms-palette-item-desc= item[:description]

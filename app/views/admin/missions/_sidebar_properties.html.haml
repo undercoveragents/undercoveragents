@@ -1,0 +1,88 @@
+.ms-props-section
+  .ms-props-section-title
+    %i.fa-solid.fa-circle-info
+    %span Mission Info
+  .ms-props-row
+    .ms-props-label Name
+    .ms-props-value= mission.name
+  .ms-props-row
+    .ms-props-label Nodes
+    .ms-props-value= mission.flow_data&.dig("nodes")&.size || 0
+  .ms-props-row
+    .ms-props-label Edges
+    .ms-props-value= mission.flow_data&.dig("edges")&.size || 0
+  .ms-props-row
+    .ms-props-label Updated
+    .ms-props-value #{time_ago_in_words(mission.updated_at)} ago
+.ms-props-section
+  .ms-props-section-title
+    %i.fa-solid.fa-file-arrow-up
+    %span Import / Export
+  .ms-props-actions
+    %button.ms-props-btn{ type: "button", title: "Export workflow (JSON)", data: { action: "click->mission#exportWorkflow" } }
+      %i.fa-solid.fa-file-export
+      %span Export JSON
+    -# spacer between sibling buttons
+    %button.ms-props-btn{ type: "button", title: "Import workflow (JSON)", data: { action: "click->mission#triggerImport" } }
+      %i.fa-solid.fa-file-import
+      %span Import JSON
+.ms-props-section
+  .ms-props-section-title
+    %i.fa-solid.fa-keyboard
+    %span Keyboard Shortcuts
+  .ms-props-shortcuts
+    .ms-props-shortcut-row
+      %span.ms-props-shortcut-label Undo
+      %span.ms-props-shortcut-keys
+        %kbd ⌘/Ctrl
+        %kbd Z
+    .ms-props-shortcut-row
+      %span.ms-props-shortcut-label Redo
+      %span.ms-props-shortcut-keys
+        %kbd ⌘/Ctrl
+        %kbd ⇧
+        %kbd Z
+    .ms-props-shortcut-row
+      %span.ms-props-shortcut-label Select all
+      %span.ms-props-shortcut-keys
+        %kbd ⌘/Ctrl
+        %kbd A
+    .ms-props-shortcut-row
+      %span.ms-props-shortcut-label Duplicate
+      %span.ms-props-shortcut-keys
+        %kbd ⌘/Ctrl
+        %kbd D
+    .ms-props-shortcut-row
+      %span.ms-props-shortcut-label Copy nodes
+      %span.ms-props-shortcut-keys
+        %kbd ⌘/Ctrl
+        %kbd C
+    .ms-props-shortcut-row
+      %span.ms-props-shortcut-label Paste nodes
+      %span.ms-props-shortcut-keys
+        %kbd ⌘/Ctrl
+        %kbd V
+    .ms-props-shortcut-row
+      %span.ms-props-shortcut-label Delete selected
+      %span.ms-props-shortcut-keys
+        %kbd ⌫
+    .ms-props-shortcut-row
+      %span.ms-props-shortcut-label Close / Deselect
+      %span.ms-props-shortcut-keys
+        %kbd Esc
+    .ms-props-shortcut-row
+      %span.ms-props-shortcut-label Shortcut help
+      %span.ms-props-shortcut-keys
+        %kbd ?
+.ms-props-section
+  .ms-props-section-title
+    %i.fa-solid.fa-link
+    %span Quick Links
+  .ms-props-actions
+    = link_to admin_missions_path, class: "ms-props-btn", data: { turbo_frame: "app-content-frame" } do
+      %i.fa-solid.fa-arrow-left
+      %span Back to Missions
+    -# spacer between sibling links
+    = link_to edit_admin_mission_path(mission), class: "ms-props-btn", data: { turbo_frame: "app-content-frame" } do
+      %i.fa-solid.fa-pen-to-square
+      %span Edit Mission

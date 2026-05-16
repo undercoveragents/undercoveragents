@@ -1,0 +1,12 @@
+= turbo_frame_tag "admin-agent-alpha-frame", data: { agent_alpha_header_title: "Unavailable", agent_alpha_header_target_id: "agent-alpha-panel-title-value" } do
+  = render "frame_state",
+           frame_location: nil,
+           header_title: "Unavailable",
+           header_target_id: "agent-alpha-panel-title-value"
+  .ms-sidebar-empty-state
+    %i.fa-solid.fa-gear
+    %p
+      Agent Alpha is unavailable until the default LLM connector and model are configured.
+      = link_to "Set it up in Preferences.",
+                admin_preferences_path,
+                data: { turbo_frame: "app-content-frame" }

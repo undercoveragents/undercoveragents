@@ -1,0 +1,25 @@
+/ ── Aggregate Node Configuration ──
+.ms-prop-field
+  %label.ms-prop-label
+    Collection
+    %span.ms-prop-required *
+  = render "shared/expression_editor", value: presenter.data("collection"), variables: presenter.selectable_upstream_variables, prop_key: "collection", placeholder: "Variable name or JSON array", rows: 2
+/ Operation
+.ms-prop-field
+  %label.ms-prop-label
+    Operation
+    %span.ms-prop-required *
+  %select.ms-prop-select{ data: { action: "change->mission#updateNodeProp", "prop-key": "operation" } }
+    %option{ value: "" } Select operation...
+    - { "sum" => "Sum", "count" => "Count", "average" => "Average", "min" => "Min", "max" => "Max", "first" => "First", "last" => "Last", "join" => "Join (comma-separated)", "collect" => "Collect (compact)" }.each do |val, label|
+      %option{ value: val, selected: presenter.data("operation") == val }= label
+  .ms-prop-hint
+    %i.fa-solid.fa-circle-info
+    Choose how to reduce the array into a single value.
+/ Field
+.ms-prop-field
+  %label.ms-prop-label Field (optional)
+  %input.ms-prop-input{ type: "text", placeholder: "e.g. price, score", value: presenter.data("field"), data: { action: "blur->mission#updateNodeProp", "prop-key": "field" } }
+  .ms-prop-hint
+    %i.fa-solid.fa-circle-info
+    For arrays of objects, specify which field to aggregate.

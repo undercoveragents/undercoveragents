@@ -1,0 +1,63 @@
+#!/bin/bash -e
+
+should_prepare_db=false
+
+if [ "$#" -ge 4 ] && [ "$1" = "bundle" ] && [ "$2" = "exec" ] && [ "$3" = "falcon" ] && [ "$4" = "host" ]; then
+  should_prepare_db=true
+fi
+
+if [ "$#" -ge 4 ] && [ "$1" = "bundle" ] && [ "$2" = "exec" ] && [ "$3" = "falcon" ] && [ "$4" = "serve" ]; then
+  should_prepare_db=true
+fi
+
+if [ "${@: -2:1}" = "./bin/rails" ] && [ "${@: -1:1}" = "server" ]; then
+  should_prepare_db=true
+fi
+
+if [ "$1" = "bin/jobs" ] || [ "$1" = "./bin/jobs" ]; then
+  should_prepare_db=true
+fi
+
+if [ "$1" = "/rails/bin/jobs" ]; then
+  should_prepare_db=true
+fi
+
+if [ "$#" -ge 4 ] && [ "$1" = "bundle" ] && [ "$2" = "exec" ] && [ "$3" = "rails" ] && [ "$4" = "solid_queue:start" ]; then
+  should_prepare_db=true
+fi
+
+if [ "$#" -ge 3 ] && [ "$1" = "bundle" ] && [ "$2" = "exec" ] && [ "$3" = "bin/jobs" ]; then
+  should_prepare_db=true
+fi
+
+if [ "$#" -ge 3 ] && [ "$1" = "bundle" ] && [ "$2" = "exec" ] && [ "$3" = "./bin/jobs" ]; then
+  should_prepare_db=true
+fi
+
+if [ "$should_prepare_db" = true ] && [ "${RAILS_ENV:-production}" = "production" ]; then
+  has_secret_source=false
+
+  if [ -n "${SECRET_KEY_BASE:-}" ] || [ -n "${RAILS_MASTER_KEY:-}" ] || [ -f "/rails/config/master.key" ]; then
+    has_secret_source=true
+  fi
+
+  if [ "$has_secret_source" != true ]; then
+    echo "Missing production secret source. Set RAILS_MASTER_KEY to the contents of config/master.key or set SECRET_KEY_BASE in Railway." >&2
+    exit 1
+  fi
+
+  if [ -z "${DATABASE_URL:-}" ]; then
+    echo "Missing DATABASE_URL. In Railway set DATABASE_URL=\${{Postgres.DATABASE_URL}} on this service." >&2
+    exit 1
+  fi
+fi
+
+if [ "$should_prepare_db" = true ]; then
+  ./bin/rails db:prepare
+
+  if [ "${RAILS_ENV:-production}" = "production" ]; then
+    ./bin/rails runner "UndercoverAgents::SolidQueueSchemaBootstrap.ensure!"
+  fi
+fi
+
+exec "${@}"

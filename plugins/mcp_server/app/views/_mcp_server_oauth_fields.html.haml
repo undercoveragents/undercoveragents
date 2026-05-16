@@ -1,0 +1,49 @@
+.card.mb-6
+  .card-header.cursor-pointer{ data: { action: "click->mcp-server-connector-form#toggleOAuth" } }
+    .flex.items-center.justify-between
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-shield-halved.mr-2.text-accent
+        OAuth Authentication
+        %span.text-xs.font-normal.text-text-muted.ml-2 (Optional)
+      .flex.items-center.gap-2
+        %i.fa-solid.fa-chevron-down.text-xs.transition-transform.duration-200.text-text-muted{ class: connector.oauth_enabled? ? "rotate-180" : "", data: { mcp_server_connector_form_target: "oauthChevron" } }
+  .card-body{ class: connector.oauth_enabled? ? "" : "hidden", data: { mcp_server_connector_form_target: "oauthPanel" } }
+    .form-grid
+      .form-group.col-span-full
+        .form-check
+          = check_box_tag "mcp_server[oauth_enabled]", "1", connector.oauth_enabled?, class: "form-check-input", id: "mcp_server_oauth_enabled"
+          = label_tag "mcp_server_oauth_enabled", "Enable OAuth 2.1 Authentication", class: "form-check-label"
+        .form-hint.ml-6 Enable if the MCP server requires OAuth authentication.
+
+      .form-group.col-span-full{ data: { controller: "choices", choices_search_value: "false" } }
+        = label_tag "mcp_server[oauth_grant_type]", "Grant Type", class: "form-label"
+        = select_tag "mcp_server[oauth_grant_type]", options_for_select([["Authorization Code (browser-based)", "authorization_code"], ["Client Credentials (app-to-app)", "client_credentials"]], connector.oauth_grant_type), class: "form-input form-select", data: { choices_target: "select" }
+        .form-hint Authorization Code is the recommended flow for interactive use.
+
+      .form-group
+        = label_tag "mcp_server[oauth_client_id]", "Client ID", class: "form-label"
+        = text_field_tag "mcp_server[oauth_client_id]", connector.oauth_client_id, class: "form-input", placeholder: "your-client-id"
+        .form-hint Leave blank for dynamic client registration.
+
+      .form-group
+        = label_tag "mcp_server[oauth_client_secret]", "Client Secret", class: "form-label"
+        .password-toggle-wrapper{ data: { controller: "password-toggle" } }
+          = password_field_tag "mcp_server[oauth_client_secret]", connector.oauth_client_secret, class: "form-input pr-10", placeholder: "••••••••", autocomplete: "new-password", data: { password_toggle_target: "input" }
+          %button.password-toggle-btn{ type: "button", data: { action: "click->password-toggle#toggle", password_toggle_target: "icon" } }
+            %i.fa-solid.fa-eye
+        .form-hint Leave blank for dynamic client registration.
+
+      .form-group
+        = label_tag "mcp_server[oauth_issuer]", "Issuer URL", class: "form-label"
+        = text_field_tag "mcp_server[oauth_issuer]", connector.oauth_issuer, class: "form-input font-mono", placeholder: "https://auth.example.com"
+        .form-hint OAuth provider issuer URL (optional for auto-discovery).
+
+      .form-group
+        = label_tag "mcp_server[oauth_scope]", "Scopes", class: "form-label"
+        = text_field_tag "mcp_server[oauth_scope]", connector.oauth_scope, class: "form-input font-mono", placeholder: "mcp:read mcp:write"
+        .form-hint Space-separated list of OAuth scopes.
+
+      .form-group.col-span-full
+        = label_tag "mcp_server[oauth_redirect_uri]", "Redirect URI", class: "form-label"
+        = text_field_tag "mcp_server[oauth_redirect_uri]", connector.oauth_redirect_uri, class: "form-input font-mono", placeholder: "http://localhost:8080/callback"
+        .form-hint Callback URL after OAuth authorization. Defaults to localhost:8080/callback.

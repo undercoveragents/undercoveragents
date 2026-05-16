@@ -1,0 +1,25 @@
+%section
+  %h4 Variable Interpolation
+  %p
+    Use
+    %code {{variable}}
+    to insert a value, or
+    %code {{node_prefix.variable}}
+    for a specific node's output.
+  %table.ms-expr-guide-tbl
+    %tr
+      %td
+        %code {{analyzer.score}}
+      %td Score variable from the "Analyzer" node
+    %tr
+      %td
+        %code {{user_name}}
+      %td Global variable
+  %p.ms-expr-guide-note
+    Use the exact node prefix shown by variable discovery. Prefixes are normalized,
+    and duplicate labels receive numeric suffixes.
+    %br
+    "Score Analyzer", "Score Analyzer" →
+    %code score_analyzer
+    and
+    %code score_analyzer_2

@@ -1,0 +1,31 @@
+/ ── Model Select (Turbo Frame) ──
+/ Reusable model selection dropdown rendered inside a Turbo Frame.
+/ Used both on initial page load and by `model_options` Turbo Frame endpoints.
+/
+/ Locals:
+/   frame_id          — Turbo Frame identifier (e.g. "agent_model_select", "tool_model_select")
+/   field_prefix      — form field name prefix (e.g. "agent", "sql_query")
+/   available_models  — Array of Model records
+/   selected_model_id — String or nil
+/   required          — Boolean (default true)
+/   field_name        — Override the field name (default "model_id")
+
+- required = local_assigns.fetch(:required, true)
+- actual_field_name = local_assigns.fetch(:field_name, "model_id")
+- frame_data = local_assigns.fetch(:frame_data, {})
+- extra_select_data = local_assigns.fetch(:select_data, {}).dup
+- select_action = local_assigns.fetch(:select_action, "")
+- combined_action = [select_action, extra_select_data.delete(:action), extra_select_data.delete("action")].compact_blank.join(" ")
+- select_data = { model_select_target: "select", required: "" }.merge(extra_select_data)
+- select_data[:action] = combined_action if combined_action.present?
+- select_class = local_assigns.fetch(:select_class, "form-input form-select")
+
+= turbo_frame_tag frame_id, class: "col-span-full", data: frame_data do
+  .form-group{ data: { controller: "model-select" } }
+    %label.form-label{ for: "#{field_prefix}_#{actual_field_name}" }
+      Model
+      - if required
+        %span.text-danger-500.ml-0.5 *
+    - opts = options_for_select([["Select a model\u2026", ""]] + models_for_select(available_models), selected_model_id)
+    = select_tag "#{field_prefix}[#{actual_field_name}]", opts, id: "#{field_prefix}_#{actual_field_name}", class: select_class, required:, data: select_data
+    .form-hint Select the LLM model to use.

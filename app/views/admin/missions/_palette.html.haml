@@ -1,0 +1,13 @@
+/ ── Component Palette (search + sections) ──
+.ms-palette-search
+  %i.fa-solid.fa-search.ms-palette-search-icon
+  %input.ms-palette-search-input{ type: "text", placeholder: "Search components...", data: { action: "input->mission#filterPalette", "mission-target": "paletteSearch" } }
+
+.ms-palette-sections{ data: { "mission-target": "paletteSections" } }
+  - types_by_cat = MissionNodePlugin.types_by_category
+  - category_config = { "input_output" => { label: "Input / Output", icon: "fa-solid fa-right-left" }, "llm" => { label: "LLM", icon: "fa-solid fa-brain" }, "node" => { label: "Nodes", icon: "fa-solid fa-cube" }, "control" => { label: "Mission Control", icon: "fa-solid fa-sliders" } }
+  - category_config.each do |cat_key, cat_meta|
+    - items = (types_by_cat[cat_key] || []).map { |t| { type: t[:key], label: t[:label], description: t[:description], icon: t[:icon], color: t[:color], singleton: t[:singleton], output_ports: t[:output_ports] } }.sort_by { |t| t[:label] }
+    - next if items.empty?
+
+    = render "admin/missions/palette_section", section_label: cat_meta[:label], section_icon: cat_meta[:icon], items:

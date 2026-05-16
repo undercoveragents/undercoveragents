@@ -1,0 +1,12 @@
+- content_for(:title, "Change Password — #{APP_NAME}")
+= link_to profile_path, class: "back-link" do
+  %i.fa-solid.fa-arrow-left.mr-1
+  Profile
+.page-header
+  %h1.page-title Change Password
+  %p.page-subtitle Update your account password.
+
+.card
+  .card-body
+    = turbo_frame_tag :password_change_dialog do
+      = render "form", user: @user

@@ -1,0 +1,6 @@
+- content_for(:title, "Edit Operation — #{APP_NAME}")
+- form_id = "operation-form"
+- back_link = { label: "Back to Operations", url: admin_operations_path }
+= render_page_hero(title: "Edit Operation", variant: :compact, title_icon: "fa-solid fa-briefcase", record_title: @operation.name, back_link:, actions: [page_hero_form_action(label: "Update Operation", form_id:)])
+
+= render "operations/form", form_id:, operation: @operation

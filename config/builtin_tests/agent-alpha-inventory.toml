@@ -1,0 +1,133 @@
+key = "agent-alpha-inventory"
+name = "Agent Alpha Inventory Scenarios"
+description = "Resource discovery coverage for Agent Alpha."
+suite_type = "agent"
+target_builtin_agent_key = "agent_alpha"
+evaluation_temperature = 0.2
+fixture_key = "agent_alpha_benchmark"
+
+[[test_cases]]
+key = "inventory-01"
+name = "Inventory 01"
+category = "inventory"
+complexity = "low"
+position = 0
+match_type = "semantic"
+prompt = "List the agent types I can choose from."
+expected_answer = "The response should list the available agent types."
+expected_tool_names = ["list_resources"]
+disallow_child_chats = true
+
+[[test_cases]]
+key = "inventory-02"
+name = "Inventory 02"
+category = "inventory"
+complexity = "low"
+position = 1
+match_type = "semantic"
+prompt = "Which capability keys are available right now?"
+expected_answer = "The response should list the available capability keys."
+expected_tool_names = ["list_resources"]
+disallow_child_chats = true
+
+[[test_cases]]
+key = "inventory-03"
+name = "Inventory 03"
+category = "inventory"
+complexity = "low"
+position = 2
+match_type = "semantic"
+prompt = "Show me the available tool types."
+expected_answer = "The response should list the available tool types."
+expected_tool_names = ["list_resources"]
+disallow_child_chats = true
+
+[[test_cases]]
+key = "inventory-04"
+name = "Inventory 04"
+category = "inventory"
+complexity = "medium"
+position = 3
+match_type = "semantic"
+prompt = "Which agents are available in this workspace?"
+expected_answer = "The response should list the agents available in the current workspace, including %{benchmark_agent_name}."
+expected_tool_names = ["list_resources"]
+disallow_child_chats = true
+required_keywords = ["%{benchmark_agent_name}"]
+
+[[test_cases]]
+key = "inventory-05"
+name = "Inventory 05"
+category = "inventory"
+complexity = "medium"
+position = 4
+match_type = "semantic"
+prompt = "Which missions are available in this workspace?"
+expected_answer = "The response should list the missions available in the current workspace, including %{benchmark_mission_name}."
+expected_tool_names = ["list_resources"]
+disallow_child_chats = true
+required_keywords = ["%{benchmark_mission_name}"]
+
+[[test_cases]]
+key = "inventory-06"
+name = "Inventory 06"
+category = "inventory"
+complexity = "medium"
+position = 5
+match_type = "semantic"
+prompt = "List the channels configured for this tenant."
+expected_answer = "The response should list the configured channels, including %{benchmark_channel_name}."
+expected_tool_names = ["list_resources"]
+disallow_child_chats = true
+required_keywords = ["%{benchmark_channel_name}"]
+
+[[test_cases]]
+key = "inventory-07"
+name = "Inventory 07"
+category = "inventory"
+complexity = "medium"
+position = 6
+match_type = "semantic"
+prompt = "Show me the test suites in this workspace."
+expected_answer = "The response should list the test suites in this workspace, including %{benchmark_test_suite_name}."
+expected_tool_names = ["list_resources"]
+disallow_child_chats = true
+required_keywords = ["%{benchmark_test_suite_name}"]
+
+[[test_cases]]
+key = "inventory-08"
+name = "Inventory 08"
+category = "inventory"
+complexity = "medium"
+position = 7
+match_type = "semantic"
+prompt = "Which skill catalogs exist in this workspace?"
+expected_answer = "The response should list the skill catalogs in this workspace, including %{benchmark_skill_catalog_name}."
+expected_tool_names = ["list_resources"]
+disallow_child_chats = true
+required_keywords = ["%{benchmark_skill_catalog_name}"]
+
+[[test_cases]]
+key = "inventory-09"
+name = "Inventory 09"
+category = "inventory"
+complexity = "medium"
+position = 8
+match_type = "semantic"
+prompt = "Show me the tools available in this workspace."
+expected_answer = "The response should list the tools in this workspace, including %{benchmark_tool_name}."
+expected_tool_names = ["list_resources"]
+disallow_child_chats = true
+required_keywords = ["%{benchmark_tool_name}"]
+
+[[test_cases]]
+key = "inventory-10"
+name = "Inventory 10"
+category = "inventory"
+complexity = "medium"
+position = 9
+match_type = "semantic"
+prompt = "Which default models are available right now?"
+expected_answer = "The response should describe the default model choices currently available."
+expected_tool_names = ["list_resources"]
+disallow_child_chats = true

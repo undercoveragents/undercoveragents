@@ -1,0 +1,71 @@
+%section
+  %h4 Custom Functions
+  %dl.ms-expr-guide-fn-list
+    %dt
+      %code STR(value)
+    %dd
+      Convert any value to its string representation.
+      %br
+      %code STR(42)
+      →
+      %code '42'
+    %dt
+      %code DIG(json_string, key1, key2, ...)
+    %dd
+      Navigate into a JSON string. Returns nil when the path doesn't exist.
+      %br
+      %code DIG(data, 'user', 'name')
+      →
+      %code 'Alice'
+
+%section
+  %h4 Common Patterns
+  %table.ms-expr-guide-tbl
+    %tr
+      %td
+        %code score > 0.8
+      %td Threshold check
+    %tr
+      %td
+        %code status = 'active' AND score >= 5
+      %td Combined condition
+    %tr
+      %td
+        %code IF(count > 0, total / count, 0)
+      %td Safe division
+    %tr
+      %td
+        %code CONTAINS('error', message)
+      %td Keyword search
+    %tr
+      %td
+        %code DIG(response, 'choices', '0', 'text')
+      %td Deep JSON access
+    %tr
+      %td
+        %code ROUND(price * 1.2, 2)
+      %td Math + rounding
+    %tr
+      %td
+        %code NOT(CONTAINS('skip', tags))
+      %td Negated search
+
+%section
+  %h4 Important Rules
+  %ul
+    %li
+      Strings inside expressions are always
+      %strong single-quoted:
+      %code name = 'Alice'
+    %li
+      %code {{var}}
+      interpolation happens
+      %strong before
+      expression evaluation.
+    %li
+      Unknown variables evaluate to
+      %code nil.
+    %li
+      Division by zero returns
+      %code nil
+      (no error).

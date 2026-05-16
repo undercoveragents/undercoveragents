@@ -1,0 +1,100 @@
+/* ==========================================================================
+   Flash Messages & Confirmation Modal
+   ========================================================================== */
+
+/* ── Flash Messages ── */
+.flash-notice {
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  background-color: #dcfce7;
+  color: var(--color-success-600);
+  border: 1px solid #bbf7d0;
+
+  .dark & {
+    background-color: rgb(22 101 52 / 0.2);
+    color: var(--color-success-500);
+    border-color: rgb(22 101 52 / 0.3);
+  }
+}
+
+.flash-alert {
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  background-color: #fee2e2;
+  color: var(--color-danger-600);
+  border: 1px solid #fecaca;
+
+  .dark & {
+    background-color: rgb(153 27 27 / 0.2);
+    color: var(--color-danger-500);
+    border-color: rgb(153 27 27 / 0.3);
+  }
+}
+
+/* ── Confirmation Modal ── */
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgb(0 0 0 / 0.5);
+  animation: fade-in 0.15s ease;
+}
+
+.confirm-modal {
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-modal);
+  padding: 1.5rem;
+  max-width: 28rem;
+  width: calc(100% - 2rem);
+  animation: scale-in 0.15s ease;
+}
+
+.confirm-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.confirm-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background-color: rgb(239 68 68 / 0.1);
+  color: var(--color-danger-500);
+  font-size: var(--font-size-lg);
+  flex-shrink: 0;
+}
+
+.confirm-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.confirm-message {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}

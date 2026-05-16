@@ -1,0 +1,12 @@
+.card.mb-6
+  .card-header
+    %h3.text-sm.font-semibold.text-text-primary
+      %i.fa-solid.fa-scroll.mr-2.text-accent
+      System Instructions
+  .card-body
+    .form-group
+      .form-hint.mb-3
+        Custom instructions sent as a system message to the model. Tell the agent how to behave,
+        what format to use for answers, and any domain-specific knowledge. Use `{{variable_name}}`
+        placeholders for any declared input parameters.
+      = render "shared/prompt_editor", system_value: agent.instructions || "", field_name: "agent[instructions]", compact: false, show_variables: false, show_user_messages: false

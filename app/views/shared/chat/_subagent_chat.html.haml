@@ -1,0 +1,8 @@
+- chat = local_assigns.fetch(:chat)
+- visible_messages = chat_visible_messages(chat).select(&:assistant?)
+.shared-chat__subagent-chat
+  .shared-chat__subagent-thread
+    - if visible_messages.any?
+      = render partial: "shared/chat/message_entries", locals: { messages: visible_messages, chat: }
+    - else
+      %p.shared-chat__subagent-empty No visible transcript yet.

@@ -1,0 +1,19 @@
+.mc-panel{ data: { controller: "inspector-collapse" } }
+  .mc-section-header{ data: { action: "click->inspector-collapse#toggle" } }
+    .mc-section-title
+      %i.fa-solid.fa-bolt.mr-2
+      Trigger Data
+    %i.fa-solid.fa-chevron-down.mc-collapse-icon{ data: { inspector_collapse_target: "icon" } }
+
+  .mc-section-body{ data: { inspector_collapse_target: "body" } }
+    .mc-variables-grid
+      - run.trigger_data.each do |key, value|
+        .mc-variable-item
+          .mc-variable-key= key
+          .mc-variable-value
+            - if file_output?(value)
+              = file_download_link(value)
+            - elsif value.is_a?(Hash) || value.is_a?(Array)
+              %pre.mc-code-block.mc-code-block-compact= JSON.pretty_generate(value)
+            - else
+              = truncate(value.to_s, length: 300)

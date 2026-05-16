@@ -1,0 +1,54 @@
+/ ── Agent Capabilities (show view) ──
+/ Shows assigned capabilities with Configure + Remove actions, plus an Add dropdown.
+/
+/ Locals:
+/   agent   — Agent record
+
+- all_types = CapabilityPlugin.all_types
+- assigned_types, available_types = all_types.partition { |t| agent.capability_enabled?(t[:key]) }
+- can_update_agent = policy_allows?(agent, :update?)
+- update_agent_title = policy_tooltip(agent, :update?)
+
+.card.h-full
+  .card-header
+    .flex.items-center.justify-between
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-bolt.mr-2.text-accent
+        Capabilities
+      = render "agents/add_select_dropdown",
+               record: agent,
+               url: add_capability_admin_agent_path(agent),
+               method: :post,
+               field_name: :key,
+               options: available_types.map { |cap_type| [cap_type[:label], cap_type[:key]] },
+               empty_message: "All capabilities already assigned."
+  .card-body
+    - if assigned_types.empty?
+      .text-center.py-6
+        %i.fa-solid.fa-bolt.text-2xl.text-text-muted.mb-2
+        %p.text-sm.text-text-muted No capabilities assigned.
+    - else
+      .space-y-2
+        - assigned_types.each do |cap_type|
+          - key        = cap_type[:key]
+          - cap_config = agent.capability(key)
+          - summary    = cap_config.respond_to?(:summary) ? cap_config.summary : nil
+          .flex.items-center.gap-2.p-2.rounded-lg.bg-surface-secondary
+            .flex.items-center.justify-center.w-8.h-8.rounded-lg.shrink-0{ class: "bg-success-500/10 text-success-500" }
+              %i{ class: cap_type[:icon] || "fa-solid fa-bolt" }
+            .flex-1.min-w-0
+              .text-sm.font-medium.text-text-primary= cap_type[:label]
+              .text-xs.text-text-muted= summary || "Enabled"
+            - if can_update_agent
+              = link_to edit_admin_agent_capability_path(agent, key), class: "btn btn-secondary btn-xs shrink-0" do
+                %i.fa-solid.fa-sliders.mr-1
+                Configure
+              -# haml-lint workaround
+              = button_to admin_agent_capability_path(agent, key), method: :delete, class: "btn btn-ghost btn-xs text-danger-400 hover:text-danger-600 shrink-0", title: "Remove capability", data: { controller: "confirm", confirm_title_value: "Remove Capability", confirm_message_value: "Remove #{cap_type[:label]} from this agent?" } do
+                %i.fa-solid.fa-xmark
+            - else
+              %button{ type: "button", class: disabled_action_classes("btn btn-secondary btn-xs shrink-0", disabled: true), disabled: true, title: update_agent_title }
+                %i.fa-solid.fa-sliders.mr-1
+                Configure
+              %button{ type: "button", class: disabled_action_classes("btn btn-ghost btn-xs text-danger-400 hover:text-danger-600 shrink-0", disabled: true), disabled: true, title: update_agent_title }
+                %i.fa-solid.fa-xmark

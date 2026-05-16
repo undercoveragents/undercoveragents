@@ -1,0 +1,93 @@
+- telegram_target = channel.default_target
+- telegram_connector = channel.connector
+- linked_identities = channel.channel_identities.linked.order(:external_username)
+
+.grid.grid-cols-1.lg:grid-cols-2.gap-6.mb-6
+  .card.h-full
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-brands.fa-telegram.mr-2.text-accent
+        Telegram Channel
+    .card-body
+      .detail-grid
+        .detail-item
+          .detail-label Type
+          .detail-value= channel.type_label
+        .detail-item
+          .detail-label Connector
+          .detail-value
+            - if telegram_connector.present?
+              = link_to telegram_connector.name, admin_connector_path(telegram_connector), class: "text-accent no-underline", data: { turbo_frame: "app-content-frame" }
+            - else
+              %span.text-text-muted No connector assigned
+        .detail-item
+          .detail-label Agent
+          .detail-value
+            - if telegram_target&.target.present?
+              = link_to telegram_target.target.name, admin_agent_path(telegram_target.target), class: "text-accent no-underline", data: { turbo_frame: "app-content-frame" }
+            - else
+              %span.text-text-muted No agent assigned
+        .detail-item
+          .detail-label Streaming
+          .detail-value= channel.streaming_enabled ? "Enabled" : "Disabled"
+        .detail-item
+          .detail-label Welcome Message
+          .detail-value= channel.welcome_message.presence || Channels::Telegram::DEFAULT_WELCOME_MESSAGE
+
+  .card.h-full
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-satellite-dish.mr-2.text-accent
+        Delivery Status
+    .card-body
+      .detail-grid
+        .detail-item
+          .detail-label Bot Username
+          .detail-value
+            - if telegram_connector&.bot_username.present?
+              = link_to "@#{telegram_connector.bot_username}", "https://t.me/#{telegram_connector.bot_username}", target: "_blank", rel: "noopener", class: "text-accent no-underline"
+            - else
+              %span.text-text-muted Not fetched yet
+        .detail-item
+          .detail-label Webhook URL
+          .detail-value
+            - if telegram_connector&.webhook_url.present?
+              %span.text-xs.font-mono.break-all= telegram_connector.webhook_url
+            - else
+              %span.text-text-muted Not configured
+        .detail-item
+          .detail-label Linked Users
+          .detail-value= linked_identities.size
+        .detail-item
+          .detail-label Open Conversations
+          .detail-value= channel.channel_conversations.count
+
+      - if telegram_connector.present?
+        .mt-6.pt-4.border-t.border-border-default.flex.items-center.gap-3.flex-wrap
+          - if telegram_connector.bot_username.present?
+            = link_to "https://t.me/#{telegram_connector.bot_username}", target: "_blank", rel: "noopener", class: "btn btn-secondary btn-sm" do
+              %i.fa-brands.fa-telegram.mr-1
+              Open in Telegram
+          = button_to setup_telegram_webhook_admin_channel_path(channel), method: :post, class: "btn btn-primary btn-sm" do
+            %i.fa-solid.fa-satellite-dish.mr-1
+            = telegram_connector.webhook_url.present? ? "Re-register Webhook" : "Setup Webhook"
+
+.card
+  .card-header
+    %h3.text-sm.font-semibold.text-text-primary
+      %i.fa-solid.fa-users.mr-2.text-accent
+      Linked Accounts
+  .card-body
+    - if linked_identities.any?
+      .space-y-3
+        - linked_identities.each do |identity|
+          .flex.items-start.justify-between.gap-4.p-3.rounded-lg.border.border-border-subtle.bg-surface-secondary
+            .min-w-0
+              .text-sm.font-medium.text-text-primary= identity.user&.display_name || "Unassigned user"
+              .text-xs.text-text-secondary.mt-1
+                Telegram user ID: #{identity.external_user_id}
+              - if identity.external_username.present?
+                .text-xs.text-text-secondary.mt-1 @#{identity.external_username}
+            .text-xs.text-text-muted.whitespace-nowrap= identity.linked_at.present? ? "#{time_ago_in_words(identity.linked_at)} ago" : "Pending"
+    - else
+      %p.text-sm.text-text-secondary No Telegram accounts are linked to this channel yet.

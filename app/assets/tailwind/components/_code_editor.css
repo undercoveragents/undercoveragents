@@ -1,0 +1,105 @@
+/* ==========================================================================
+   Code Editor — Ace Editor component for mission code nodes
+   ========================================================================== */
+
+/* ── Container ── */
+.ce-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ── Editor wrapper ── */
+.ce-editor-wrap {
+  position: relative;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  min-height: 300px;
+  max-height: 750px;
+  transition: border-color 0.15s ease;
+
+  &:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 10%, transparent);
+  }
+}
+
+/* ── Action buttons row ── */
+.ce-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  padding: 2px 0;
+}
+
+.ce-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: var(--surface-hover);
+    color: var(--text-primary);
+  }
+}
+
+/* ── Maximize dialog ── */
+.ce-maximize-dialog {
+  max-width: 72rem;
+  width: calc(100% - 4rem);
+  max-height: calc(100vh - 4rem);
+}
+
+.ce-maximize-content {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 8rem);
+  max-height: 700px;
+}
+
+.ce-maximize-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.ce-maximize-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border-default);
+}
+
+.ce-maximize-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.ce-maximize-footer-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ce-maximize-editor-wrap {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  flex: 1;
+}

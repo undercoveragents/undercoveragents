@@ -1,0 +1,19 @@
+/ ── Limit Node Configuration ──
+.ms-prop-field
+  %label.ms-prop-label
+    Collection
+    %span.ms-prop-required *
+  %textarea.ms-prop-textarea{ rows: 2, placeholder: "Variable name or JSON array", data: { action: "blur->mission#updateNodeProp", "prop-key": "collection" } }= presenter.data("collection")
+/ Count
+.ms-prop-field
+  %label.ms-prop-label
+    Count
+    %span.ms-prop-required *
+  %input.ms-prop-input{ type: "number", min: "0", placeholder: "e.g. 10", value: presenter.data("count"), data: { action: "blur->mission#updateNodeProp", "prop-key": "count" } }
+/ Offset
+.ms-prop-field
+  %label.ms-prop-label Offset (skip)
+  %input.ms-prop-input{ type: "number", min: "0", placeholder: "0", value: presenter.data("offset"), data: { action: "blur->mission#updateNodeProp", "prop-key": "offset" } }
+  .ms-prop-hint
+    %i.fa-solid.fa-circle-info
+    Number of items to skip from the beginning before taking.

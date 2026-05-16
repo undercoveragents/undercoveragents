@@ -1,0 +1,47 @@
+- group = local_assigns.fetch(:group)
+
+.page-hero__actions.page-hero__control-group
+  .page-hero__action-group
+    - group.each do |action|
+      - button_classes = h(action.button_classes)
+      - icon_class = action.icon.present? ? h("#{action.icon} mr-1") : nil
+      - if action.disabled
+        %span.inline-flex{ title: action.title }
+          = button_tag type: "button",
+                       class: button_classes,
+                       title: action.title,
+                       disabled: true do
+            - if icon_class.present?
+              %i{ class: icon_class }
+            = action.label
+      - elsif action.form_submit?
+        = button_tag type: "submit",
+                     form: action.form_id,
+                     class: button_classes,
+                     title: action.title,
+                     disabled: action.disabled,
+                     data: action.data do
+          - if icon_class.present?
+            %i{ class: icon_class }
+          = action.label
+      - elsif action.non_get?
+        = button_to action.url,
+                    method: action.http_method,
+                    params: action.params,
+                    class: button_classes,
+                    title: action.title,
+                    disabled: action.disabled,
+                    data: action.data,
+                    form: { class: "page-hero__action-form" } do
+          - if icon_class.present?
+            %i{ class: icon_class }
+          = action.label
+      - else
+        = link_to action.url,
+                  class: button_classes,
+                  data: action.data,
+                  title: action.title,
+                  aria: { disabled: false } do
+          - if icon_class.present?
+            %i{ class: icon_class }
+          = action.label

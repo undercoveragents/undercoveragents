@@ -1,0 +1,53 @@
+/ ── Memory Inspector — Profile Panel ──
+/ Rendered by render_plugin_profile_panels in application_helper.
+/ Locals:
+/   user — current User record
+/ Admin-only — not shown to non-admin users.
+
+- return unless user.admin?
+
+- agents_with_memory = Agent.joins(:agent_memory_blocks).distinct
+- total_blocks = MemoryBlock.count
+- total_archival = ArchivalMemory.count
+
+.card
+  .card-header
+    .flex.items-center.justify-between
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-brain.mr-2.text-accent
+        Memory Inspector
+      = link_to admin_memory_blocks_path, class: "btn btn-secondary btn-xs" do
+        %i.fa-solid.fa-cog.mr-1
+        Manage
+  .card-body
+    .detail-grid
+      .detail-item
+        .detail-label Agents with Memory
+        .detail-value
+          %span.font-semibold= agents_with_memory.count
+      .detail-item
+        .detail-label Total Memory Blocks
+        .detail-value
+          %span.font-semibold= total_blocks
+      .detail-item
+        .detail-label Archival Entries
+        .detail-value
+          %span.font-semibold= total_archival
+
+    - if agents_with_memory.any?
+      %hr.border-border-default.my-4
+      %h4.text-xs.font-semibold.text-text-secondary.uppercase.tracking-wide.mb-3 Agents
+      .space-y-2
+        - agents_with_memory.includes(:agent_memory_blocks).limit(10).each do |agent|
+          = link_to admin_agent_archival_memories_path(agent), class: "flex items-center gap-3 p-2 rounded-lg bg-surface-secondary hover:bg-surface-tertiary transition-colors no-underline" do
+            .flex.items-center.justify-center.w-7.h-7.rounded-lg.bg-surface-tertiary
+              %i.fa-solid.fa-user-secret.text-xs.text-text-muted
+            .flex-1.min-w-0
+              .text-sm.font-medium.text-text-primary.truncate= agent.name
+              .text-xs.text-text-muted
+                = pluralize(agent.agent_memory_blocks.map(&:memory_block_id).uniq.size, "block")
+                ·
+                = pluralize(agent.archival_memories.count, "archival entry", "archival entries")
+    - else
+      .text-center.py-4
+        %p.text-xs.text-text-muted No agents have memory configured yet.

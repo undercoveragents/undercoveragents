@@ -1,0 +1,3 @@
+.test-results-body#test-run-results-body
+  - test_case_results.each do |result|
+    = render "test_suite_runs/result_row", result:, test_case: result.test_case, test_suite:

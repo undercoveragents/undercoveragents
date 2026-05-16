@@ -1,0 +1,29 @@
+en:
+  activerecord:
+    errors:
+      models:
+        agent_connector:
+          attributes:
+            connector_id:
+              taken: "is already assigned to this agent"
+        agent_subagent:
+          attributes:
+            subagent_id:
+              taken: "is already assigned to this agent"
+            subagent:
+              cannot_be_self: "cannot be the agent itself"
+              cyclic_reference: "would create a cyclic reference"
+  agents:
+    created: "Agent created successfully."
+    updated: "Agent updated successfully."
+    deleted: "Agent deleted successfully."
+    enabled: "Agent enabled."
+    disabled: "Agent disabled."
+    tool_added: "Tool added successfully."
+    tool_removed: "Tool removed."
+    skill_catalog_added: "Skill catalog added successfully."
+    skill_catalog_removed: "Skill catalog removed."
+    subagent_added: "Sub-agent added successfully."
+    subagent_removed: "Sub-agent removed."
+    restored: "Built-in agent restored successfully."
+    restored_all: "Restored %{count} built-in agents."

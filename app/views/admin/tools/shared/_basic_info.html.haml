@@ -1,0 +1,7 @@
+.card.mb-6
+  .card-header
+    %h3.text-sm.font-semibold.text-text-primary
+      %i.fa-solid.fa-tag.mr-2.text-accent
+      Basic Information
+  .card-body
+    = render "tools/shared/basic_info_fields", f:, tool:, toolable: local_assigns[:toolable]

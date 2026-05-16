@@ -1,0 +1,11 @@
+.card.mb-6
+  .card-header
+    %h3.text-sm.font-semibold.text-text-primary
+      %i.fa-solid.fa-scroll.mr-2.text-accent
+      Instructions
+  .card-body
+    .form-group
+      .form-hint.mb-3
+        Instructions sent to the LLM when this tool is invoked. Supports Markdown.
+        Leave blank to use the global default.
+      = render "shared/prompt_editor", system_value: toolable.instructions || "", field_name: "#{toolable.class.type_key}[instructions]", compact: false, show_variables: false, show_user_messages: false

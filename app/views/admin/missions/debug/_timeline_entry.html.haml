@@ -1,0 +1,57 @@
+-# Single timeline entry row
+- timeline = debug_timeline_entry_payload(entry)
+
+.ms-debug-timeline-entry{ class: "ms-debug-timeline-#{timeline[:status]}", data: { action: "click->mission-debug#selectTimelineNode", "node-id": timeline[:node_id] } }
+  .ms-debug-timeline-marker
+    .ms-debug-timeline-dot{ class: "ms-debug-dot-#{timeline[:status]}" }
+    .ms-debug-timeline-line
+  .ms-debug-timeline-content
+    .ms-debug-timeline-header
+      -# haml-lint:disable InlineStyles
+      %i.ms-debug-timeline-node-icon{ class: timeline[:meta][:icon], style: "color: #{timeline[:meta][:color]}" }
+      %span.ms-debug-timeline-type= timeline[:node_label].presence || timeline[:meta][:label]
+      .ms-debug-timeline-meta
+        -# haml-lint:disable InlineStyles
+        %span.ms-debug-status{ style: "color: #{timeline[:status_cfg][:color]}" }
+          %i{ class: "fa-solid #{timeline[:status_cfg][:icon]}" }
+          = timeline[:status_cfg][:label]
+        - if timeline[:duration_ms]
+          %span.ms-debug-timeline-duration #{timeline[:duration_ms]}ms
+
+    - if timeline[:next_port].present? && timeline[:next_port] != "default"
+      .ms-debug-timeline-port
+        %i.fa-solid.fa-arrow-right
+        = timeline[:next_port]
+
+    - if timeline[:error].present?
+      .ms-debug-timeline-error
+        %i.fa-solid.fa-triangle-exclamation
+        = timeline[:error]
+
+    - if timeline[:error].blank?
+      .ms-debug-timeline-output
+        .ms-debug-timeline-io-label
+          %i.fa-solid.fa-arrow-right-to-bracket
+          Input
+        - if timeline[:input_present]
+          - if image_output?(timeline[:input])
+            %img.ms-debug-image-preview{ src: timeline[:input], alt: "Node input" }
+          - elsif file_output?(timeline[:input])
+            = file_download_link(timeline[:input])
+          - else
+            %pre= format_debug_output(timeline[:input])
+        - else
+          %pre No input
+      .ms-debug-timeline-output
+        .ms-debug-timeline-io-label
+          %i.fa-solid.fa-arrow-right-from-bracket
+          Output
+        - if timeline[:output_present]
+          - if image_output?(timeline[:output])
+            %img.ms-debug-image-preview{ src: timeline[:output], alt: "Image response" }
+          - elsif file_output?(timeline[:output])
+            = file_download_link(timeline[:output])
+          - else
+            %pre= format_debug_output(timeline[:output])
+        - else
+          %pre No output

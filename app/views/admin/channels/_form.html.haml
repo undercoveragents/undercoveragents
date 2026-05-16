@@ -1,0 +1,32 @@
+- action = channel.persisted? ? admin_channel_path(channel) : admin_channels_path
+- method = channel.persisted? ? :patch : :post
+
+= form_with model: channel, url: action, method:, local: true, html: { id: "channel-form", multipart: true, novalidate: true } do |f|
+  = render "shared/forms/validation_errors", record: channel, resource_name: "channel"
+  = f.hidden_field :channel_type
+
+  .card.mb-6
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-tag.mr-2.text-accent
+        Basics
+    .card-body
+      .form-grid
+        .form-group
+          = f.label :name, class: "form-label" do
+            Name
+            %span.text-danger-500.ml-0.5 *
+          = f.text_field :name, class: "form-input", required: true, placeholder: "Support chat"
+        .form-group
+          = f.label :description, class: "form-label"
+          = f.text_area :description, class: "form-input", rows: 3, placeholder: "Where and how this channel is used"
+        .form-group
+          .form-check
+            = f.check_box :enabled, class: "form-check-input"
+            = f.label :enabled, "Enabled", class: "form-check-label"
+
+  = render_channel_form(channel, f:, available_agents:, selected_agent_id:) if channel.channel_type == "client"
+
+  = render_channel_form(channel, f:, available_agents:, available_missions:, selected_agent_ids:, selected_mission_ids:) if channel.channel_type == "api"
+
+  = render_channel_form(channel, f:, connectors:, available_agents:, available_missions:, selected_target_kind:, selected_agent_id:, selected_mission_id:, selected_agent_ids:, selected_mission_ids:) if !channel.client_channel? && !channel.api_channel?

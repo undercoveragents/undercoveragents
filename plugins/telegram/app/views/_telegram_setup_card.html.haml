@@ -1,0 +1,108 @@
+/ ── Telegram Setup Card ──
+/ Shows setup status and next steps for Telegram connector
+/ Locals: connector (Connector with type "telegram")
+
+- telegram_channel = connector.tenant.channels.by_type(Channels::Telegram.key).find_by(connector_id: connector.id)
+
+.card.mb-6
+  .card-header
+    %h3.text-sm.font-semibold.text-text-primary
+      %i.fa-solid.fa-list-check.mr-2.text-accent
+      Setup Status
+  .card-body
+    .space-y-4
+      / ── Step 1: Bot Token ──
+      .flex.items-start.gap-3
+        - if connector.bot_token.present?
+          .flex.items-center.justify-center.w-7.h-7.rounded-full.shrink-0{ class: "bg-success-500/10" }
+            %i.fa-solid.fa-check.text-success-500.text-sm
+        - else
+          .flex.items-center.justify-center.w-7.h-7.rounded-full.bg-surface-tertiary.shrink-0
+            %span.text-xs.font-bold.text-text-muted 1
+        .flex-1
+          %p.text-sm.font-medium{ class: (connector.bot_token.present? ? "text-success-500" : "text-text-primary") }
+            Bot token configured
+          %p.text-xs.text-text-muted Token from BotFather is set and encrypted.
+
+      / ── Step 2: Bot Username ──
+      .flex.items-start.gap-3
+        - if connector.bot_username.present?
+          .flex.items-center.justify-center.w-7.h-7.rounded-full.shrink-0{ class: "bg-success-500/10" }
+            %i.fa-solid.fa-check.text-success-500.text-sm
+        - else
+          .flex.items-center.justify-center.w-7.h-7.rounded-full.bg-surface-tertiary.shrink-0
+            %span.text-xs.font-bold.text-text-muted 2
+        .flex-1
+          %p.text-sm.font-medium{ class: (connector.bot_username.present? ? "text-success-500" : "text-text-primary") }
+            Bot username verified
+          - if connector.bot_username.present?
+            %p.text-xs.text-text-muted
+              = link_to "@#{connector.bot_username}", "https://t.me/#{connector.bot_username}", target: "_blank", rel: "noopener", class: "text-accent no-underline"
+          - else
+            %p.text-xs.text-text-muted
+              Click "Fetch Bot Info" below to verify the token and get the bot username.
+
+      / ── Step 3: Webhook ──
+      .flex.items-start.gap-3
+        - if connector.webhook_url.present?
+          .flex.items-center.justify-center.w-7.h-7.rounded-full.shrink-0{ class: "bg-success-500/10" }
+            %i.fa-solid.fa-check.text-success-500.text-sm
+        - else
+          .flex.items-center.justify-center.w-7.h-7.rounded-full.bg-surface-tertiary.shrink-0
+            %span.text-xs.font-bold.text-text-muted 3
+        .flex-1
+          %p.text-sm.font-medium{ class: (connector.webhook_url.present? ? "text-success-500" : "text-text-primary") }
+            Webhook registered
+          - if connector.webhook_url.present?
+            %p.text-xs.text-text-muted.font-mono.break-all= connector.webhook_url
+          - else
+            %p.text-xs.text-text-muted
+              Register the webhook from the Telegram channel once the channel is configured.
+
+      / ── Step 4: Channel ──
+      .flex.items-start.gap-3
+        - if telegram_channel.present?
+          .flex.items-center.justify-center.w-7.h-7.rounded-full.shrink-0{ class: "bg-success-500/10" }
+            %i.fa-solid.fa-check.text-success-500.text-sm
+        - else
+          .flex.items-center.justify-center.w-7.h-7.rounded-full.bg-surface-tertiary.shrink-0
+            %span.text-xs.font-bold.text-text-muted 4
+        .flex-1
+          %p.text-sm.font-medium{ class: (telegram_channel.present? ? "text-success-500" : "text-text-primary") }
+            Telegram channel configured
+          - if telegram_channel.present?
+            %p.text-xs.text-text-muted
+              = link_to telegram_channel.name, admin_channel_path(telegram_channel), class: "text-accent no-underline", data: { turbo_frame: "app-content-frame" }
+          - else
+            %p.text-xs.text-text-muted
+              Create a Telegram channel and select this connector plus the agent that should answer incoming chats.
+
+    / ── Action Buttons ──
+    - if connector.bot_token.present? && connector.bot_username.blank?
+      .mt-6.pt-4.border-t.border-border-default
+        = button_to fetch_bot_info_admin_connector_path(connector), method: :post, class: "btn btn-primary btn-sm" do
+          %i.fa-solid.fa-download.mr-1
+          Fetch Bot Info
+
+    - if connector.bot_username.present?
+      .mt-6.pt-4.border-t.border-border-default
+        .flex.items-center.gap-3
+          = link_to "https://t.me/#{connector.bot_username}", target: "_blank", rel: "noopener", class: "btn btn-secondary btn-sm" do
+            %i.fa-brands.fa-telegram.mr-1
+            Open in Telegram
+          - if telegram_channel.present?
+            = link_to admin_channel_path(telegram_channel), class: "btn btn-secondary btn-sm", data: { turbo_frame: "app-content-frame" } do
+              %i.fa-solid.fa-tower-broadcast.mr-1
+              Open Channel
+            - if connector.webhook_url.present?
+              = button_to setup_telegram_webhook_admin_channel_path(telegram_channel), method: :post, class: "btn btn-secondary btn-sm" do
+                %i.fa-solid.fa-rotate.mr-1
+                Re-register Webhook
+            - else
+              = button_to setup_telegram_webhook_admin_channel_path(telegram_channel), method: :post, class: "btn btn-primary btn-sm" do
+                %i.fa-solid.fa-satellite-dish.mr-1
+                Setup Webhook
+          - else
+            = link_to new_admin_channel_path(type: Channels::Telegram.key), class: "btn btn-primary btn-sm", data: { turbo_frame: "app-content-frame" } do
+              %i.fa-solid.fa-plus.mr-1
+              Create Channel

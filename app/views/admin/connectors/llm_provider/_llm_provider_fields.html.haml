@@ -1,0 +1,37 @@
+- provider_fields_config = Connectors::LlmProvider::PROVIDER_FIELDS[connector.provider]
+- if provider_fields_config
+  - all_fields = provider_fields_config[:required] + provider_fields_config[:optional]
+  - all_fields.each do |field|
+    - field_name = "llm_provider[#{field}]"
+    - is_required = provider_fields_config[:required].include?(field)
+    - is_sensitive = Connectors::LlmProvider::SENSITIVE_FIELDS.include?(field)
+    - is_boolean = Connectors::LlmProvider::BOOLEAN_FIELDS.include?(field)
+    - label_text = Connectors::LlmProvider.field_label(field)
+    - hint = Connectors::LlmProvider.field_hint(field)
+
+    - if is_boolean
+      .form-group.col-span-full
+        .form-check
+          = check_box_tag field_name, "1", connector.send(field), class: "form-check-input", id: "llm_provider_#{field}"
+          = label_tag "llm_provider_#{field}", label_text, class: "form-check-label"
+        - if hint
+          .form-hint= hint
+    - else
+      .form-group
+        = label_tag field_name, class: "form-label" do
+          = label_text
+          - if is_required
+            %span.text-danger-500.ml-0.5 *
+        - if is_sensitive
+          .password-toggle-wrapper{ data: { controller: "password-toggle" } }
+            = password_field_tag field_name, connector.send(field), class: "form-input pr-10", placeholder: "••••••••", required: is_required, autocomplete: "new-password", data: { password_toggle_target: "input" }
+            %button.password-toggle-btn{ type: "button", data: { action: "click->password-toggle#toggle", password_toggle_target: "icon" } }
+              %i.fa-solid.fa-eye
+        - else
+          = text_field_tag field_name, connector.send(field), class: "form-input", placeholder: hint, required: is_required
+        - if hint
+          .form-hint= hint
+- else
+  .text-center.py-8.col-span-full
+    %i.fa-solid.fa-cloud.text-2xl.text-text-muted.mb-2
+    %p.text-sm.text-text-secondary= t("connectors.llm_provider.form.no_provider_selected")

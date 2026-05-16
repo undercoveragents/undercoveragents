@@ -1,0 +1,29 @@
+- content_for(:title, "Test Run ##{@run.id} — #{@test_suite.name} — #{APP_NAME}")
+- content_for(:head) { tag.meta(name: "turbo-cache-control", content: "no-cache") }
+= turbo_stream_from "test_suite_run_#{@run.id}"
+
+%div{ data: { controller: "test-run", test_run_poll_url_value: admin_test_suite_test_suite_run_path(@test_suite, @run, format: :turbo_stream) } }
+  / ── Run Header ──
+  = render "test_suite_runs/run_header", run: @run, test_suite: @test_suite, total_cost: @total_cost
+
+  / ── Status Bar (Progress + Counters) ──
+  = render "test_suite_runs/run_status_bar", run: @run
+
+  / ── Results Table ──
+  .test-results-table.mt-4
+    .test-results-header
+      .test-col-num #
+      .test-col-status
+      - if @test_suite.agent?
+        .test-col-prompt Prompt
+        .test-col-duration Time
+        .test-col-input-tokens In Tok
+        .test-col-output-tokens Out Tok
+        .test-col-cost Cost
+        .test-col-score Score
+      - else
+        .test-col-prompt Name
+        .test-col-duration Time
+        .test-col-score Status
+      .test-col-toggle
+    = render "test_suite_runs/results_body", test_case_results: @test_case_results, test_suite: @test_suite

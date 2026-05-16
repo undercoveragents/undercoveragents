@@ -1,0 +1,25 @@
+- if schema.any?
+  .space-y-2
+    - schema.each_with_index do |field, index|
+      .flex.items-center.gap-2.p-2.rounded-lg.bg-surface-secondary
+        .entity-card__icon
+          %i.fa-solid.fa-sliders
+        .flex-1.min-w-0
+          .flex.flex-wrap.items-center.gap-2
+            .text-sm.font-medium.text-text-primary.leading-snug= field["variable_name"]
+            .badge.badge-secondary= agent_input_parameter_type_label(field["field_type"])
+            - if field["required"]
+              .badge.badge-warning Required
+          .text-xs.text-text-secondary.mt-1= field["label"]
+          - if field["required"]
+            -# handled above
+        - if editable
+          .ml-auto.flex.items-center.gap-2
+            %button.btn.btn-ghost.btn-xs{ type: "button", data: { action: "click->schema-fields#editField", "index" => index }, title: "Edit parameter" }
+              %i.fa-solid.fa-pen-to-square
+            %button.btn.btn-ghost.btn-xs.text-danger-400.hover:text-danger-600{ type: "button", data: { action: "click->schema-fields#removeField", "index" => index }, title: "Remove parameter" }
+              %i.fa-solid.fa-xmark
+- else
+  .text-center.py-6
+    %i.fa-solid.fa-sliders.text-2xl.text-text-muted.mb-2
+    %p.text-sm.text-text-muted No input parameters defined.

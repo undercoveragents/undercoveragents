@@ -1,0 +1,19 @@
+!!!
+%html{ class: initial_theme_root_class, data: initial_theme_root_data }
+  %head
+    = render "layouts/head", title: content_for(:title) || APP_NAME, include_choices: true
+
+  %body{ data: { controller: "theme" } }
+    - wrapper_classes = "flex min-h-screen #{"sidebar-collapsed" if sidebar_collapsed?}"
+    %div{ class: wrapper_classes, data: { controller: "admin-sidebar", "admin-sidebar-collapsed-value": sidebar_collapsed?.to_s } }
+
+      / ── Sidebar ──
+      = render "layouts/sidebar"
+
+      / ── Main content ──
+      .main-content
+        / ── Page content ──
+        %main.page-content.animate-fade-in
+          = yield
+
+    = render "shared/toast"

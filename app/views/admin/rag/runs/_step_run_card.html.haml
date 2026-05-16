@@ -1,0 +1,32 @@
+- stage_key = step_run.step_stage_key
+.rag-step-card{ id: "rag-step-run-#{step_run.id}", class: "rag-step-card--#{stage_key} #{step_run_card_status_class(step_run)}" }
+  %span.rag-step-number= step_run.position
+  %span.rag-step-status-dot{ class: "rag-step-status-dot--#{step_run.status}" }
+  .rag-step-icon{ class: "rag-step-icon--#{stage_key}" }
+    - if step_run.running?
+      %i.fa-solid.fa-spinner.fa-spin
+    - else
+      %i{ class: step_run.step_icon }
+  .rag-step-body
+    %span.rag-step-stage= step_run.step_label
+    %span.rag-step-module= step_run.module_label || stage_key.titleize
+    .rag-step-run-stats
+      - if step_run.running? || step_run.completed?
+        .rag-step-stat-value= step_run.primary_stat_value
+        .rag-step-stat-label= step_run.primary_stat_label
+        - if step_run.step_type == "source" && step_run.skipped_count&.positive?
+          .rag-step-stat-secondary
+            %i.fa-solid.fa-forward.text-xs.mr-1
+            = pluralize(step_run.skipped_count, "skipped")
+      - elsif step_run.failed?
+        .rag-step-stat-error
+          %i.fa-solid.fa-triangle-exclamation.mr-1
+          = step_run.error_message&.truncate(60) || "Failed"
+      - elsif step_run.skipped?
+        .rag-step-stat-label Skipped
+      - else
+        .rag-step-stat-label Waiting…
+    - if step_run.duration
+      .rag-step-duration
+        %i.fa-regular.fa-clock.mr-1
+        = run_duration(step_run)

@@ -1,0 +1,85 @@
+/ ── Recent Activity & System Overview ──
+.grid.grid-cols-1.lg:grid-cols-3.gap-6.mb-8
+
+  / ── Recent Conversations ──
+  .card.lg:col-span-2
+    .card-header
+      .flex.items-center.justify-between
+        .flex.items-center.gap-2
+          %i.fa-solid.fa-clock-rotate-left.text-accent
+          %h3.text-sm.font-semibold.text-text-primary Recent Conversations
+        - if recent_chats.any?
+          %a.text-xs.font-medium.text-accent.hover:text-accent-hover{ href: admin_playground_chats_path }
+            View all
+            %i.fa-solid.fa-arrow-right.ml-1
+    .card-body.p-0
+      - if recent_chats.any?
+        .divide-y.divide-border-default
+          - recent_chats.each do |chat|
+            .dashboard-activity-item
+              .dashboard-activity-icon
+                %i.fa-solid.fa-message
+              .dashboard-activity-content
+                .dashboard-activity-title= chat.display_title
+                .dashboard-activity-meta
+                  - if chat.agent
+                    %span
+                      %i.fa-solid.fa-user-secret.mr-1
+                      = chat.agent.name
+                  %span
+                    %i.fa-regular.fa-clock.mr-1
+                    = time_ago_short(chat.updated_at)
+              .dashboard-activity-badge
+                = content_tag(:span, chat.status.capitalize, class: "badge #{chat_status_badge_class(chat)}")
+      - else
+        .flex.flex-col.items-center.justify-center.py-12.text-center
+          %i.fa-solid.fa-comments.text-3xl.text-text-muted.mb-3
+          %p.text-sm.text-text-secondary No conversations yet.
+          %a.btn.btn-primary.btn-sm.mt-3{ href: admin_playground_chats_path }
+            %i.fa-solid.fa-play.mr-1
+            Start a Chat
+
+  / ── System Overview ──
+  .card
+    .card-header
+      .flex.items-center.gap-2
+        %i.fa-solid.fa-gauge-high.text-accent
+        %h3.text-sm.font-semibold.text-text-primary System Overview
+    .card-body
+      .dashboard-system-list
+        .dashboard-system-item
+          .dashboard-system-icon.bg-green-50.text-green-600{ class: "dark:bg-green-950 dark:text-green-400" }
+            %i.fa-solid.fa-plug
+          .dashboard-system-info
+            %span.dashboard-system-label Connectors
+            %span.dashboard-system-value= connectors_count
+          - if active_connectors.positive?
+            %span.badge.badge-success #{active_connectors} active
+
+        .dashboard-system-item
+          .dashboard-system-icon.bg-purple-50.text-purple-600{ class: "dark:bg-purple-950 dark:text-purple-400" }
+            %i.fa-solid.fa-user-secret
+          .dashboard-system-info
+            %span.dashboard-system-label Agents
+            %span.dashboard-system-value= agents_count
+
+        .dashboard-system-item
+          .dashboard-system-icon.bg-amber-50.text-amber-600{ class: "dark:bg-amber-950 dark:text-amber-400" }
+            %i.fa-solid.fa-wrench
+          .dashboard-system-info
+            %span.dashboard-system-label Tools
+            %span.dashboard-system-value= tools_count
+
+        .dashboard-system-item
+          .dashboard-system-icon.bg-rose-50.text-rose-600{ class: "dark:bg-rose-950 dark:text-rose-400" }
+            %i.fa-solid.fa-coins
+          .dashboard-system-info
+            %span.dashboard-system-label Total Tokens
+            %span.dashboard-system-value= format_token_count(total_tokens)
+
+        .dashboard-system-item
+          .dashboard-system-icon.bg-cyan-50.text-cyan-600{ class: "dark:bg-cyan-950 dark:text-cyan-400" }
+            %i.fa-solid.fa-screwdriver-wrench
+          .dashboard-system-info
+            %span.dashboard-system-label Tool Calls
+            %span.dashboard-system-value= total_tool_calls

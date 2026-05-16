@@ -1,0 +1,35 @@
+- content_for(:title, "Connectors — #{APP_NAME}")
+= render_page_hero(title: "Trusted connections, ready for every workflow", description: "Configure the external services your workspace relies on for models, databases, authentication, and integrations.", variant: :dashboard, eyebrow: { label: "Connectors", icon: "fa-solid fa-plug" }, actions: [{ label: "New Connector", url: new_admin_connector_path, icon: "fa-solid fa-plus", style: :primary }])
+
+- if @connectors.any?
+  .card-grid.card-grid--entities
+    - @connectors.each do |connector|
+      .card.entity-card
+        .card-body.entity-card__body
+          .entity-card__header
+            .entity-card__identity
+              .entity-card__icon
+                %i{ class: connector_type_icon(connector) }
+              .entity-card__identity-copy
+                %h3.entity-card__title
+                  = link_to connector.name, admin_connector_path(connector), class: "text-text-primary no-underline hover:text-accent"
+                %p.entity-card__subtitle= connector_type_label(connector)
+            .entity-card__status
+              = connector_status_badge(connector)
+
+          - if connector.description.present?
+            %p.entity-card__description.line-clamp-2= connector.description
+
+          .entity-card__footer.justify-between
+            %span.entity-card__timestamp
+              %i.fa-solid.fa-clock
+              Updated #{time_ago_in_words(connector.updated_at)} ago
+            .flex.items-center.gap-2
+              = button_to toggle_admin_connector_path(connector), method: :patch, class: "btn btn-ghost btn-xs", title: connector.enabled? ? "Disable" : "Enable" do
+                %i{ class: connector.enabled? ? "fa-solid fa-toggle-on text-green-500" : "fa-solid fa-toggle-off" }
+
+- else
+  = render_page_empty_state(title: "No connectors yet", body: "Create your first connector to start connecting data sources.") do
+    = link_to new_admin_connector_path, class: "btn btn-primary" do
+      %i.fa-solid.fa-plus.mr-1
+      Create Connector

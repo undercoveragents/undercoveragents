@@ -1,0 +1,71 @@
+- content_for(:title, "Skill Catalogs — #{APP_NAME}")
+- actions = []
+- actions << policy_page_hero_action(SkillCatalog, :restore_defaults?, label: "Restore Built-ins", url: restore_defaults_admin_skill_catalogs_path, icon: "fa-solid fa-rotate-left", style: :secondary, method: :post, data: { controller: "confirm", confirm_title_value: "Restore Built-in Skill Catalogs", confirm_message_value: "Restore and recreate all built-in skill catalogs and skills from the current application and plugin definitions?" }) if current_operation.headquarter?
+- actions << policy_page_hero_action(SkillCatalog.new, :import?, label: "Import Collection", url: import_admin_skill_catalogs_path, icon: "fa-solid fa-box-open", style: :secondary)
+- actions << policy_page_hero_action(SkillCatalog, :create?, label: "New Catalog", url: new_admin_skill_catalog_path, icon: "fa-solid fa-plus", style: :primary)
+= render_page_hero(title: "Progressive disclosure, curated for your operation", description: "Keep the base prompt lean while giving agents a structured way to discover, activate, and read deeper procedural knowledge only when it is relevant.", variant: :dashboard, theme: :skills, eyebrow: { label: "Skills", icon: "fa-solid fa-book-open" }, actions:)
+
+- if @skill_catalogs.any?
+  .card-grid.card-grid--entities
+    - @skill_catalogs.each do |skill_catalog|
+      - imported_count = skill_catalog.imported_skills_count
+      - builtin_count = skill_catalog.builtin_skills_count
+      - manual_count = skill_catalog.skill_count - imported_count - builtin_count
+      = link_to admin_skill_catalog_path(skill_catalog), class: "card entity-card entity-card--interactive no-underline" do
+        .card-body.entity-card__body
+          .entity-card__header
+            .entity-card__identity
+              .entity-card__icon
+                %i.fa-solid.fa-book-open
+              .entity-card__identity-copy
+                %h3.entity-card__title= skill_catalog.name
+                %p.entity-card__subtitle= skill_catalog_skill_count_label(skill_catalog)
+            .entity-card__status
+              %span.badge.badge-secondary Catalog
+              - if builtin_count.positive?
+                %span.badge.badge-secondary #{builtin_count} builtin
+              - if imported_count.positive?
+                %span.badge.badge-info #{imported_count} imported
+              - if manual_count.positive?
+                %span.badge.badge-success #{manual_count} manual
+
+          - if skill_catalog.description.present?
+            %p.entity-card__description.line-clamp-2= skill_catalog.description
+          - else
+            %p.entity-card__description No catalog description yet.
+
+          .entity-card__metrics
+            .entity-card__metric
+              %i.fa-solid.fa-robot
+              = skill_catalog_agent_count_label(skill_catalog)
+            .entity-card__metric
+              %i.fa-solid.fa-file-lines
+              = skill_catalog_resource_count_label(skill_catalog)
+
+          .entity-card__footer
+            %span.entity-card__timestamp
+              %i.fa-solid.fa-clock
+              Updated #{time_ago_in_words(skill_catalog.updated_at)} ago
+- else
+  - can_create_catalog = policy_allows?(SkillCatalog, :create?)
+  - create_catalog_title = policy_tooltip(SkillCatalog, :create?)
+  - import_catalog = SkillCatalog.new
+  - can_import_collection = policy_allows?(import_catalog, :import?)
+  - import_collection_title = policy_tooltip(import_catalog, :import?)
+  = render_page_empty_state(title: "No skill catalogs yet", body: "Start with a fresh catalog or import an existing Agent Skills collection.") do
+    - if can_create_catalog
+      = link_to new_admin_skill_catalog_path, class: "btn btn-primary" do
+        %i.fa-solid.fa-plus.mr-1
+        New Catalog
+    - else
+      %button{ type: "button", class: disabled_action_classes("btn btn-primary", disabled: true), disabled: true, title: create_catalog_title }
+        %i.fa-solid.fa-plus.mr-1
+        New Catalog
+    - if can_import_collection
+      = link_to import_admin_skill_catalogs_path, class: "btn btn-secondary" do
+        %i.fa-solid.fa-box-open.mr-1
+        Import Collection
+    - else
+      %button{ type: "button", class: disabled_action_classes("btn btn-secondary", disabled: true), disabled: true, title: import_collection_title }
+        %i.fa-solid.fa-box-open.mr-1
+        Import Collection

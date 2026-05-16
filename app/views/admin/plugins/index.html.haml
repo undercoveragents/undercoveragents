@@ -1,0 +1,40 @@
+- content_for(:title, "Plugins — #{APP_NAME}")
+= render_page_hero(title: "Extensible surfaces, loaded into your platform", description: "Manage installed plugins. Enable or disable functionality.", variant: :dashboard, eyebrow: { label: "Plugins", icon: "fa-solid fa-puzzle-piece" })
+
+- if @plugins.any?
+  .card-grid.card-grid--entities
+    - @plugins.each do |plugin|
+      - enabled = UndercoverAgents::PluginSystem.registry.enabled?(plugin.identifier)
+      .card.entity-card
+        .card-body.entity-card__body
+          .entity-card__header
+            .entity-card__identity
+              .entity-card__icon
+                %i{ class: plugin.icon }
+              .entity-card__identity-copy
+                %h3.entity-card__title= plugin.name
+                %p.entity-card__subtitle= plugin.author
+            .entity-card__status
+              %span.badge{ class: enabled ? "badge-success" : "badge-default" }
+                = enabled ? "Enabled" : "Disabled"
+              - if plugin.author == APP_NAME
+                %span.badge.badge-neutral Verified
+
+          - if plugin.description.present?
+            %p.entity-card__description.line-clamp-2= plugin.description
+
+          - if plugin_category_labels(plugin).any?
+            .entity-card__badges
+              - plugin_category_labels(plugin).each do |category_label|
+                %span.badge.badge-brand= category_label
+
+          .entity-card__footer.justify-between
+            %span.entity-card__metric
+              %i.fa-solid.fa-code-branch
+              = plugin.version
+            .flex.items-center.gap-2
+              = button_to toggle_admin_plugin_path(plugin.identifier), method: :patch, class: "btn btn-ghost btn-xs", title: enabled ? "Disable" : "Enable" do
+                %i{ class: enabled ? "fa-solid fa-toggle-on text-green-500" : "fa-solid fa-toggle-off" }
+
+- else
+  = render_page_empty_state(title: "No plugins installed", body: "Plugins are loaded from the plugins/ directory.")

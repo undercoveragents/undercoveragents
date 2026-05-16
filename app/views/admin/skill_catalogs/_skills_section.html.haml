@@ -1,0 +1,102 @@
+.card
+  - new_skill = skill_catalog.skills.new(source_type: "manual")
+  - can_update_catalog = policy_allows?(skill_catalog, :update?)
+  - update_catalog_title = policy_tooltip(skill_catalog, :update?)
+  - can_create_skill = policy_allows?(new_skill, :create?)
+  - create_skill_title = policy_tooltip(new_skill, :create?)
+  - can_destroy_skill = ->(skill) { policy_allows?(skill, :destroy?) }
+  - destroy_skill_title = ->(skill) { policy_tooltip(skill, :destroy?) }
+  .card-header
+    .flex.items-center.justify-between.gap-3.flex-wrap
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-sparkles.mr-2.text-accent
+        Skills in This Catalog
+      .flex.items-center.gap-2
+        - if can_update_catalog
+          = link_to import_admin_skill_catalog_skills_path(skill_catalog), class: "btn btn-secondary btn-xs" do
+            %i.fa-solid.fa-file-import.mr-1
+            Import
+        - else
+          %button{ type: "button", class: disabled_action_classes("btn btn-secondary btn-xs", disabled: true), disabled: true, title: update_catalog_title }
+            %i.fa-solid.fa-file-import.mr-1
+            Import
+        - if can_create_skill
+          = link_to new_admin_skill_catalog_skill_path(skill_catalog), class: "btn btn-primary btn-xs" do
+            %i.fa-solid.fa-plus.mr-1
+            New Skill
+        - else
+          %button{ type: "button", class: disabled_action_classes("btn btn-primary btn-xs", disabled: true), disabled: true, title: create_skill_title }
+            %i.fa-solid.fa-plus.mr-1
+            New Skill
+  .card-body
+    - if skills.any?
+      .skills-library-grid
+        - skills.each do |skill|
+          .card.skill-library-card
+            .card-body
+              .flex.items-start.justify-between.gap-3.mb-3
+                .flex-1.min-w-0
+                  = link_to skill.name, admin_skill_catalog_skill_path(skill_catalog, skill), class: "text-base font-semibold text-text-primary no-underline block truncate"
+                  %p.text-sm.text-text-secondary.mt-1.line-clamp-3= skill.description
+                .flex.items-center.gap-2.flex-wrap.justify-end
+                  = skill_source_badge(skill)
+                  = skill_warning_badge(skill)
+
+              .flex.items-center.gap-2.flex-wrap.mb-3
+                - if skill.license.present?
+                  .badge.badge-secondary= skill.license
+                - if skill.compatibility.present?
+                  .badge.badge-info= skill.compatibility
+                - if skill.allowed_tools.present?
+                  .badge.badge-warning= skill.allowed_tools
+
+              .skills-catalog-card__footer
+                .skills-catalog-card__metric
+                  %i.fa-solid.fa-file-lines
+                  %span #{skill.skill_resources.size} files
+                .skills-catalog-card__metric
+                  %i.fa-solid.fa-clock
+                  %span Updated #{time_ago_in_words(skill.updated_at)} ago
+
+              .flex.items-center.justify-between.mt-4
+                = link_to admin_skill_catalog_skill_path(skill_catalog, skill), class: "btn btn-secondary btn-xs" do
+                  %i.fa-solid.fa-eye.mr-1
+                  View
+                .flex.items-center.gap-2
+                  - if policy_allows?(skill, :update?)
+                    = link_to edit_admin_skill_catalog_skill_path(skill_catalog, skill), class: "btn btn-secondary btn-xs" do
+                      %i.fa-solid.fa-pen.mr-1
+                      Edit
+                  - else
+                    %button{ type: "button", class: disabled_action_classes("btn btn-secondary btn-xs", disabled: true), disabled: true, title: policy_tooltip(skill, :update?) }
+                      %i.fa-solid.fa-pen.mr-1
+                      Edit
+                  - if can_destroy_skill.call(skill)
+                    = button_to admin_skill_catalog_skill_path(skill_catalog, skill), method: :delete, class: "btn btn-ghost btn-xs text-danger-500", data: { controller: "confirm", confirm_title_value: "Delete Skill", confirm_message_value: "Delete #{skill.name} from #{skill_catalog.name}?" } do
+                      %i.fa-solid.fa-trash
+                  - else
+                    %button{ type: "button", class: disabled_action_classes("btn btn-ghost btn-xs text-danger-500", disabled: true), disabled: true, title: destroy_skill_title.call(skill) }
+                      %i.fa-solid.fa-trash
+    - else
+      .text-center.py-16
+        .connector-empty-icon.mb-4
+          %i.fa-solid.fa-sparkles.text-4xl.text-text-muted
+        %h3.text-lg.font-semibold.mb-2.text-text-primary No skills in this catalog yet
+        %p.text-sm.mb-6.text-text-secondary Add a manual skill or import an existing SKILL.md package.
+        .flex.items-center.justify-center.gap-2.flex-wrap
+          - if can_create_skill
+            = link_to new_admin_skill_catalog_skill_path(skill_catalog), class: "btn btn-primary" do
+              %i.fa-solid.fa-plus.mr-1
+              Create Skill
+          - else
+            %button{ type: "button", class: disabled_action_classes("btn btn-primary", disabled: true), disabled: true, title: create_skill_title }
+              %i.fa-solid.fa-plus.mr-1
+              Create Skill
+          - if can_update_catalog
+            = link_to import_admin_skill_catalog_skills_path(skill_catalog), class: "btn btn-secondary" do
+              %i.fa-solid.fa-file-import.mr-1
+              Import Skill
+          - else
+            %button{ type: "button", class: disabled_action_classes("btn btn-secondary", disabled: true), disabled: true, title: update_catalog_title }
+              %i.fa-solid.fa-file-import.mr-1
+              Import Skill

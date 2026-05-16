@@ -1,0 +1,44 @@
+- available_connectors = current_tenant.connectors.llm_providers.enabled.ordered
+- llm_provider = steppable.llm_connector
+- provider = llm_provider.provider if llm_provider&.connector_type == "llm_provider"
+- available_embedding_models = provider.present? ? Model.where(provider:).where("modalities -> 'output' @> '\"embeddings\"'").order(:name).select(:model_id, :name, :provider) : Model.none
+
+/ ── LLM Provider + Model ──
+%div{ data: { controller: "rag-embedding-config", "rag-embedding-config-model-options-url-value": embedding_model_options_admin_agents_path(frame_id: "llm_embedder_model_select", field_prefix: "llm_embedder"), "rag-embedding-config-frame-id-value": "llm_embedder_model_select" } }
+  .form-group.mb-4
+    = f.label :llm_connector_id, class: "form-label" do
+      LLM Provider
+      %span.text-danger-500.ml-0.5 *
+    - if available_connectors.any?
+      %div{ data: { controller: "choices", choices_search_value: "true", choices_placeholder_value: "Select an LLM provider…" } }
+        = f.select :llm_connector_id, options_for_select(llm_connectors_for_select(available_connectors), steppable.llm_connector_id), { include_blank: "Select an LLM provider…" }, id: "llm_embedder_llm_connector_id", class: "form-input form-select", required: true, data: { choices_target: "select", action: "change->rag-embedding-config#onConnectorChange" }
+      .form-hint The LLM provider to use for generating embeddings.
+    - else
+      .text-center.py-4
+        %i.fa-solid.fa-brain.text-xl.text-text-muted.mb-2
+        %p.text-sm.text-text-secondary.mb-2 No enabled LLM providers available.
+        = link_to new_admin_connector_path(type: "llm_provider"), class: "btn btn-secondary btn-sm" do
+          %i.fa-solid.fa-plus.mr-1
+          Create LLM Provider
+
+  = render "shared/model_select", frame_id: "llm_embedder_model_select", field_prefix: "llm_embedder", available_models: available_embedding_models, selected_model_id: steppable.model_id, required: true
+
+/ ── Batch Size ──
+.form-group.mb-4
+  = f.label :batch_size, class: "form-label" do
+    Batch Size
+  = f.number_field :batch_size, value: steppable.batch_size || 100, class: "form-input", min: 1, max: 10_000
+  .form-hint Number of text chunks to embed per API call.
+
+/ ── Max Tokens Per Batch ──
+.form-group.mb-4
+  = f.label :max_tokens_per_batch, class: "form-label" do
+    Max Tokens Per Batch
+  = f.number_field :max_tokens_per_batch, value: steppable.max_tokens_per_batch || 6000, class: "form-input", min: 100, max: 100_000
+  .form-hint Maximum total tokens per API call. Batches are split if this limit is exceeded.
+
+/ ── Dimensions (optional) ──
+.form-group
+  = f.label :dimensions, "Dimensions", class: "form-label"
+  = f.number_field :dimensions, value: steppable.dimensions, class: "form-input", min: 1, max: 10_000
+  .form-hint Optional. Override the default embedding dimensions. Leave blank for model default.

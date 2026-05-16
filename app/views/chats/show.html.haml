@@ -1,0 +1,10 @@
+- content_for(:title, "#{@chat.display_title} — #{APP_NAME}")
+- content_for(:head) { tag.meta(name: "turbo-cache-control", content: "no-cache") }
+
+= render "shared/chat/shell",
+         chat: @chat,
+         messages: @messages,
+         component: @chat_component,
+         form_url: chat_messages_path(@chat),
+         cancel_url: cancel_chat_path(@chat),
+         poll_url: chat_path(@chat, format: :turbo_stream)

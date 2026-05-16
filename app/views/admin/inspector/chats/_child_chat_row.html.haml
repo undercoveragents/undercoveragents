@@ -1,0 +1,33 @@
+= link_to admin_inspector_chat_path(child), class: "inspector-child-row" do
+  - child_cost = metrics[:cost]
+  - child_tokens = metrics[:tokens]
+  .inspector-child-row-main
+    .inspector-child-row-id
+      %i.fa-solid.fa-hashtag.mr-0.5
+      = child.id
+    .inspector-child-row-title= truncate(child.display_title, length: 60)
+    %span.badge{ class: inspector_status_badge(child.status) }= child.status
+    %span.badge{ class: inspector_execution_context_badge(child.execution_context) }= child.execution_context
+    - if child.agent
+      %span.inspector-child-row-agent
+        %i.fa-solid.fa-user-secret.mr-0.5
+        = truncate(child.agent.name, length: 20)
+  .inspector-child-row-stats
+    %span.inspector-child-stat
+      %i.fa-solid.fa-comments.mr-0.5
+      = child.messages_count
+    - if child_tokens[:input].positive? || child_tokens[:output].positive?
+      %span.inspector-child-stat
+        %i.fa-solid.fa-arrow-down.mr-0.5
+        = number_with_delimiter(child_tokens[:input])
+        %span.mx-0.5 /
+        %i.fa-solid.fa-arrow-up.mr-0.5
+        = number_with_delimiter(child_tokens[:output])
+    - if child_cost.positive?
+      %span.inspector-child-stat.text-accent
+        %i.fa-solid.fa-dollar-sign.mr-0.5
+        = format("%.6f", child_cost)
+    %span.inspector-child-stat
+      %i.fa-solid.fa-clock.mr-0.5
+      = time_ago_in_words(child.updated_at)
+    %i.fa-solid.fa-arrow-right.text-text-muted

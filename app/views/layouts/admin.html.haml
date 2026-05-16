@@ -1,0 +1,25 @@
+!!!
+%html{ class: initial_theme_root_class, data: initial_theme_root_data }
+  %head
+    = render "layouts/head", title: content_for(:title) || "Admin — #{APP_NAME}", include_choices: true, include_lexxy: true
+
+  %body{ data: { controller: "theme" } }
+    - wrapper_classes = "flex min-h-screen #{"sidebar-collapsed" if sidebar_collapsed?}"
+    %div{ class: wrapper_classes, data: { controller: "admin-sidebar", "admin-sidebar-collapsed-value": sidebar_collapsed?.to_s } }
+
+      / ── Sidebar ──
+      = render "layouts/sidebar"
+
+      / ── Main content ──
+      .main-content{ data: @admin_main_content_data || {} }
+        - agent_alpha_context_token = agent_alpha_page_context_token
+        .admin-content-column
+          = turbo_frame_tag "app-content-frame", class: "admin-content-frame", data: { controller: "persistent-lazy-frame admin-frame-state", action: "turbo:frame-load->persistent-lazy-frame#stabilize turbo:frame-load->admin-frame-state#sync", turbo_action: "advance", app_content_frame_location: request.fullpath } do
+            - if agent_alpha_context_token.present?
+              .hidden#admin-agent-alpha-page-context{ data: { page_context_token: agent_alpha_context_token, page_path: request.fullpath } }
+            / ── Page content ──
+            %main.page-content.animate-fade-in
+              = yield
+        = render "layouts/admin_panel_sidebar"
+
+    = render "shared/toast"

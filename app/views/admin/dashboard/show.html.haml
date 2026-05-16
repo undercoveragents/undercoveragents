@@ -1,0 +1,27 @@
+- content_for(:title, "Dashboard — #{APP_NAME}")
+- operation_filter = dashboard_operation_filter(selected_operation: @selected_operation, selected_operation_icon: @selected_operation_icon, operations: @operations)
+
+= render_page_hero(title: "Dashboard", variant: :compact, title_icon: "fa-solid fa-gauge-high", sticky: true, meta: [operation_filter])
+
+/ ── Hero Banner ──
+= render "dashboard/hero_banner"
+
+/ ── Getting Started (conditional) ──
+-# haml-lint workaround
+= render("dashboard/getting_started", steps: @presenter.getting_started_steps) if @show_getting_started
+
+/ ── Hero Metrics ──
+-# haml-lint workaround
+= render "dashboard/hero_metrics", presenter: @presenter
+
+/ ── Platform Inventory ──
+-# haml-lint workaround
+= render "dashboard/platform_inventory", presenter: @presenter
+
+/ ── Charts Section ──
+-# haml-lint workaround
+= render("dashboard/charts", presenter: @presenter) if @presenter.chats_count.positive?
+
+/ ── Activity Feed ──
+-# haml-lint workaround
+= render "dashboard/activity_feed", presenter: @presenter

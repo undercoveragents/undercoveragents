@@ -1,0 +1,36 @@
+/ ── MCP Tool Discovery ──
+/ Locals: tool, toolable
+.card.mb-6
+  .card-header
+    .flex.items-center.justify-between
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-wrench.mr-2.text-accent
+        Discovered Tools
+      .flex.items-center.gap-3
+        - if toolable.tools_discovered?
+          .text-xs.text-text-muted
+            Last discovered #{time_ago_in_words(toolable.tools_discovered_at)} ago
+        - if policy(tool).discover_schema?
+          = button_to discover_schema_admin_tool_path(tool), method: :post, class: "btn btn-secondary btn-xs" do
+            %i.fa-solid.fa-arrows-rotate.mr-1
+            Refresh
+  .card-body
+    - if toolable.tools_discovered?
+      - selected_names = toolable.selected_tool_names
+      - toolable.discovered_tools.each do |mcp_tool|
+        - visible = selected_names.include?(mcp_tool["name"])
+        .flex.items-start.gap-3.p-3.rounded-lg.border.border-border-default.mb-2{ class: ("opacity-40" unless visible) }
+          .flex-shrink-0.mt-0.5
+            %i.fa-solid.fa-wrench.text-sm.text-accent
+          .flex-1.min-w-0
+            .flex.items-center.gap-2
+              %span.text-sm.font-semibold.text-text-primary= mcp_tool["name"]
+              - unless visible
+                %span.badge.bg-surface-secondary.text-text-muted hidden
+            - if mcp_tool["description"].present?
+              %p.text-xs.text-text-secondary.mt-1= mcp_tool["description"]
+    - else
+      .text-center.py-8
+        %i.fa-solid.fa-wrench.text-2xl.text-text-muted.mb-3
+        %p.text-sm.text-text-secondary.mb-2 No tools discovered yet.
+        %p.text-xs.text-text-muted Click "Discover Tools" to fetch available tools from the MCP server.

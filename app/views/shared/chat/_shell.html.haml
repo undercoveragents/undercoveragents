@@ -1,0 +1,50 @@
+- component = local_assigns.fetch(:component)
+- hidden_fields = local_assigns.fetch(:hidden_fields, {})
+- form_scope = local_assigns.fetch(:form_scope, :message)
+- file_accept = local_assigns.fetch(:file_accept, component.attachment_accept)
+- reference_config = component.reference_config if component.references_enabled?
+- content_input_id = "chat_#{chat.id}_message_content"
+- root_data = chat_shell_root_data(chat, cancel_url, poll_url, component)
+%div{ class: component.root_classes, data: root_data }
+  - if component.allow_drag_drop?
+    .shared-chat__drop-overlay
+      %i.fa-solid.fa-cloud-arrow-up
+      %span= component.drop_label
+  = render "shared/chat/messages", messages:, component:, chat:
+  -# Shared status target
+  = render "shared/chat/status", chat:
+  .shared-chat__composer-area
+    - if component.allow_attachments?
+      %input.hidden{ type: "file", multiple: true, accept: file_accept, data: { chat_target: "fileInput", action: "change->chat#filesSelected" } }
+    = form_with url: form_url, scope: form_scope, method: :post, data: { chat_target: "form", action: "submit->chat#submitMessage" } do |f|
+      - hidden_fields.each do |field_name, value|
+        = f.hidden_field field_name, value:
+      = hidden_field_tag reference_config.input_name, "[]", data: { chat_references_target: "payloadInput" } if reference_config
+      .shared-chat__composer
+        - if component.allow_attachments?
+          .shared-chat__attachment-previews.hidden{ data: { chat_target: "attachmentPreview" } }
+        - if reference_config
+          .shared-chat__reference-context.hidden{ data: { chat_references_target: "contextList" } }
+          .shared-chat__reference-menu.hidden{ data: { chat_references_target: "menu" } }
+            .shared-chat__reference-search
+              %i.fa-solid.fa-magnifying-glass
+              %input.shared-chat__reference-search-input{ type: "text", placeholder: "Search references by label", data: { chat_references_target: "searchInput", action: "input->chat-references#searchInput keydown->chat-references#searchKeydown" }, autocomplete: "off", spellcheck: "false", aria: { label: "Search references" } }
+            .shared-chat__reference-results{ data: { chat_references_target: "results" }, role: "listbox", aria: { label: "References" } }
+        = f.text_area :content, id: content_input_id, placeholder: component.placeholder, rows: 1, class: "shared-chat__input", data: chat_input_data(component)
+        .shared-chat__controls
+          .shared-chat__controls-left
+            - if reference_config
+              %button.shared-chat__control-button.shared-chat__control-button--reference{ type: "button", data: { action: "click->chat-references#openPicker", chat_references_target: "addButton" }, title: "Add reference" }
+                %i.fa-solid.fa-plus
+                %span Reference
+            - if component.allow_attachments?
+              %button.shared-chat__control-button.shared-chat__control-button--attach{ type: "button", data: { action: "click->chat#openFilePicker" }, title: component.attach_label }
+                %i.fa-solid.fa-paperclip
+                %span= component.attach_label
+          .shared-chat__controls-right
+            %button.shared-chat__control-button.shared-chat__control-button--send{ type: "submit", data: { chat_target: "submitButton" }, title: component.send_label }
+              %i.fa-solid.fa-arrow-up
+              %span= component.send_label
+            %button.shared-chat__control-button.shared-chat__control-button--stop.hidden{ type: "button", data: { chat_target: "cancelButton", action: "click->chat#cancelStream" }, title: component.stop_label }
+              %i.fa-solid.fa-stop
+              %span= component.stop_label

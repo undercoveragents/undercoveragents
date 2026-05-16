@@ -1,0 +1,73 @@
+%tr.test-case-row{ id: "test-case-#{test_case.id}" }
+  %td{ colspan: policy(test_suite).update? ? 5 : 4 }
+    = form_with url: admin_test_suite_test_case_path(test_suite, test_case), method: :patch, class: "space-y-3 p-3" do
+      - if test_case.errors.any?
+        .flash-alert.text-sm
+          = test_case.errors.full_messages.join(", ")
+
+      .form-group
+        %label.form-label Name
+        %input.form-input{ name: "test_case[name]", type: "text", value: test_case.name }
+
+      .form-group
+        %label.form-label Prompt
+        %textarea.form-input{ name: "test_case[prompt]", rows: 2 }= test_case.prompt
+
+      .form-group
+        %label.form-label Expected Answer
+        %textarea.form-input{ name: "test_case[expected_answer]", rows: 2 }= test_case.expected_answer
+
+      .form-group
+        %label.form-label Match Type
+        %select.form-select{ name: "test_case[match_type]" }
+          %option{ value: "semantic", selected: test_case.semantic? } Semantic (AI comparison)
+          %option{ value: "exact", selected: test_case.exact? } Exact Match
+
+      .grid.grid-cols-1.gap-3{ class: "md:grid-cols-3" }
+        .form-group
+          %label.form-label Scenario Key
+          %input.form-input{ name: "test_case[scenario_key]", type: "text", value: test_case.scenario_key }
+        .form-group
+          %label.form-label Category
+          %input.form-input{ name: "test_case[category]", type: "text", value: test_case.category }
+        .form-group
+          %label.form-label Complexity
+          %select.form-select{ name: "test_case[complexity]" }
+            %option{ value: "", selected: test_case.complexity.blank? } —
+            %option{ value: "low", selected: test_case.complexity == "low" } Low
+            %option{ value: "medium", selected: test_case.complexity == "medium" } Medium
+            %option{ value: "high", selected: test_case.complexity == "high" } High
+
+      .form-group
+        %label.form-label Fixture Key
+        %select.form-select{ name: "test_case[fixture_key]" }
+          %option{ value: "", selected: test_case.fixture_key.blank? } None
+          %option{ value: "agent_alpha_benchmark", selected: test_case.fixture_key == "agent_alpha_benchmark" } Agent Alpha benchmark fixture
+
+      .grid.grid-cols-1.gap-3{ class: "md:grid-cols-2" }
+        .form-group
+          %label.form-label Expected Child Builtin
+          %input.form-input{ name: "test_case[expected_child_builtin_key]", type: "text", value: test_case.expected_child_builtin_key }
+        .form-group
+          %label.form-label Expected Tool Names
+          %input.form-input{ name: "test_case[expected_tool_names]", type: "text", value: test_case.expected_tool_names.join(", ") }
+
+      .form-group
+        %label.inline-flex.items-center.gap-2.text-sm.text-text-secondary
+          %input.form-checkbox{ name: "test_case[disallow_child_chats]", type: "checkbox", value: "1", checked: test_case.disallow_child_chats? }
+          Disallow child chats
+
+      .grid.grid-cols-1.gap-3{ class: "md:grid-cols-2" }
+        .form-group
+          %label.form-label Required Keywords
+          %textarea.form-input{ name: "test_case[required_keywords]", rows: 2 }= test_case_list_value(test_case.required_keywords)
+        .form-group
+          %label.form-label Forbidden Keywords
+          %textarea.form-input{ name: "test_case[forbidden_keywords]", rows: 2 }= test_case_list_value(test_case.forbidden_keywords)
+
+      = hidden_field_tag "test_case[position]", test_case.position
+
+      .flex.justify-end.gap-2
+        %button.btn.btn-primary.btn-sm{ type: "submit" }
+          %i.fa-solid.fa-check.mr-1
+          Save

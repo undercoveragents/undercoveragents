@@ -1,0 +1,99 @@
+- existing_mode = storage_mode == "existing"
+- table_select_disabled = steppable.connector_id.blank? || state.table_options.empty?
+- documents_table_name = steppable.documents_table.presence || "documents"
+- chunks_table_name = steppable.chunks_table.presence || "chunks"
+
+.ui-wizard__panel#sql-storage-step-destination
+  = render "shared/wizard/section_head",
+           step:,
+           copy: "Decide whether this step should write into tables that already exist or bootstrap a fresh storage schema on first run."
+  .ui-wizard__mode-grid
+    %label.ui-wizard__mode-option
+      = f.radio_button :storage_mode,
+                       "existing",
+                       checked: existing_mode,
+                       id: "sql_database_storage_mode_existing",
+                       class: "ui-wizard__mode-input",
+                       data: { action: "change->wizard-preview#preview" }
+      .ui-wizard__mode-card
+        %span.ui-wizard__mode-icon
+          %i.fa-solid.fa-table
+        %strong Use existing tables
+        %p Inspect the connector schema, choose the destination tables, and validate the columns before saving.
+    %label.ui-wizard__mode-option
+      = f.radio_button :storage_mode,
+                       "new",
+                       checked: !existing_mode,
+                       id: "sql_database_storage_mode_new",
+                       class: "ui-wizard__mode-input",
+                       data: { action: "change->wizard-preview#preview" }
+      .ui-wizard__mode-card
+        %span.ui-wizard__mode-icon
+          %i.fa-solid.fa-plus
+        %strong Create new tables
+        %p Name the documents and chunks tables and let the runtime bootstrap that schema on first run.
+
+  - if existing_mode
+    .ui-wizard__source-body
+      .grid.grid-cols-1.md:grid-cols-2.gap-4.mt-4
+        .form-group{ data: { controller: "choices" } }
+          %label.form-label{ for: "sql_database_storage_documents_table" }
+            Documents Table
+            %span.text-danger-500.ml-0.5 *
+          = f.select :documents_table,
+                     options_for_select(state.table_options, steppable.documents_table),
+                     { include_blank: "Select a documents table..." },
+                     class: "form-input form-select",
+                     disabled: table_select_disabled,
+                     required: true,
+                     data: { action: "change->wizard-preview#preview", choices_target: "select" }
+          .form-hint Choose the table that stores one row per source document.
+        .form-group{ data: { controller: "choices" } }
+          %label.form-label{ for: "sql_database_storage_chunks_table" }
+            Chunks Table
+            %span.text-danger-500.ml-0.5 *
+          = f.select :chunks_table,
+                     options_for_select(state.table_options, steppable.chunks_table),
+                     { include_blank: "Select a chunks table..." },
+                     class: "form-input form-select",
+                     disabled: table_select_disabled,
+                     required: true,
+                     data: { action: "change->wizard-preview#preview", choices_target: "select" }
+          .form-hint Pick the table that stores chunk text and vector embeddings.
+      .sql-storage-wizard__note-card.mt-4
+        %p
+          Existing mode keeps your schema untouched. The documents table must already expose
+          %code id
+          and
+          %code content_hash
+          columns.
+  - else
+    .ui-wizard__source-body
+      .grid.grid-cols-1.md:grid-cols-2.gap-4.mt-4
+        .form-group
+          = f.label :documents_table, class: "form-label" do
+            Documents Table
+            %span.text-danger-500.ml-0.5 *
+          = f.text_field :documents_table,
+                         value: steppable.documents_table,
+                         class: "form-input",
+                         placeholder: "documents",
+                         required: true
+          .form-hint The pipeline will create this table if it does not exist yet.
+        .form-group
+          = f.label :chunks_table, class: "form-label" do
+            Chunks Table
+            %span.text-danger-500.ml-0.5 *
+          = f.text_field :chunks_table,
+                         value: steppable.chunks_table,
+                         class: "form-input",
+                         placeholder: "chunks",
+                         required: true
+          .form-hint Keep documents and chunks separate so chunk rows can fan out per document.
+      .sql-storage-wizard__note-card.mt-4
+        %p
+          Use new mode when this step should own the schema. On the first run, it creates
+          %code= documents_table_name
+          and
+          %code= chunks_table_name
+          if they are missing.

@@ -1,0 +1,25 @@
+- content_for(:title, "New Tool — #{APP_NAME}")
+- form_id = "tool-form"
+- back_link = { label: "Back to Tools", url: admin_tools_path }
+- actions = []
+- actions << page_hero_form_action(label: "Create Tool", form_id:) if @tool_type.present?
+= render_page_hero(title: "New Tool", variant: :compact, title_icon: "fa-solid fa-wrench", back_link:, actions:)
+
+- if @tool_type.blank?
+  / ── Step 1: Choose tool type ──
+  .connector-wizard
+    %h2.text-lg.font-semibold.mb-6.text-text-primary Choose Tool Type
+
+    .grid.grid-cols-1.md:grid-cols-2.lg:grid-cols-3.gap-6
+      - @tool_types.each do |tool_type|
+        = link_to new_admin_tool_path(type: tool_type[:key]), class: "connector-type-card" do
+          .connector-type-icon
+            %i{ class: "#{tool_type[:icon]} text-2xl" }
+          %h3.text-lg.font-semibold.mb-1.text-text-primary= tool_type[:label]
+          %p.text-sm.text-text-secondary= tool_type[:description].presence || "Configure this tool type for your agents."
+
+- else
+  - toolable_class = ToolPlugin.resolve(@tool_type)
+  - toolable = @toolable || toolable_class.new
+  - tool = @tool || Tool.new
+  = render toolable.form_partial_path, form_id:, tool:, toolable:

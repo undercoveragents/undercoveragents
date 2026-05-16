@@ -1,0 +1,8 @@
+- content_for(:title, "Edit #{@test_suite.name} — #{APP_NAME}")
+- form_id = "test-suite-form"
+- back_link = { label: "Back to #{@test_suite.name}", url: admin_test_suite_path(@test_suite) }
+= render_page_hero(title: "Edit Test Suite", variant: :compact, title_icon: @test_suite.suite_icon, record_title: @test_suite.name, back_link:, actions: [page_hero_form_action(label: "Update Test Suite", form_id:)])
+
+.card
+  .card-body
+    = render "test_suites/form", test_suite: @test_suite, form_id:, available_agents: @available_agents, available_missions: @available_missions, available_llm_connectors: @available_llm_connectors, evaluation_models: @evaluation_models

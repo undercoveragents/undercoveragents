@@ -1,0 +1,46 @@
+- pre_load_options = RagSteps::SqlDatabaseStorage::PRE_LOAD_ACTION_LABELS.map { |key, label| [label, key] }
+- existing_mode = storage_mode == "existing"
+- documents_table_name = steppable.documents_table.presence || "documents"
+
+.ui-wizard__panel#sql-storage-step-load
+  = render "shared/wizard/section_head",
+           step:,
+           copy: "Set how the pipeline clears existing rows, how it deduplicates documents, and what vector size should be enforced for embeddings."
+  .grid.grid-cols-1.md:grid-cols-2.gap-4.mt-4
+    .form-group
+      = f.label :embedding_dimensions, class: "form-label" do
+        Embedding Dimensions
+        %span.text-danger-500.ml-0.5 *
+      = f.number_field :embedding_dimensions,
+                       value: steppable.embedding_dimensions || 1536,
+                       class: "form-input",
+                       min: 1,
+                       max: 65_535,
+                       required: true
+      .form-hint Match this to the embedding model used earlier in the flow.
+    .form-group
+      = f.label :pre_load_action, "Pre-load Action", class: "form-label"
+      %div{ data: { controller: "choices", choices_search_value: "false" } }
+        = f.select :pre_load_action,
+                   options_for_select(pre_load_options, steppable.pre_load_action || "none"),
+                   {},
+                   class: "form-input form-select",
+                   data: { choices_target: "select" }
+      .form-hint Decide whether each run appends, truncates, or clears the selected tables before writing.
+
+  .grid.grid-cols-1.md:grid-cols-2.gap-4.mt-4
+    .form-group
+      %label.flex.items-center.gap-2.cursor-pointer
+        = f.check_box :upsert_enabled, { class: "form-checkbox", include_hidden: false }, "1", "0"
+        %span.text-sm.text-text-primary Upsert Mode
+      .form-hint Reuse existing document rows by content hash and replace their chunks instead of duplicating them.
+    .sql-storage-wizard__note-card
+      - if existing_mode
+        %p Existing mode validates your schema but never creates or alters tables during save. The runtime writes into the chosen tables exactly as they exist today.
+      - else
+        %p
+          Before inserts start, new mode ensures
+          %code content_hash
+          exists on
+          %code= documents_table_name
+          and adds any configured document metadata columns there when needed.

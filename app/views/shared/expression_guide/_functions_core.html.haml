@@ -1,0 +1,54 @@
+%section
+  %h4 Conditional Functions
+  %dl.ms-expr-guide-fn-list
+    %dt
+      %code IF(condition, then, else)
+    %dd Branch on a boolean expression.
+    %dt
+      %code SWITCH/CASE(value, match1, result1, ..., default)
+    %dd Multi-way match — returns first matching result.
+
+%section
+  %h4 Logic Functions
+  %dl.ms-expr-guide-fn-list
+    %dt
+      %code AND(a, b, ...)
+    %dd True when all arguments are truthy.
+    %dt
+      %code OR(a, b, ...)
+    %dd True when at least one argument is truthy.
+    %dt
+      %code NOT(a)
+    %dd Negates a boolean.
+    %dt
+      %code XOR(a, b)
+    %dd Exclusive OR.
+
+%section
+  %h4 Numeric &amp; Aggregation
+  %dl.ms-expr-guide-fn-list
+    %dt
+      %code MIN(a, b, ...) &ensp; MAX(a, b, ...)
+    %dd Minimum / maximum value.
+    %dt
+      %code SUM(a, b, ...) &ensp; AVG(a, b, ...)
+    %dd Sum / average.
+    %dt
+      %code COUNT(a, b, ...)
+    %dd Count of non-nil values.
+    %dt
+      %code ABS(n)
+    %dd Absolute value.
+    %dt
+      %code INTERCEPT(ys, xs) &ensp; SLOPE(ys, xs)
+    %dd Linear regression helpers.
+
+%section
+  %h4 Rounding
+  %dl.ms-expr-guide-fn-list
+    %dt
+      %code ROUND(n, precision)
+    %dd Round to given decimal places.
+    %dt
+      %code ROUNDUP(n, precision) &ensp; ROUNDDOWN(n, precision)
+    %dd Always round up / down.

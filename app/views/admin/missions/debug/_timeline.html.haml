@@ -1,0 +1,11 @@
+-# Timeline tab — list of executed nodes
+- entries = local_assigns.fetch(:entries, [])
+
+- if entries.empty?
+  .ms-debug-empty
+    %i.fa-solid.fa-play-circle
+    %span Run the mission to see execution timeline
+- else
+  .ms-debug-timeline#mission-timeline-entries
+    - entries.each do |entry|
+      = render "admin/missions/debug/timeline_entry", entry:

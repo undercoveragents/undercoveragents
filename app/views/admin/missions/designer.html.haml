@@ -1,0 +1,40 @@
+- content_for(:title, "#{@mission.name} — #{APP_NAME}")
+- content_for(:head) do
+  %link{ rel: "stylesheet", href: asset_path("mission_designer.css") }/
+  %meta{ name: "turbo-cache-control", content: "no-cache" }/
+
+= turbo_stream_from "mission_flow_#{@mission.id}"
+
+- flow_data = (@mission.flow_data || {}).deep_dup
+- flow_data["nodes"] ||= []
+- flow_data["edges"] = Missions::FlowEdgeNormalizer.normalize_all(flow_data["edges"])
+- flow_data["global_variables"] ||= []
+- debug_state = @debug_state
+- @admin_main_content_data = { controller: "mission" }
+- mission_sidebar_locals = { mission: @mission, llm_connectors: @llm_connectors, latest_run: @latest_run, recent_runs: @recent_runs, debug_state: }
+
+= render "admin/missions/sidebar", **mission_sidebar_locals
+-# Keep a separator comment between consecutive render calls for haml-lint.
+= render "layouts/admin_frame_state", main_content_data: @admin_main_content_data
+-# Keep a separator comment between consecutive render calls for haml-lint.
+= render_page_hero(title: "Mission", variant: :compact, title_icon: "fa-solid fa-diagram-project", record_title: @mission.name)
+
+= form_with url: save_flow_admin_mission_path(@mission), method: :patch, local: true do |_f|
+  %input#mission-flow-data{ type: "hidden", name: "mission[flow_data]", value: flow_data.to_json }
+  %input#mission-global-variables{ type: "hidden", value: flow_data["global_variables"].to_json }
+
+  .ms-designer{ data: { controller: "expression-guide" } }
+    .hidden#mission-flow-updates{ data: { "mission-target": "flowUpdates" } }
+    %input.hidden{ type: "file", accept: ".json", data: { action: "change->mission#importWorkflow", "mission-target": "importFile" } }
+    = render "shared/expression_guide_dialog"
+
+    .ms-canvas-area
+      / ── ReactFlow Canvas ──
+      - canvas_data = { "mission-target": "canvas", "initial-nodes": flow_data["nodes"].to_json, "initial-edges": flow_data["edges"].to_json, "flow-data-input-id": "mission-flow-data", "mission-id": @mission.id, "save-url": save_flow_admin_mission_path(@mission), "flow-data-url": flow_data_json_admin_mission_path(@mission), "delete-node-url": delete_node_admin_mission_path(@mission), "duplicate-node-url": duplicate_node_admin_mission_path(@mission), "undo-flow-url": undo_flow_admin_mission_path(@mission), "redo-flow-url": redo_flow_admin_mission_path(@mission), "can-undo": @mission.can_undo?.to_s, "can-redo": @mission.can_redo?.to_s, "node-errors": @node_errors.to_json, "singleton-types": MissionNodePlugin.all_types.select { |t| t[:singleton] }.pluck(:key).to_json, "node-type-metadata": MissionNodePlugin.all_types.index_by { |t| t[:key] }.to_json }
+      - if debug_state&.active? && (debug_state.canvas_node_states.present? || debug_state.canvas_edge_states.present?)
+        - canvas_data["initial-mode"] = "run"
+        - canvas_data["initial-node-states"] = debug_state.canvas_node_states.to_json
+        - canvas_data["initial-edge-states"] = debug_state.canvas_edge_states.to_json
+      .ms-canvas#mission-designer-root{ data: canvas_data }
+
+%script{ src: asset_path("mission_designer.js") }

@@ -1,0 +1,21 @@
+- can_update_record = policy_allows?(record, :update?)
+- disabled_title = can_update_record ? empty_message : policy_tooltip(record, :update?)
+
+- if can_update_record && options.any?
+  .relative{ data: { controller: "add-select-dropdown" } }
+    = form_with url:, method:, data: { add_select_dropdown_target: "form" } do
+      = hidden_field_tag field_name, "", data: { add_select_dropdown_target: "valueField" }
+      %button.btn.btn-secondary.btn-xs{ type: "button", data: { action: "click->add-select-dropdown#toggle" } }
+        %i.fa-solid.fa-plus.mr-1
+        Add
+    .inline-dropdown{ data: { add_select_dropdown_target: "dropdown" } }
+      .inline-dropdown-search
+        %input.inline-dropdown-search-input{ type: "text", placeholder: "Search…", autocomplete: "off", data: { add_select_dropdown_target: "search", action: "input->add-select-dropdown#filter" } }
+      .inline-dropdown-list
+        - options.each do |label, value|
+          %button.inline-dropdown-item{ type: "button", data: { action: "click->add-select-dropdown#select", add_select_dropdown_target: "item", add_select_dropdown_label: label, add_select_dropdown_value_param: value } }
+            = label
+- else
+  %button{ type: "button", class: disabled_action_classes("btn btn-secondary btn-xs", disabled: true), disabled: true, title: disabled_title }
+    %i.fa-solid.fa-plus.mr-1
+    Add

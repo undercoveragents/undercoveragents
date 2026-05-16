@@ -1,0 +1,45 @@
+- latest_run = test_suite.latest_run
+= link_to admin_test_suite_path(test_suite), class: "card entity-card entity-card--interactive no-underline" do
+  .card-body.entity-card__body
+    .entity-card__header
+      .entity-card__identity
+        .entity-card__icon
+          %i{ class: test_suite.suite_icon }
+        .entity-card__identity-copy
+          %h3.entity-card__title= test_suite.name
+          %p.entity-card__subtitle
+            %i{ class: "#{test_suite.target_icon} mr-1" }
+            = test_suite.target_name
+      .entity-card__status
+        = test_suite_type_badge(test_suite)
+        -# haml-lint:disable RuboCop
+        = test_suite_status_badge(test_suite)
+
+    - if test_suite.description.present?
+      %p.entity-card__description.line-clamp-2= test_suite.description
+
+    .entity-card__metrics
+      .entity-card__metric
+        %i.fa-solid.fa-list-check
+        #{test_suite.test_case_count} #{"case".pluralize(test_suite.test_case_count)}
+      .entity-card__metric
+        %i.fa-solid.fa-play
+        #{test_suite.test_suite_runs.size} #{"run".pluralize(test_suite.test_suite_runs.size)}
+
+    - if latest_run
+      .test-suite-latest-run
+        .flex.items-center.justify-between.mb-1
+          .text-xs.font-medium.text-text-secondary Latest Run
+          = test_run_status_badge(latest_run)
+        - if latest_run.completed?
+          .flex.items-center.gap-3
+            .test-mini-progress-bar
+              -# haml-lint:disable InlineStyles
+              .test-mini-progress-fill{ style: "width: #{latest_run.pass_rate}%", class: test_run_progress_color(latest_run) }
+            .text-xs.font-semibold
+              = test_run_pass_rate_display(latest_run)
+
+    .entity-card__footer
+      %span.entity-card__timestamp
+        %i.fa-solid.fa-clock
+        Updated #{time_ago_in_words(test_suite.updated_at)} ago

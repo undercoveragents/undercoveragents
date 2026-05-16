@@ -1,0 +1,41 @@
+- content_for(:title, "New Memory Block — Admin — Undercover Agents")
+- form_id = "memory-block-form"
+- back_link = { label: "Back to Memory Blocks", url: admin_memory_blocks_path }
+= render_page_hero(title: "New Memory Block", variant: :compact, title_icon: "fa-solid fa-brain", back_link:, actions: [page_hero_form_action(label: "Create Block", form_id:)])
+
+.card
+  .card-body
+    = form_with model: @memory_block, url: admin_memory_blocks_path, method: :post, local: true, id: form_id do |f|
+      - if @memory_block.errors.any?
+        .mb-4.p-3.rounded-lg.border.border-danger-500{ class: "bg-danger-500/10" }
+          %ul.list-disc.list-inside.text-sm.text-danger-500
+            - @memory_block.errors.full_messages.each do |msg|
+              %li= msg
+      .form-grid
+        .form-group
+          = f.label :label, class: "form-label" do
+            Label
+            %span.text-danger-500.ml-0.5 *
+          = f.text_field :label, class: "form-input", placeholder: "e.g. persona, human, policies"
+          .form-hint Lowercase letters and underscores only. Used as the XML tag name in the system prompt.
+        .form-group
+          = f.label :description, class: "form-label" do
+            Description
+          = f.text_area :description, class: "form-input", rows: 2, placeholder: "Describe what this block stores..."
+          .form-hint Helps the agent understand the purpose of this memory block.
+      .form-grid
+        .form-group
+          = f.label :char_limit, class: "form-label" do
+            Character Limit
+          = f.number_field :char_limit, class: "form-input", min: 1, max: 50_000, step: 1
+          .form-hint Maximum number of characters this block can hold.
+        .form-group
+          = f.label :read_only, class: "form-label" do
+            Access
+          .form-check
+            = f.check_box :read_only, class: "form-check-input"
+            = f.label :read_only, "Read-only (agent cannot modify via tools)", class: "form-check-label"
+      .form-group
+        = f.label :default_value, class: "form-label" do
+          Default Value
+        = f.text_area :default_value, class: "form-input", rows: 6, placeholder: "Optional initial content..."

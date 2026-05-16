@@ -1,0 +1,38 @@
+- content_for(:title, "Runs — #{@rag_flow.name}")
+- actions = []
+- actions << { label: "Run Now", url: execute_admin_rag_flow_path(@rag_flow), icon: "fa-solid fa-play", style: :primary, method: :post } if policy(@rag_flow).execute? && @rag_flow.runnable?
+= render_page_hero(title: "Run History", variant: :compact, title_icon: "fa-solid fa-play", record_title: @rag_flow.name, back_link: { label: "Back to #{@rag_flow.name}", url: admin_rag_flow_path(@rag_flow) }, actions:)
+
+- if @runs.any?
+  .card
+    .card-body.p-0
+      %table.table.w-full
+        %thead
+          %tr
+            %th.text-left.px-4.py-3.text-xs.font-semibold.text-text-muted Run
+            %th.text-left.px-4.py-3.text-xs.font-semibold.text-text-muted Status
+            %th.text-left.px-4.py-3.text-xs.font-semibold.text-text-muted Triggered By
+            %th.text-left.px-4.py-3.text-xs.font-semibold.text-text-muted Started
+            %th.text-left.px-4.py-3.text-xs.font-semibold.text-text-muted Duration
+            %th.text-left.px-4.py-3.text-xs.font-semibold.text-text-muted Stats
+            %th.px-4.py-3
+        %tbody
+          - @runs.each do |run|
+            %tr.hover:bg-surface-hover.transition-colors
+              %td.px-4.py-3.text-sm.text-text-primary
+                = link_to "##{run.id}", admin_rag_flow_run_path(@rag_flow, run), class: "text-accent no-underline font-medium"
+              %td.px-4.py-3= run_status_badge(run)
+              %td.px-4.py-3.text-sm.text-text-secondary= run.triggered_by&.titleize || "—"
+              %td.px-4.py-3.text-sm.text-text-secondary
+                - if run.started_at
+                  = l(run.started_at, format: :short)
+                - else
+                  Pending
+              %td.px-4.py-3.text-sm.text-text-secondary= run_duration(run)
+              %td.px-4.py-3.text-sm.text-text-secondary= run_stats_summary(run)
+              %td.px-4.py-3.text-right
+                = link_to admin_rag_flow_run_path(@rag_flow, run), class: "btn btn-ghost btn-xs" do
+                  %i.fa-solid.fa-arrow-right
+
+- else
+  = render_page_empty_state(title: "No runs yet", body: "This pipeline has not been run yet.")

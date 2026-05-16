@@ -1,0 +1,7 @@
+.ui-wizard__section-head
+  .ui-wizard__section-copy-block
+    .ui-wizard__section-marker
+      %span.ui-wizard__progress-number= step.number
+      %span.ui-wizard__section-marker-label= step.label
+    - if copy.present?
+      %p.ui-wizard__section-copy= copy

@@ -1,0 +1,40 @@
+/* ==========================================================================
+   Version Tree
+   ========================================================================== */
+
+.version-tree-link {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: var(--radius-lg);
+  background-color: var(--surface-secondary);
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+  margin-bottom: 0.5rem;
+
+  &:hover {
+    background-color: var(--surface-hover);
+  }
+}
+
+.version-tree-children {
+  position: relative;
+  margin-left: 1.25rem;
+  padding-left: 1.5rem;
+  border-left: 2px solid var(--border-default);
+}
+
+.version-tree-child {
+  position: relative;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 1.25rem;
+    left: -1.5rem;
+    width: 1.5rem;
+    height: 0;
+    border-top: 2px solid var(--border-default);
+  }
+}

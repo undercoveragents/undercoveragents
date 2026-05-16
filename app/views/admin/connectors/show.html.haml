@@ -1,0 +1,17 @@
+- content_for(:title, "#{@connector.name} — #{APP_NAME}")
+- actions = []
+- actions << { label: "Delete", url: admin_connector_path(@connector), icon: "fa-solid fa-trash", style: :danger_outline, method: :delete, data: { controller: "confirm", confirm_title_value: "Delete Connector", confirm_message_value: "Are you sure you want to delete this connector? This action cannot be undone.", confirm_confirm_text_value: "Delete" } } if policy(@connector).destroy?
+- actions << { label: "Edit", url: edit_admin_connector_path(@connector), icon: "fa-solid fa-pen", style: :secondary } if policy(@connector).update?
+= render_page_hero(title: "Connector", variant: :compact, title_icon: connector_type_icon(@connector), record_title: @connector.name, back_link: { label: "Back to Connectors", url: admin_connectors_path }, meta: [connector_status_badge(@connector), tag.span(connector_type_label(@connector), class: "badge badge-neutral")], actions:)
+
+- if @connector.description.present?
+  .card.mb-6
+    .card-body
+      %p.text-sm.text-text-secondary= @connector.description
+
+/ ── Connector details ──
+.grid.grid-cols-1.lg:grid-cols-2.gap-6.mb-6
+  = render "connectors/connection_info_card", connector: @connector
+
+- if (extra = @connector.configurator&.show_extra_partial_name)
+  = render_connector_partial(@connector, extra)

@@ -1,0 +1,137 @@
+.test-result-row{ id: "test-result-#{result.id}", class: "test-result-row-#{result.status}" }
+  .test-result-summary{ data: { action: "click->test-run#toggleDetail" } }
+    .test-col-num.text-xs.text-text-muted.font-semibold
+      = test_case.position
+    .test-col-status
+      - case result.status
+      - when "pending"
+        %i.fa-solid.fa-clock.text-text-muted
+      - when "running"
+        %i.fa-solid.fa-spinner.fa-spin.text-brand-500
+      - when "evaluating"
+        %i.fa-solid.fa-brain.fa-beat-fade.text-amber-500
+      - when "passed"
+        %i.fa-solid.fa-circle-check.text-green-500
+      - when "failed"
+        %i.fa-solid.fa-circle-xmark.text-red-500
+      - when "error"
+        %i.fa-solid.fa-triangle-exclamation.text-orange-500
+    .test-col-prompt.truncate.text-sm.text-text-primary
+      = test_case.display_label
+    .test-col-duration.text-xs.text-text-muted
+      - if result.duration_ms
+        = test_result_duration_display(result)
+      - else
+        &mdash;
+    - if test_suite.agent?
+      .test-col-input-tokens.text-xs.text-text-muted
+        = test_result_input_tokens_display(result)
+      .test-col-output-tokens.text-xs.text-text-muted
+        = test_result_output_tokens_display(result)
+      .test-col-cost.text-xs.text-text-muted
+        = test_result_cost_display(result)
+      .test-col-score.text-xs
+        - if result.score
+          = test_result_score_display(result)
+        - else
+          &mdash;
+    - else
+      .test-col-score.text-xs
+        - if result.actual_status.present?
+          = test_case_expected_status_badge_for(result.actual_status)
+        - else
+          &mdash;
+    .test-col-toggle
+      - if result.completed? || result.error?
+        %i.fa-solid.fa-chevron-right.test-expand-icon.text-xs.text-text-muted
+
+  - if result.completed? || result.error?
+    .test-result-detail.hidden
+      .p-4.border-t.border-border-default
+        - if test_suite.agent?
+          .grid.grid-cols-1.gap-3{ class: "md:grid-cols-2" }
+            .test-result-section
+              .test-result-section-label
+                %i.fa-solid.fa-bullseye.mr-1
+                Expected
+              .test-result-section-content= test_case.expected_answer.truncate(500)
+            .test-result-section
+              .test-result-section-label
+                %i.fa-solid.fa-reply.mr-1
+                Actual
+              .test-result-section-content
+                - if result.actual_answer.present?
+                  = result.actual_answer.truncate(500)
+                - else
+                  %span.text-text-muted No response
+          = render "admin/test_suite_runs/agent_result_behavior", result:
+        - else
+          .grid.grid-cols-1.gap-3{ class: "md:grid-cols-2" }
+            .test-result-section
+              .test-result-section-label
+                %i.fa-solid.fa-arrow-right-to-bracket.mr-1
+                Input Variables
+              .test-result-section-content
+                %pre.text-xs.whitespace-pre-wrap= JSON.pretty_generate(test_case.input_variables)
+            .test-result-section
+              .test-result-section-label
+                %i.fa-solid.fa-bullseye.mr-1
+                Expected Variables
+              .test-result-section-content
+                - if test_case.expected_variables.present?
+                  %pre.text-xs.whitespace-pre-wrap= JSON.pretty_generate(test_case.expected_variables)
+                - else
+                  %span.text-text-muted No expected variables
+
+          .grid.grid-cols-1.gap-3.mt-3{ class: "md:grid-cols-2" }
+            .test-result-section
+              .test-result-section-label
+                %i.fa-solid.fa-arrow-right-from-bracket.mr-1
+                Actual Variables
+              .test-result-section-content
+                - if result.actual_variables.present?
+                  %pre.text-xs.whitespace-pre-wrap= JSON.pretty_generate(result.actual_variables)
+                - else
+                  %span.text-text-muted No output variables
+            .test-result-section
+              .test-result-section-label
+                %i.fa-solid.fa-diagram-project.mr-1
+                Execution Info
+              .test-result-section-content
+                .text-xs
+                  %span.font-semibold Status:
+                  = result.actual_status || "—"
+                .text-xs.mt-1
+                  %span.font-semibold Nodes executed:
+                  = result.execution_node_count
+
+        - if result.analysis.present?
+          .mt-3
+            .test-result-section
+              .test-result-section-label
+                %i.fa-solid.fa-magnifying-glass-chart.mr-1
+                Analysis
+              .test-result-section-content= result.analysis
+
+        - if test_suite.agent?
+          .mt-3
+            .grid.grid-cols-1.gap-3{ class: "md:grid-cols-2" }
+              .test-result-section
+                .test-result-section-label
+                  %i.fa-solid.fa-user-secret.mr-1
+                  Agent Usage
+                .test-result-section-content= test_result_agent_breakdown_display(result)
+              .test-result-section
+                .test-result-section-label
+                  %i.fa-solid.fa-scale-balanced.mr-1
+                  Evaluator Usage
+                .test-result-section-content= test_result_evaluator_breakdown_display(result)
+
+          - if result.score
+            .mt-3.flex.items-center.gap-3
+              .text-xs.font-semibold.text-text-muted Score:
+              = test_result_score_display(result)
+              .flex-1
+                .test-score-track
+                  -# haml-lint:disable InlineStyles
+                  .test-score-fill{ style: "width: #{(result.score * 100).round}%", class: result.passed? ? "test-score-pass" : "test-score-fail" }

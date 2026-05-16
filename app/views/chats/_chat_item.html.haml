@@ -1,0 +1,6 @@
+- active = defined?(current_chat) && current_chat&.id == chat.id
+.chat-sidebar-item{ class: (active ? "active" : ""), data: { chat_id: chat.id } }
+  = link_to client_chat_sidebar_link_path(chat), class: "chat-item-title", data: client_chat_sidebar_link_data do
+    %span{ id: "chat-#{chat.id}-title" }= chat.display_title
+  = button_to client_chat_delete_path(chat), method: :delete, class: "chat-item-delete", title: current_client_label(:delete_chat_title), data: client_chat_delete_button_data do
+    %i.fa-solid.fa-trash

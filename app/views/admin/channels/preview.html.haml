@@ -1,0 +1,30 @@
+- content_for(:title, "#{@channel.name} Preview — #{APP_NAME}")
+- content_for(:head) { tag.meta(name: "turbo-cache-control", content: "no-cache") }
+- client_name = current_client&.dig(:name) || @channel.name
+- actions = [{ label: current_client_label(:new_chat_label), url: client_chat_new_path(client: @channel), icon: "fa-solid fa-plus", style: :primary, method: :post }]
+- meta = [tag.span(@channel.client_agent&.name || "No agent assigned", class: "badge badge-neutral")]
+- meta.unshift(tag.span("Default", class: "badge badge-accent")) if @channel.default?
+- sidebar_list = capture do
+  - @chats.each do |chat|
+    = render "chats/chat_item", chat:, current_chat: @chat
+  = render "chats/load_more", pagy: @pagy_chats if @pagy_chats.next
+- sidebar_footer = capture do
+  %button.sidebar-user-btn{ type: "button", disabled: true, title: "Preview mode" }
+    .sidebar-user-avatar= current_user&.initials || "?"
+    .sidebar-user-info
+      .sidebar-user-name= current_user&.display_name || "Preview"
+      .sidebar-user-email Preview mode
+    %i.fa-solid.fa-eye.sidebar-user-chevron
+- main_content = capture do
+  - if @chat
+    = render "shared/chat/shell", chat: @chat, messages: @messages, component: @chat_component, form_url: client_chat_message_path(@chat, client: @channel), cancel_url: client_chat_cancel_path(@chat, client: @channel), poll_url: client_chat_poll_path(@chat, client: @channel)
+  - else
+    = render "chats/index"
+- footer_content = capture do
+  - if current_client&.dig(:footer).present?
+    .chat-footer.text-center.text-xs.text-text-muted.py-2.lexxy-content
+      = sanitize current_client[:footer]
+= render_page_hero(title: "Channel Preview", variant: :compact, title_icon: "fa-solid fa-eye", record_title: @channel.name, back_link: { label: "Back to Channel", url: admin_channel_path(@channel) }, meta:, actions:)
+
+.client-preview-page
+  = render "shared/chat/client_frame", { client_name:, brand_url: admin_client_preview_page_path(client: @channel), brand_link_options: { data: { turbo_frame: "app-content-frame" } }, new_chat_url: client_chat_new_path(client: @channel), sidebar_list:, sidebar_footer:, main_content:, footer_content: }

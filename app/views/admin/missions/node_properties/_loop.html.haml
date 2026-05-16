@@ -1,0 +1,15 @@
+/ ── Loop Node Configuration ──
+.ms-prop-field
+  %label.ms-prop-label While Condition
+  = render "shared/expression_editor", value: presenter.data("condition"), variables: presenter.selectable_upstream_variables, prop_key: "condition", placeholder: "e.g. attempts < 3, retry == true", rows: 2
+  .ms-prop-hint.ms-prop-hint-vars
+    %i.fa-solid.fa-circle-info
+    Expression re-evaluated each iteration. Loop continues while this is true. Leave empty to loop until max iterations. Type
+    %code @
+    to insert a variable.
+  -# expression guide trigger
+  = render "shared/expression_guide_link"
+/ Max Iterations
+.ms-prop-field
+  %label.ms-prop-label Max Iterations
+  %input.ms-prop-input{ type: "number", min: "1", max: "1000", placeholder: "1000", value: presenter.data("max_iterations"), data: { action: "blur->mission#updateNodeProp", "prop-key": "max_iterations" } }

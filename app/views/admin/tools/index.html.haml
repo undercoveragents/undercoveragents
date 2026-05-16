@@ -1,0 +1,60 @@
+- content_for(:title, "Tools — #{APP_NAME}")
+= render_page_hero(title: "Connected capabilities, ready for agents to call", description: "Manage tools that agents can use to interact with data sources.", variant: :dashboard, eyebrow: { label: "Tools", icon: "fa-solid fa-wrench" }, actions: [policy_page_hero_action(Tool, :create?, label: "New Tool", url: new_admin_tool_path, icon: "fa-solid fa-plus", style: :primary)])
+
+- can_create_tool = policy_allows?(Tool, :create?)
+- create_tool_title = policy_tooltip(Tool, :create?)
+
+- if @tools.any?
+  .card-grid.card-grid--entities
+    - @tools.each do |tool|
+      = link_to admin_tool_path(tool), class: "card entity-card entity-card--interactive no-underline" do
+        .card-body.entity-card__body
+          .entity-card__header
+            .entity-card__identity
+              .entity-card__icon
+                %i{ class: tool_type_icon(tool) }
+              .entity-card__identity-copy
+                %h3.entity-card__title= tool.name
+                %p.entity-card__subtitle= tool_type_label(tool)
+            .entity-card__status
+              = tool_status_badge(tool)
+
+          - if tool.description.present?
+            %p.entity-card__description.line-clamp-2= tool.description
+
+          .entity-card__footer
+            %span.entity-card__timestamp
+              %i.fa-solid.fa-clock
+              Updated #{time_ago_in_words(tool.updated_at)} ago
+
+- if @builtin_tools.present?
+  .mt-8
+    .mb-4
+      %h2.text-lg.font-semibold.text-text-primary Built-in Tools
+      %p.text-sm.text-text-secondary Read-only tools provided by the application. They can be used by builtin agents and are surfaced separately from normal tool records.
+    .card-grid.card-grid--entities
+      - @builtin_tools.each do |tool|
+        .card.entity-card
+          .card-body.entity-card__body
+            .entity-card__header
+              .entity-card__identity
+                .entity-card__icon
+                  %i.fa-solid.fa-wrench
+                .entity-card__identity-copy
+                  %h3.entity-card__title= tool.name
+                  %p.entity-card__subtitle Runtime Tool
+              .entity-card__status
+                .badge.badge-info Built-in
+            - if tool.description.present?
+              %p.entity-card__description.line-clamp-2= tool.description
+
+- if @tools.empty? && @builtin_tools.blank?
+  = render_page_empty_state(title: "No tools yet", body: "Create your first tool to start connecting agents to data sources.") do
+    - if can_create_tool
+      = link_to new_admin_tool_path, class: "btn btn-primary" do
+        %i.fa-solid.fa-plus.mr-1
+        Create Tool
+    - else
+      %button{ type: "button", class: disabled_action_classes("btn btn-primary", disabled: true), disabled: true, title: create_tool_title }
+        %i.fa-solid.fa-plus.mr-1
+        Create Tool

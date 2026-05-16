@@ -1,0 +1,23 @@
+!!!
+%html{ class: initial_theme_root_class, data: initial_theme_root_data }
+  %head
+    = render "layouts/head",
+             title: content_for(:title) || "Sign In — #{APP_NAME}",
+             font_stylesheet: "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap"
+
+  %body{ data: { controller: "theme" } }
+    .auth-container
+      .auth-card
+        .auth-brand
+          = image_tag "logo.png", alt: "#{APP_NAME} logo", class: "auth-brand-logo"
+          %h1.auth-brand-title= APP_NAME
+          %p.text-sm.text-text-secondary Open source AI platform for agents and workflows.
+
+        = yield
+
+      .auth-footer
+        %button.theme-toggle{ data: { action: "click->theme#toggle" }, type: "button", title: "Toggle theme" }
+          %i.fa-solid.fa-sun.hidden{ data: { theme_target: "sunIcon" } }
+          %i.fa-solid.fa-moon.hidden{ data: { theme_target: "moonIcon" } }
+
+    = render "shared/toast"

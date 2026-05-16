@@ -1,0 +1,14 @@
+.mc-panel{ data: { controller: "inspector-collapse", inspector_collapse_expanded_value: "false" } }
+  .mc-section-header{ data: { action: "click->inspector-collapse#toggle" } }
+    .mc-section-title
+      %i.fa-solid.fa-arrows-left-right.mr-2
+      Edge States (#{edge_states.size})
+    %i.fa-solid.fa-chevron-down.mc-collapse-icon{ data: { inspector_collapse_target: "icon" } }
+
+  .mc-section-body{ data: { inspector_collapse_target: "body" } }
+    .mc-edge-states-grid
+      - edge_states.each do |edge_id, state|
+        .mc-edge-state-item
+          .mc-edge-state-id.font-mono= edge_id
+          .mc-edge-state-value
+            %span.badge{ class: state == "completed" ? "badge-success" : "badge-brand" }= state

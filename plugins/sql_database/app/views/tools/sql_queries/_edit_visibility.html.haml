@@ -1,0 +1,47 @@
+/ ── SQL Table Visibility ──
+/ Locals: tool, toolable
+- form_id = "sql-query-visibility-form"
+- back_link = { label: "Back to #{tool.name}", url: admin_tool_path(tool) }
+= render_page_hero(title: "Table Visibility", variant: :compact, title_icon: "fa-solid fa-table", record_title: tool.name, back_link:, actions: [page_hero_form_action(label: "Save Visibility", form_id:)])
+
+= form_with url: update_visibility_admin_tool_path(tool), method: :patch, local: true, html: { class: "connector-form", id: form_id } do
+  .card.mb-6{ data: { controller: "table-visibility" } }
+    .card-header
+      .flex.items-center.justify-between
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-filter.mr-2.text-accent
+          Table Visibility
+        %span.text-sm.font-medium.text-text-secondary{ data: { table_visibility_target: "counter" } }
+          - selected_names = toolable.selected_object_names
+          - total = toolable.all_discovered_object_names.size
+          #{selected_names.size} of #{total} selected
+    .card-body
+      / Security notice
+      .flex.gap-3.rounded-lg.border.border-amber-500.bg-surface-secondary.p-4.mb-5
+        %i.fa-solid.fa-triangle-exclamation.mt-0.5.flex-shrink-0.text-amber-500
+        %div
+          %p.text-sm.font-semibold.text-amber-600
+            Security notice
+          %p.text-xs.text-text-secondary.mt-0.5
+            Hiding tables here only restricts what the LLM sees — it does
+            %strong not
+            enforce database-level access control. For true security, restrict
+            table access directly on the database user via
+            %code> GRANT
+            \/
+            %code REVOKE
+            permissions.
+
+      / Select / deselect all buttons
+      .flex.items-center.gap-3.mb-4
+        %button.btn.btn-secondary.btn-xs{ type: "button", data: { action: "click->table-visibility#selectAll" } }
+          %i.fa-solid.fa-check-double.mr-1
+          Select All
+        %button.btn.btn-secondary.btn-xs{ type: "button", data: { action: "click->table-visibility#deselectAll" } }
+          %i.fa-solid.fa-xmark.mr-1
+          Deselect All
+
+      / Object-type groups (tree-view style)
+      = render "tools/sql_queries/table_visibility_group", objects: toolable.tables, label: "Tables", icon: "fa-table", selected_names:, group_id: "tv-tables"
+      = render "tools/sql_queries/table_visibility_group", objects: toolable.views, label: "Views", icon: "fa-eye", selected_names:, group_id: "tv-views"
+      = render "tools/sql_queries/table_visibility_group", objects: toolable.materialized_views, label: "Materialized Views", icon: "fa-layer-group", selected_names:, group_id: "tv-matviews"

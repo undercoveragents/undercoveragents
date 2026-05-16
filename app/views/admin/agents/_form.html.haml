@@ -1,0 +1,7 @@
+- action = agent.persisted? ? admin_agent_path(agent) : admin_agents_path
+- method = agent.persisted? ? :patch : :post
+- form_id = local_assigns.fetch(:form_id, "agent-form")
+
+= form_with model: agent, url: action, method:, local: true, html: { class: "agent-form", id: form_id } do |f|
+  = render "shared/forms/validation_errors", record: agent, resource_name: "agent"
+  = render "agents/form_configuration_fields", f:, agent:, available_models:, available_llm_connectors:

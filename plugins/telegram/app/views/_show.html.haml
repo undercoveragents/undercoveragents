@@ -1,0 +1,25 @@
+.detail-grid
+  .detail-item
+    .detail-label Bot Token
+    .detail-value ••••••••#{connector.bot_token.to_s.last(4)}
+  .detail-item
+    .detail-label Bot Username
+    .detail-value
+      - if connector.bot_username.present?
+        = link_to "@#{connector.bot_username}", "https://t.me/#{connector.bot_username}", target: "_blank", rel: "noopener", class: "text-accent no-underline"
+      - else
+        %span.text-text-muted Not fetched yet
+  .detail-item
+    .detail-label Webhook URL
+    .detail-value
+      - if connector.webhook_url.present?
+        %span.text-xs.font-mono.break-all= connector.webhook_url
+      - else
+        %span.text-text-muted Not configured
+  .detail-item
+    .detail-label Webhook Secret
+    .detail-value
+      - if connector.webhook_secret.present?
+        ••••••••
+      - else
+        %span.text-text-muted Not set

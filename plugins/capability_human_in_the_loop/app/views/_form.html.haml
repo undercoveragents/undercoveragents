@@ -1,0 +1,33 @@
+/ ── Human in the Loop — Capability Settings ──
+/ Locals:
+/   capability_config — Capabilities::HumanInTheLoop configurator
+
+- hitl = capability_config
+
+.form-grid
+  .form-group
+    = label_tag "capability_max_questions_per_call", class: "form-label" do
+      Max Questions Per Tool Call
+    = number_field_tag "capability[max_questions_per_call]", hitl.max_questions_per_call, min: 1, max: Capabilities::HumanInTheLoop::ABSOLUTE_MAX_QUESTIONS_PER_CALL, step: 1, class: "form-input", id: "capability_max_questions_per_call"
+    .form-hint
+      Keep clarification requests short and focused.
+      Default: #{Capabilities::HumanInTheLoop::DEFAULT_MAX_QUESTIONS_PER_CALL}.
+
+  .form-group
+    = label_tag "capability_max_options_per_question", class: "form-label" do
+      Max Options Per Question
+    = number_field_tag "capability[max_options_per_question]", hitl.max_options_per_question, min: 1, max: Capabilities::HumanInTheLoop::ABSOLUTE_MAX_OPTIONS_PER_QUESTION, step: 1, class: "form-input", id: "capability_max_options_per_question"
+    .form-hint
+      The widget always includes a custom answer field, so options only need to cover the most likely choices.
+      Default: #{Capabilities::HumanInTheLoop::DEFAULT_MAX_OPTIONS_PER_QUESTION}.
+
+.mt-4.rounded-xl.border.border-border-default.bg-surface-card.p-4
+  .flex.items-start.gap-3
+    .flex.h-9.w-9.items-center.justify-center.rounded-xl.bg-surface-hover.text-text-secondary
+      %i.fa-solid.fa-circle-question
+    .space-y-2
+      %h3.text-sm.font-semibold.text-text-primary Runtime Behavior
+      %p.text-sm.text-text-secondary
+        Enabled agents get an
+        %strong ask_user_questions
+        runtime tool. When the agent calls it, the user sees a compact inline widget with option chips, custom answer fields, and automatic chat resume after submission.

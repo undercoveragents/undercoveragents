@@ -1,0 +1,31 @@
+/ ── HTTP Connection Fields (shared by SSE and Streamable HTTP) ──
+.card.mb-6
+  .card-header
+    %h3.text-sm.font-semibold.text-text-primary
+      %i{ class: "fa-solid #{icon} mr-2 text-accent" }
+      = title
+    %p.text-xs.text-text-muted.mt-1= description
+  .card-body
+    .form-grid
+      .form-group.col-span-full
+        = label_tag "mcp_server[url]", class: "form-label" do
+          Server URL
+          %span.text-danger-500.ml-0.5 *
+        = text_field_tag "mcp_server[url]", connector.url, class: "form-input font-mono", placeholder: url_placeholder, required: true
+        .form-hint= url_hint
+
+      .form-group{ data: { controller: "choices", choices_search_value: "false" } }
+        = label_tag "mcp_server[http_version]", "HTTP Version", class: "form-label"
+        = select_tag "mcp_server[http_version]", options_for_select([["Auto-detect", ""], ["HTTP/1.1", "http1"], ["HTTP/2", "http2"]], connector.http_version), class: "form-input form-select", data: { choices_target: "select" }
+        .form-hint Leave auto-detect for most servers.
+
+      .form-group.col-span-full
+        = label_tag "mcp_server[headers_text]", "Custom Headers", class: "form-label"
+        = text_area_tag "mcp_server[headers_text]", (connector.parsed_headers.map { |k, v| "#{k}=#{v}" }.join("\n") if connector.parsed_headers.any?), class: "form-input font-mono", rows: 3, placeholder: "KEY=VALUE format, one per line:\nAuthorization=Bearer sk-...\nX-Custom-Header=value"
+        .form-hint
+          HTTP headers sent with every request.
+          %code KEY=VALUE
+          format, one per line.
+
+/ ── OAuth (optional) ──
+= render "mcp_server_oauth_fields", connector:

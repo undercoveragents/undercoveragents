@@ -1,0 +1,90 @@
+- content_for(:title, "Mission Control — #{APP_NAME}")
+= render_page_hero(title: "Execution visibility, across every mission run", description: "Monitor and inspect all mission runs, from high-level status down to node-by-node execution.", variant: :dashboard, eyebrow: { label: "Mission Control", icon: "fa-solid fa-satellite-dish" })
+
+/ ── Filters ──
+.card.mb-6
+  .card-body
+    = search_form_for @q, url: admin_mission_control_runs_path, html: { class: "mc-filters" } do |f|
+      .mc-filters-row
+        .mc-filter-group
+          = f.label :id_eq, "ID", class: "mc-filter-label"
+          = f.text_field :id_eq, placeholder: "Search by ID…", class: "form-input form-input-sm"
+
+        .mc-filter-group
+          = f.label :status_eq, "Status", class: "mc-filter-label"
+          %div{ data: { controller: "choices", choices_search_value: "false" } }
+            = f.select :status_eq, options_for_select(@filter_options[:statuses]), { include_blank: "All" }, class: "form-input form-input-sm", data: { choices_target: "select" }
+
+        .mc-filter-group
+          = f.label :mission_id_eq, "Mission", class: "mc-filter-label"
+          %div{ data: { controller: "choices", choices_search_value: "true" } }
+            = f.select :mission_id_eq, options_for_select(@filter_options[:missions]), { include_blank: "All" }, class: "form-input form-input-sm", data: { choices_target: "select" }
+
+        .mc-filter-group
+          %label.mc-filter-label{ for: "operation" } Operation
+          %div{ data: { controller: "choices", choices_search_value: "false" } }
+            %select.form-input.form-input-sm#operation{ name: "operation", data: { choices_target: "select" } }
+              = options_for_select([["All", ""]] + @filter_options[:operations], params[:operation])
+
+        .mc-filter-actions
+          = f.submit "Filter", class: "btn btn-primary btn-sm"
+          = link_to "Clear", admin_mission_control_runs_path, class: "btn btn-secondary btn-sm" if mc_filter_active?(params)
+
+/ ── Results ──
+- if @runs.any?
+  .card
+    .mc-table-wrapper
+      %table.mc-table
+        %thead
+          %tr
+            %th.mc-th ID
+            %th.mc-th Mission
+            %th.mc-th Operation
+            %th.mc-th Status
+            %th.mc-th Nodes
+            %th.mc-th Duration
+            %th.mc-th Started
+            %th.mc-th Completed
+        %tbody
+          - @runs.each do |run|
+            %tr.mc-tr
+              %td.mc-td.font-mono.text-text-muted= run.id
+              %td.mc-td
+                = link_to admin_mission_control_run_path(run), class: "text-accent no-underline hover:underline font-medium" do
+                  = truncate(run.mission.name, length: 40)
+              %td.mc-td
+                %span.badge.badge-neutral= run.mission.operation.name
+              %td.mc-td
+                .mc-status-pill{ class: mc_status_badge(run.status) }
+                  %i{ class: mc_status_icon(run.status) }
+                  = run.status
+              %td.mc-td.text-center
+                - exec_count = (run.execution_state["execution_log"] || []).size
+                - if exec_count.positive?
+                  %span.badge.badge-secondary= exec_count
+                - else
+                  %span.text-text-muted —
+              %td.mc-td.font-mono
+                = mc_format_run_duration(run)
+              %td.mc-td.text-text-muted.text-xs
+                - if run.started_at
+                  = run.started_at.strftime("%b %d, %H:%M:%S")
+                - else
+                  %span.text-text-muted —
+              %td.mc-td.text-text-muted.text-xs
+                - if run.completed_at
+                  = run.completed_at.strftime("%b %d, %H:%M:%S")
+                - else
+                  %span.text-text-muted —
+    .mc-table-footer
+      .text-xs.text-text-muted
+        != @pagy.info_tag
+      .mc-pagy-nav
+        != @pagy.series_nav(aria_label: "Run pages")
+- else
+  - body = if mc_filter_active?(params)
+    - "No runs match your current filters. Try adjusting or clearing them."
+  - else
+    - "No mission runs have been executed yet."
+  = render_page_empty_state(title: "No runs found", body:) do
+    = link_to "Clear Filters", admin_mission_control_runs_path, class: "btn btn-primary" if mc_filter_active?(params)

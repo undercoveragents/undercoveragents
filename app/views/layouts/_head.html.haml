@@ -1,0 +1,29 @@
+- page_title = local_assigns.fetch(:title)
+- application_name = local_assigns.fetch(:application_name, APP_NAME)
+- font_stylesheet = local_assigns.fetch(:font_stylesheet, "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap")
+- include_choices = local_assigns.fetch(:include_choices, false)
+- include_lexxy = local_assigns.fetch(:include_lexxy, false)
+
+%meta{ "http-equiv" => "Content-Type", content: "text/html; charset=UTF-8" }/
+%title= page_title
+%meta{ name: "viewport", content: "width=device-width,initial-scale=1" }/
+%meta{ name: "apple-mobile-web-app-capable", content: "yes" }/
+%meta{ name: "application-name", content: application_name }/
+%meta{ name: "mobile-web-app-capable", content: "yes" }/
+= csrf_meta_tags
+= csp_meta_tag
+= theme_root_primer_style_tag
+= theme_bootstrap_script_tag
+= content_for(:head)
+%link{ rel: "icon", type: "image/png", href: "/icon.png" }/
+%link{ rel: "icon", type: "image/svg+xml", href: "/icon.svg" }/
+%link{ rel: "apple-touch-icon", href: "/icon.png" }/
+%link{ rel: "preconnect", href: "https://fonts.googleapis.com" }/
+%link{ rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: "" }/
+%link{ rel: "stylesheet", href: font_stylesheet }/
+%link{ rel: "stylesheet", href: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css", integrity: "sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==", crossorigin: "anonymous", referrerpolicy: "no-referrer" }/
+- if include_choices
+  %link{ rel: "stylesheet", href: "https://cdn.jsdelivr.net/npm/choices.js@11.2.3/public/assets/styles/choices.min.css" }/
+= stylesheet_link_tag :app, "data-turbo-track": "reload"
+= stylesheet_link_tag "lexxy", "data-turbo-track": "reload" if include_lexxy
+= javascript_importmap_tags

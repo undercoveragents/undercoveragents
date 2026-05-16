@@ -1,0 +1,26 @@
+- form_id = local_assigns.fetch(:form_id, "user-form")
+
+= simple_form_for user, url:, method: (user.persisted? ? :patch : :post), html: { id: form_id } do |f|
+  - if user.errors.any?
+    .flash-alert.mb-4
+      %strong #{user.errors.count} #{"error".pluralize(user.errors.count)} prevented saving:
+      %ul.mt-2.list-disc.list-inside
+        - user.errors.full_messages.each do |message|
+          %li= message
+
+  .form-grid
+    .form-group
+      = f.label :email, class: "form-label"
+      = f.email_field :email, class: "form-input", placeholder: "user@example.com"
+
+    .form-group
+      = f.label :password, class: "form-label"
+      = f.password_field :password, class: "form-input", placeholder: (user.persisted? ? "Leave blank to keep current" : "Minimum 8 characters")
+
+    .form-group
+      = f.label :role, class: "form-label"
+      = f.select :role, available_roles.map { |role| [role.humanize, role] }, {}, class: "form-input"
+
+    .form-group
+      = f.label :status, class: "form-label"
+      = f.select :status, User.statuses.keys.map { |s| [s.titleize, s] }, {}, class: "form-input"

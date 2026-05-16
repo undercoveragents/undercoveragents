@@ -1,0 +1,42 @@
+- content_for(:title, "Memory Blocks — Admin — Undercover Agents")
+= render_page_hero(title: "Shared memory, structured for every agent", description: "Global core memory blocks shared across agents.", variant: :dashboard, eyebrow: { label: "Memory Blocks", icon: "fa-solid fa-brain" }, actions: [{ label: "New Block", url: new_admin_memory_block_path, icon: "fa-solid fa-plus", style: :primary }])
+
+- if @memory_blocks.empty?
+  .card
+    .card-body
+      .text-center.py-12
+        %i.fa-solid.fa-brain.text-3xl.text-text-muted.mb-3
+        %p.text-sm.text-text-secondary No memory blocks exist yet.
+        = link_to new_admin_memory_block_path, class: "btn btn-secondary btn-sm mt-2" do
+          %i.fa-solid.fa-plus.mr-1
+          Create First Block
+- else
+  .card
+    .card-body.p-0
+      %table.w-full.text-sm
+        %thead
+          %tr.border-b.border-border-default
+            %th.px-4.py-3.text-left.text-xs.font-semibold.text-text-secondary.uppercase.tracking-wide Label
+            %th.px-4.py-3.text-left.text-xs.font-semibold.text-text-secondary.uppercase.tracking-wide Description
+            %th.px-4.py-3.text-right.text-xs.font-semibold.text-text-secondary.uppercase.tracking-wide Instances
+            %th.px-4.py-3.text-right.text-xs.font-semibold.text-text-secondary.uppercase.tracking-wide Agents
+            %th.px-4.py-3
+        %tbody
+          - @memory_blocks.each do |block|
+            %tr.border-b.border-border-default.last:border-0.hover:bg-surface-secondary
+              %td.px-4.py-3
+                = link_to admin_memory_block_path(block.label), class: "text-accent font-medium hover:underline" do
+                  %span.badge.badge-accent= block.label
+                - if block.read_only?
+                  %span.badge.badge-default.ml-1
+                    %i.fa-solid.fa-lock.mr-1
+                    read-only
+              %td.px-4.py-3.text-text-secondary= block.description.presence || "—"
+              %td.px-4.py-3.text-right.text-text-secondary= block.agent_memory_blocks.count
+              %td.px-4.py-3.text-right.text-text-secondary= block.agent_memory_blocks.select(:agent_id).distinct.count
+              %td.px-4.py-3.text-right
+                .flex.items-center.justify-end.gap-1
+                  = link_to admin_memory_block_path(block.label), class: "btn btn-ghost btn-xs" do
+                    %i.fa-solid.fa-eye
+                  = button_to admin_memory_block_path(block.label), method: :delete, class: "btn btn-ghost btn-xs text-danger-500", data: { controller: "confirm", confirm_title_value: "Delete Block", confirm_message_value: "Delete '#{block.label}'? This will remove it from all agents." } do
+                    %i.fa-solid.fa-trash

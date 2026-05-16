@@ -1,0 +1,216 @@
+key = "agent-alpha-agent"
+name = "Agent Alpha Agent Designer Scenarios"
+description = "Delegation coverage for agent design work."
+suite_type = "agent"
+target_builtin_agent_key = "agent_alpha"
+evaluation_temperature = 0.2
+fixture_key = "agent_alpha_benchmark"
+
+[[test_cases]]
+key = "agent-01"
+name = "Agent 01"
+category = "agent"
+complexity = "medium"
+position = 0
+match_type = "semantic"
+prompt = "Create an agent named %{new_agent_name} for customer success questions using the default model."
+expected_answer = "Agent Designer should create or clearly report the outcome for %{new_agent_name}."
+expected_child_builtin_key = "agent_designer"
+expected_tool_names = ["ask_agent_agent_designer"]
+disallow_child_chats = false
+required_keywords = ["%{new_agent_name}"]
+
+[[test_cases]]
+key = "agent-02"
+name = "Agent 02"
+category = "agent"
+complexity = "medium"
+position = 1
+match_type = "semantic"
+prompt = "Update %{benchmark_agent_name} so its description mentions refund and billing questions."
+expected_answer = "Agent Designer should update the description for %{benchmark_agent_name}."
+expected_child_builtin_key = "agent_designer"
+expected_tool_names = ["ask_agent_agent_designer"]
+disallow_child_chats = false
+required_keywords = ["%{benchmark_agent_name}"]
+
+[[test_cases]]
+key = "agent-03"
+name = "Agent 03"
+category = "agent"
+complexity = "medium"
+position = 2
+match_type = "semantic"
+prompt = "Turn off reasoning for %{benchmark_agent_name}."
+expected_answer = "Agent Designer should turn off reasoning or thinking for %{benchmark_agent_name}."
+expected_child_builtin_key = "agent_designer"
+expected_tool_names = ["ask_agent_agent_designer"]
+disallow_child_chats = false
+required_keywords = ["%{benchmark_agent_name}"]
+
+[[test_cases]]
+key = "agent-04"
+name = "Agent 04"
+category = "agent"
+complexity = "medium"
+position = 3
+match_type = "semantic"
+prompt = "Lower %{benchmark_agent_name} temperature to 0.2 and keep the default model."
+expected_answer = "Agent Designer should update %{benchmark_agent_name} to use a lower temperature while keeping the default model source."
+expected_child_builtin_key = "agent_designer"
+expected_tool_names = ["ask_agent_agent_designer"]
+disallow_child_chats = false
+required_keywords = ["0.2"]
+
+[[test_cases]]
+key = "agent-05"
+name = "Agent 05"
+category = "agent"
+complexity = "high"
+position = 4
+match_type = "semantic"
+prompt = "Attach skill catalog %{benchmark_skill_catalog_name} to %{benchmark_agent_name}."
+expected_answer = "Attach %{benchmark_skill_catalog_name} to %{benchmark_agent_name} and report that the agent now has that catalog assigned."
+expected_child_builtin_key = "skill_catalog_designer"
+expected_tool_names = ["ask_agent_skill_catalog_designer"]
+disallow_child_chats = false
+required_keywords = ["%{benchmark_skill_catalog_name}", "%{benchmark_agent_name}"]
+
+[[test_cases]]
+key = "agent-06"
+name = "Agent 06"
+category = "agent"
+complexity = "high"
+position = 5
+match_type = "semantic"
+prompt = "Add tool %{benchmark_tool_name} to %{benchmark_agent_name}."
+expected_answer = "Agent Designer should add %{benchmark_tool_name} to %{benchmark_agent_name}."
+expected_child_builtin_key = "agent_designer"
+expected_tool_names = ["ask_agent_agent_designer"]
+disallow_child_chats = false
+required_keywords = ["%{benchmark_tool_name}"]
+
+[[test_cases]]
+key = "agent-07"
+name = "Agent 07"
+category = "agent"
+complexity = "high"
+position = 6
+match_type = "semantic"
+prompt = "Create an agent named %{new_agent_name} that uses tool %{benchmark_tool_name}."
+expected_answer = "Agent Designer should create %{new_agent_name} and use tool %{benchmark_tool_name} if the request succeeds."
+expected_child_builtin_key = "agent_designer"
+expected_tool_names = ["ask_agent_agent_designer"]
+disallow_child_chats = false
+required_keywords = ["%{new_agent_name}"]
+
+[[test_cases]]
+key = "agent-08"
+name = "Agent 08"
+category = "agent"
+complexity = "high"
+position = 7
+match_type = "semantic"
+prompt = "Create an agent named %{new_agent_name} that uses skill catalog %{benchmark_skill_catalog_name} for policy answers."
+expected_answer = "Agent Designer should create %{new_agent_name} and use %{benchmark_skill_catalog_name} if the request succeeds."
+expected_child_builtin_key = "agent_designer"
+expected_tool_names = ["ask_agent_agent_designer"]
+disallow_child_chats = false
+required_keywords = ["%{new_agent_name}"]
+
+[[test_cases]]
+key = "agent-09"
+name = "Agent 09"
+category = "agent"
+complexity = "high"
+position = 8
+match_type = "semantic"
+prompt = "Debug %{benchmark_agent_name} with the prompt 'How do I reset my password?'."
+expected_answer = "Debug %{benchmark_agent_name} with the supplied password-reset prompt and summarize the resulting behavior."
+expected_child_builtin_key = "agent_designer"
+expected_tool_names = ["ask_agent_agent_designer"]
+disallow_child_chats = false
+required_keywords = ["reset my password"]
+
+[[test_cases]]
+key = "agent-10"
+name = "Agent 10"
+category = "agent"
+complexity = "high"
+position = 9
+match_type = "semantic"
+prompt = "Read the recent chat history for %{benchmark_agent_name} and summarize the last issue."
+expected_answer = "Agent Designer should inspect recent chat history for %{benchmark_agent_name} and summarize the latest issue, or clearly report that no issue appeared in the latest chat."
+expected_child_builtin_key = "agent_designer"
+expected_tool_names = ["ask_agent_agent_designer"]
+disallow_child_chats = false
+
+[[test_cases]]
+key = "agent-11"
+name = "Agent 11"
+category = "agent"
+complexity = "medium"
+position = 10
+match_type = "semantic"
+prompt = "Rename %{benchmark_agent_name} to %{renamed_agent_name}."
+expected_answer = "Agent Designer should rename the agent to %{renamed_agent_name}."
+expected_child_builtin_key = "agent_designer"
+expected_tool_names = ["ask_agent_agent_designer"]
+disallow_child_chats = false
+required_keywords = ["%{renamed_agent_name}"]
+
+[[test_cases]]
+key = "agent-12"
+name = "Agent 12"
+category = "agent"
+complexity = "medium"
+position = 11
+match_type = "semantic"
+prompt = "Create an agent named %{new_agent_name} with temperature 0.1 and concise instructions for triaging support tickets."
+expected_answer = "Agent Designer should create or clearly report the outcome for %{new_agent_name} with a concise support-triage configuration."
+expected_child_builtin_key = "agent_designer"
+expected_tool_names = ["ask_agent_agent_designer"]
+disallow_child_chats = false
+required_keywords = ["%{new_agent_name}"]
+
+[[test_cases]]
+key = "agent-13"
+name = "Agent 13"
+category = "agent"
+complexity = "medium"
+position = 12
+match_type = "semantic"
+prompt = "Update %{benchmark_agent_name} so the instructions explicitly say it should stay concise."
+expected_answer = "Agent Designer should update %{benchmark_agent_name} to stay concise."
+expected_child_builtin_key = "agent_designer"
+expected_tool_names = ["ask_agent_agent_designer"]
+disallow_child_chats = false
+required_keywords = ["concise"]
+
+[[test_cases]]
+key = "agent-14"
+name = "Agent 14"
+category = "agent"
+complexity = "high"
+position = 13
+match_type = "semantic"
+prompt = "Add both %{benchmark_tool_name} and %{benchmark_skill_catalog_name} to %{benchmark_agent_name}."
+expected_answer = "Agent Designer should add the requested tool and skill catalog to %{benchmark_agent_name}."
+expected_child_builtin_key = "agent_designer"
+expected_tool_names = ["ask_agent_agent_designer"]
+disallow_child_chats = false
+required_keywords = ["%{benchmark_tool_name}", "%{benchmark_skill_catalog_name}"]
+
+[[test_cases]]
+key = "agent-15"
+name = "Agent 15"
+category = "agent"
+complexity = "medium"
+position = 14
+match_type = "semantic"
+prompt = "Create an agent named %{new_agent_name} for internal FAQ answers and leave model selection on system preference."
+expected_answer = "Agent Designer should create or clearly report the outcome for %{new_agent_name} while keeping model selection on system preference."
+expected_child_builtin_key = "agent_designer"
+expected_tool_names = ["ask_agent_agent_designer"]
+disallow_child_chats = false
+required_keywords = ["%{new_agent_name}"]

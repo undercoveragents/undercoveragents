@@ -1,0 +1,10 @@
+- frame_main_content_data = local_assigns.fetch(:main_content_data, {}).deep_stringify_keys
+- default_sidebar_tab = content_for(:admin_panel_sidebar_default_tab).to_s.strip
+
+.admin-frame-state.hidden{ data: { admin_frame_state: true, admin_frame_state_main_content_data: frame_main_content_data.to_json, admin_frame_state_default_sidebar_tab: default_sidebar_tab } }
+  %template{ data: { admin_frame_state_slot: "panels" } }
+    = content_for(:admin_panel_sidebar_panels)
+  %template{ data: { admin_frame_state_slot: "tabs-before-chat" } }
+    = content_for(:admin_panel_sidebar_tabs_before_chat)
+  %template{ data: { admin_frame_state_slot: "tabs-after-chat" } }
+    = content_for(:admin_panel_sidebar_tabs_after_chat)

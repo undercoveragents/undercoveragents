@@ -1,0 +1,9 @@
+- content_for(:title, "New RAG — #{APP_NAME}")
+- form_id = "rag-flow-form"
+- back_link = { label: "Back to RAG", url: admin_rag_flows_path }
+= render_page_hero(title: "New RAG", variant: :compact, title_icon: "fa-solid fa-arrow-right-to-bracket", back_link:, actions: [page_hero_form_action(label: "Create RAG", form_id:)])
+
+.card
+  .card-body
+    = form_with model: @rag_flow, url: admin_rag_flows_path, class: "space-y-6", id: form_id do |f|
+      = render "rag_flows/form", f:, rag_flow: @rag_flow

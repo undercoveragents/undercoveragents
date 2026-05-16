@@ -1,0 +1,78 @@
+/ ── Input node config ──
+.ms-prop-field{ data: { controller: "input-fields" } }
+  %label.ms-prop-label
+    Input Fields
+    %button.ms-prop-add-btn{ type: "button", data: { action: "click->input-fields#addField" } }
+      %i.fa-solid.fa-plus
+  .ms-api-fields-list{ data: { "input-fields-target": "fieldList" } }
+    - fields = presenter.fields
+    - if fields.any?
+      - fields.each_with_index do |f, i|
+        .ms-api-field-row
+          .ms-api-field-info
+            %span.ms-api-field-name= f["variable_name"]
+            %span.ms-api-field-type-badge= f["field_type"]
+            - if f["required"]
+              %span.ms-api-field-required-badge Required
+          .ms-api-field-label= f["label"]
+          .ms-api-field-actions
+            %button.ms-api-field-action-btn{ type: "button", data: { action: "click->input-fields#editField", index: i }, title: "Edit" }
+              %i.fa-solid.fa-pen-to-square
+            %button.ms-api-field-action-btn.ms-api-field-action-btn-danger{ type: "button", data: { action: "click->input-fields#removeField", index: i }, title: "Remove" }
+              %i.fa-solid.fa-trash-can
+    - else
+      .ms-api-fields-empty No fields defined yet.
+  .ms-prop-hint
+    %i.fa-solid.fa-circle-info
+    Each field becomes a variable available in the mission.
+
+  / ── Field Editor Dialog ──
+  %dialog.ms-api-field-dialog{ data: { "input-fields-target": "dialog" } }
+    .ms-api-field-dialog-content
+      .ms-api-field-dialog-header
+        %h4.ms-api-field-dialog-title{ data: { "input-fields-target": "dialogTitle" } } Add Field
+        %button.ms-api-field-dialog-close{ type: "button", data: { action: "click->input-fields#closeDialog" } }
+          %i.fa-solid.fa-xmark
+      .ms-api-field-dialog-body
+        .ms-prop-field
+          %label.ms-prop-label
+            Variable Name
+            %span.ms-prop-required *
+          %input.ms-prop-input{ type: "text", placeholder: "e.g. user_name", pattern: "[a-z][a-z0-9_]*", data: { "input-fields-target": "fieldName" } }
+          .ms-prop-hint Use lowercase letters, numbers, and underscores.
+        .ms-prop-field
+          %label.ms-prop-label
+            Label
+            %span.ms-prop-required *
+          %input.ms-prop-input{ type: "text", placeholder: "e.g. User Name", data: { "input-fields-target": "fieldLabel" } }
+        .ms-prop-field
+          %label.ms-prop-label
+            %input{ type: "checkbox", data: { "input-fields-target": "fieldRequired" } }
+            Required
+        .ms-prop-field
+          %label.ms-prop-label Type
+          %select.ms-prop-select{ data: { "input-fields-target": "fieldType", action: "change->input-fields#onTypeChange" } }
+            %optgroup{ label: "Text" }
+              %option{ value: "string" } String
+              %option{ value: "string_array" } String[]
+            %optgroup{ label: "Numeric" }
+              %option{ value: "number" } Number
+              %option{ value: "number_array" } Number[]
+            %optgroup{ label: "Boolean" }
+              %option{ value: "boolean" } Boolean
+              %option{ value: "boolean_array" } Boolean[]
+            %optgroup{ label: "File" }
+              %option{ value: "file" } File
+              %option{ value: "file_array" } File[]
+            %optgroup{ label: "Structured" }
+              %option{ value: "json" } JSON
+            %optgroup{ label: "Date & Time" }
+              %option{ value: "date" } Date
+              %option{ value: "date_array" } Date[]
+              %option{ value: "datetime" } DateTime
+              %option{ value: "datetime_array" } DateTime[]
+        / ── Type-specific config fields ──
+        = render "admin/missions/input_field_config"
+      .ms-api-field-dialog-footer
+        %button.ms-btn.ms-btn-secondary{ type: "button", data: { action: "click->input-fields#closeDialog" } } Cancel
+        %button.ms-btn.ms-btn-primary{ type: "button", data: { action: "click->input-fields#saveField" } } Save Field

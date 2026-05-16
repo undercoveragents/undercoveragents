@@ -1,0 +1,56 @@
+- available_connectors = current_tenant.connectors.sql_databases.enabled.ordered
+- state = Rag::SqlDatabaseSourceWizardState.new(steppable)
+- source_mode = state.source_mode
+- preview_url = edit_admin_rag_flow_step_path(rag_flow, "source")
+- connector_options = options_for_select(available_connectors.map { |connector| [connector.name, connector.id] }, steppable.connector_id)
+- status = state.status
+- status_icon = wizard_status_icon(status.kind)
+- wizard = build_wizard_component(eyebrow: "SQL Source", title: "Configure document ingestion", subtitle: "Connect PostgreSQL, choose a table or custom query, then map the columns used for content and metadata.", steps: [{ label: "Connect", target_id: "sql-source-step-connect" }, { label: "Choose source", target_id: "sql-source-step-source" }, { label: "Map columns", target_id: "sql-source-step-columns" }, { label: "Tune", target_id: "sql-source-step-tune" }])
+- stylesheet_urls = [asset_path("plugin_sql_database_wizard.css")]
+
+- content_for :head do
+  = stylesheet_link_tag "plugin_sql_database_wizard", "data-turbo-track": "reload"
+
+- if available_connectors.any?
+  .ui-wizard.ui-wizard--flush-card.sql-source-wizard{
+    data: {
+      controller: "wizard-preview sql-database-wizard-styles",
+      "wizard-preview-url-value": preview_url,
+      "wizard-preview-frame-id-value": "rag-step-configurator",
+      sql_database_wizard_styles_urls_value: stylesheet_urls.to_json,
+    },
+  }
+    .ui-wizard__shell
+      = render "shared/wizard/header", wizard:
+
+      .ui-wizard__panel#sql-source-step-connect
+        = render "shared/wizard/section_head",
+                 step: wizard.steps[0],
+                 copy: "Choose the PostgreSQL connector that exposes the tables or views you want to ingest."
+        .form-group{ data: { controller: "choices", choices_search_value: "false" } }
+          = f.label :connector_id, class: "form-label" do
+            SQL Database Connector
+            %span.text-danger-500.ml-0.5 *
+          = f.select :connector_id,
+                     connector_options,
+                     { include_blank: "Select a connector..." },
+                     class: "form-input form-select",
+                     required: true,
+                     data: { action: "change->wizard-preview#preview", choices_target: "select" }
+          .form-hint PostgreSQL connectors are required for SQL RAG sources.
+
+      = render partial: "wizard_source_details",
+               locals: { f:, rag_flow:, steppable:, state:, source_mode:, status:, status_icon:, step: wizard.steps[1] }
+      -# haml-lint sibling render separator
+      = render partial: "wizard_column_mapping",
+               locals: { f:, steppable:, state:, source_mode:, step: wizard.steps[2] }
+      -# haml-lint sibling render separator
+      = render partial: "wizard_advanced_options",
+               locals: { f:, steppable:, source_mode:, step: wizard.steps[3] }
+- else
+  .text-center.py-8
+    %i.fa-solid.fa-plug.text-xl.text-text-muted.mb-2
+    %p.text-sm.text-text-secondary.mb-3 No enabled SQL database connectors available.
+    = link_to new_admin_connector_path(type: "sql_database"), class: "btn btn-secondary btn-sm" do
+      %i.fa-solid.fa-plus.mr-1
+      Create Connector

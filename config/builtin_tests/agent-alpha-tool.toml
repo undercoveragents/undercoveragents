@@ -1,0 +1,144 @@
+key = "agent-alpha-tool"
+name = "Agent Alpha Tool Designer Scenarios"
+description = "Delegation and discovery coverage for tool design work."
+suite_type = "agent"
+target_builtin_agent_key = "agent_alpha"
+evaluation_temperature = 0.2
+fixture_key = "agent_alpha_benchmark"
+
+[[test_cases]]
+key = "tool-01"
+name = "Tool 01"
+category = "tool"
+complexity = "medium"
+position = 0
+match_type = "semantic"
+prompt = "Create a mission tool named %{new_tool_name} from mission %{benchmark_mission_name}."
+expected_answer = "Tool Designer should create or clearly report the outcome for %{new_tool_name}."
+expected_child_builtin_key = "tool_designer"
+expected_tool_names = ["ask_agent_tool_designer"]
+disallow_child_chats = false
+required_keywords = ["%{new_tool_name}"]
+
+[[test_cases]]
+key = "tool-02"
+name = "Tool 02"
+category = "tool"
+complexity = "medium"
+position = 1
+match_type = "semantic"
+prompt = "Update %{benchmark_tool_name} so its description mentions refund triage."
+expected_answer = "Tool Designer should update the description for %{benchmark_tool_name}."
+expected_child_builtin_key = "tool_designer"
+expected_tool_names = ["ask_agent_tool_designer"]
+disallow_child_chats = false
+required_keywords = ["refund triage"]
+
+[[test_cases]]
+key = "tool-03"
+name = "Tool 03"
+category = "tool"
+complexity = "medium"
+position = 2
+match_type = "semantic"
+prompt = "Rename %{benchmark_tool_name} to %{renamed_tool_name}."
+expected_answer = "Tool Designer should rename the tool to %{renamed_tool_name}."
+expected_child_builtin_key = "tool_designer"
+expected_tool_names = ["ask_agent_tool_designer"]
+disallow_child_chats = false
+required_keywords = ["%{renamed_tool_name}"]
+
+[[test_cases]]
+key = "tool-04"
+name = "Tool 04"
+category = "tool"
+complexity = "high"
+position = 3
+match_type = "semantic"
+prompt = "Create a mission tool named %{new_tool_name} from %{benchmark_mission_name} with concise tool instructions."
+expected_answer = "Tool Designer should create or clearly report the outcome for %{new_tool_name} with concise instructions."
+expected_child_builtin_key = "tool_designer"
+expected_tool_names = ["ask_agent_tool_designer"]
+disallow_child_chats = false
+required_keywords = ["%{new_tool_name}"]
+
+[[test_cases]]
+key = "tool-05"
+name = "Tool 05"
+category = "tool"
+complexity = "medium"
+position = 4
+match_type = "semantic"
+prompt = "Show me the configuration for tool %{benchmark_tool_name}."
+expected_answer = "Summarize the currently visible configuration details for %{benchmark_tool_name}, and offer deeper inspection if more detail is needed."
+expected_tool_names = ["list_resources"]
+disallow_child_chats = false
+required_keywords = ["%{benchmark_tool_name}"]
+
+[[test_cases]]
+key = "tool-06"
+name = "Tool 06"
+category = "tool"
+complexity = "high"
+position = 5
+match_type = "semantic"
+prompt = "Create a SQL query tool called %{new_tool_name} for reporting, using an existing connector if one is already available."
+expected_answer = "Tool Designer should either create %{new_tool_name} or clearly explain the missing connector prerequisite."
+expected_child_builtin_key = "tool_designer"
+expected_tool_names = ["ask_agent_tool_designer"]
+disallow_child_chats = false
+
+[[test_cases]]
+key = "tool-07"
+name = "Tool 07"
+category = "tool"
+complexity = "high"
+position = 6
+match_type = "semantic"
+prompt = "Create a mission tool named %{new_tool_name} that wraps %{benchmark_mission_name} and exposes one text input."
+expected_answer = "Tool Designer should create or clearly report the outcome for %{new_tool_name}."
+expected_child_builtin_key = "tool_designer"
+expected_tool_names = ["ask_agent_tool_designer"]
+disallow_child_chats = false
+required_keywords = ["%{new_tool_name}"]
+
+[[test_cases]]
+key = "tool-08"
+name = "Tool 08"
+category = "tool"
+complexity = "medium"
+position = 7
+match_type = "semantic"
+prompt = "Update %{benchmark_tool_name} instructions so the tool returns concise summaries."
+expected_answer = "Tool Designer should update %{benchmark_tool_name} so it returns concise summaries."
+expected_child_builtin_key = "tool_designer"
+expected_tool_names = ["ask_agent_tool_designer"]
+disallow_child_chats = false
+required_keywords = ["concise"]
+
+[[test_cases]]
+key = "tool-09"
+name = "Tool 09"
+category = "tool"
+complexity = "medium"
+position = 8
+match_type = "semantic"
+prompt = "What kind of tool is %{benchmark_tool_name} and how is it configured?"
+expected_answer = "Explain what kind of tool %{benchmark_tool_name} is and summarize its visible configuration."
+expected_tool_names = ["list_resources"]
+disallow_child_chats = false
+required_keywords = ["%{benchmark_tool_name}"]
+
+[[test_cases]]
+key = "tool-10"
+name = "Tool 10"
+category = "tool"
+complexity = "high"
+position = 9
+match_type = "semantic"
+prompt = "Create a mission tool named %{new_tool_name} from %{benchmark_mission_name} and then point me to the tool page."
+expected_answer = "Create %{new_tool_name} from %{benchmark_mission_name} and tell the user they are on or have been handed off to the tool page."
+expected_child_builtin_key = "tool_designer"
+expected_tool_names = ["ask_agent_tool_designer"]
+disallow_child_chats = false
+required_keywords = ["%{new_tool_name}"]

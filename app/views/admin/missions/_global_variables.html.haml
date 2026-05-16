@@ -1,0 +1,26 @@
+-# Global Variables editor — managed client-side by global-variables Stimulus controller.
+- globals = mission.flow_data["global_variables"] || []
+
+- variable_types = ["string", "number", "boolean"]
+
+.ms-gv-editor{ data: { controller: "global-variables", "global-variables-variable-types-value": variable_types.to_json } }
+  .ms-gv-header
+    .ms-gv-title
+      %i.fa-solid.fa-globe
+      %span Global Variables
+    %button.ms-gv-add-btn{ type: "button", title: "Add variable", data: { action: "click->global-variables#add" } }
+      %i.fa-solid.fa-plus
+  .ms-gv-list{ data: { "global-variables-target": "list" } }
+    - globals.each_with_index do |var, i|
+      .ms-gv-row
+        %input.ms-gv-key{ type: "text", value: var["key"], placeholder: "name", data: { idx: i, field: "key", action: "blur->global-variables#update" } }
+        %select.ms-gv-type{ data: { idx: i, field: "type", action: "change->global-variables#update" } }
+          %option{ value: "string", selected: var["type"] == "string" || var["type"].blank? } string
+          %option{ value: "number", selected: var["type"] == "number" } number
+          %option{ value: "boolean", selected: var["type"] == "boolean" } boolean
+        %input.ms-gv-value{ type: "text", value: var["value"], placeholder: "value", data: { idx: i, field: "value", action: "blur->global-variables#update" } }
+        %button.ms-gv-remove{ type: "button", title: "Remove", data: { idx: i, action: "click->global-variables#remove" } }
+          %i.fa-solid.fa-xmark
+  .ms-gv-empty{ class: (globals.present? ? "hidden" : ""), data: { "global-variables-target": "empty" } }
+    %i.fa-solid.fa-globe
+    %span No global variables yet

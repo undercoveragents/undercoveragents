@@ -1,0 +1,21 @@
+- can_update_agent = policy_allows?(agent, :update?)
+- update_agent_title = policy_tooltip(agent, :update?)
+
+= form_with model: agent, url: admin_agent_path(agent), method: :patch, local: true do
+  %input{ type: "hidden", name: "agent[edit_context]", value: "input_parameters" }
+  .card.h-full{ data: { controller: "schema-fields", schema_fields_editable_value: can_update_agent, schema_fields_auto_submit_value: can_update_agent } }
+    .card-header
+      .flex.items-center.justify-between
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-sliders.mr-2.text-accent
+          Input Parameters
+        - if can_update_agent
+          %button.btn.btn-secondary.btn-xs.shrink-0{ type: "button", data: { action: "click->schema-fields#addField" } }
+            %i.fa-solid.fa-plus.mr-1
+            Add
+        - else
+          %button{ type: "button", class: disabled_action_classes("btn btn-secondary btn-xs shrink-0", disabled: true), disabled: true, title: update_agent_title }
+            %i.fa-solid.fa-plus.mr-1
+            Add
+    .card-body
+      = render "agents/input_schema_editor", field_name: "agent[input_schema]", schema: agent.input_schema, editable: can_update_agent

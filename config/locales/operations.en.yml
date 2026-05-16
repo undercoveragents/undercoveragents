@@ -1,0 +1,6 @@
+en:
+  operations:
+    created: "Operation created successfully."
+    updated: "Operation updated successfully."
+    deleted: "Operation deleted successfully."
+    cannot_delete_system: "System operations cannot be deleted."

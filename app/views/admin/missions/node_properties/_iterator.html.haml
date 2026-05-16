@@ -1,0 +1,41 @@
+/ ── Iterator Node Configuration ──
+.ms-prop-field
+  %label.ms-prop-label
+    Collection Expression
+    %span.ms-prop-required *
+  = render "shared/expression_editor", value: presenter.data("collection"), variables: presenter.selectable_upstream_variables, prop_key: "collection", placeholder: "Variable name, JSON array, or comma-separated values", rows: 2
+  .ms-prop-hint.ms-prop-hint-vars
+    %i.fa-solid.fa-circle-info
+    Reference a variable containing an array, or type a JSON array literal. Produces
+    %code item
+    ,
+    %code index
+    , and
+    %code total
+    on each iteration. Type
+    %code @
+    to insert a variable.
+
+.ms-prop-field
+  %label.ms-prop-label Parallel Execution
+  %label.ms-prop-toggle
+    %input{ type: "checkbox", checked: presenter.data("parallel").to_s == "true", data: { action: "change->mission#updateNodeProp", "prop-key": "parallel", "value-type": "boolean" } }
+    .ms-prop-toggle__body
+      %span.ms-prop-toggle__title Run iterator body branches concurrently
+      %span.ms-prop-toggle__meta Keep this off for strictly sequential iteration.
+
+.ms-prop-field
+  %label.ms-prop-label.ms-prop-label--spread
+    %span.ms-prop-label__text Max Parallel Branches
+    %span.ms-prop-label__meta Default #{Missions::Nodes::Iterator::DEFAULT_MAX_PARALLEL_BRANCHES}
+  %input.ms-prop-input{ type: "number", min: "1", max: Missions::Nodes::Iterator::MAX_ITERATIONS.to_s, value: presenter.data("max_parallel_branches").presence || Missions::Nodes::Iterator::DEFAULT_MAX_PARALLEL_BRANCHES, data: { action: "blur->mission#updateNodeProp", "prop-key": "max_parallel_branches", "value-type": "integer" } }
+  .ms-prop-hint.ms-prop-hint-vars
+    %i.fa-solid.fa-circle-info
+    Applies only when parallel mode is enabled. Aggregate downstream work through
+    %code results
+    on the
+    %code done
+    port.
+
+-# expression guide trigger
+= render "shared/expression_guide_link"

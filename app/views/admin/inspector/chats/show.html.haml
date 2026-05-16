@@ -1,0 +1,49 @@
+- content_for(:title, "Agents inspector — #{@chat.display_title} — #{APP_NAME}")
+= turbo_stream_from "inspector_chat_#{@chat.id}"
+
+/ ── Chat Header ──
+= render "inspector/chats/chat_header", chat: @chat
+
+.inspector-show-content
+  / ── Parent Navigation ──
+  - if @chat.parent_chat
+    .inspector-parent-nav
+      = link_to admin_inspector_chat_path(@chat.parent_chat), class: "inspector-parent-link" do
+        %i.fa-solid.fa-arrow-left.mr-2
+        Back to parent:
+        %strong.ml-1= truncate(@chat.parent_chat.display_title, length: 60)
+        %span.badge.badge-neutral.ml-2 ##{@chat.parent_chat.id}
+
+  / ── Chat Details Grid ──
+  = render "inspector/chats/chat_details", chat: @chat, message_counts: @message_counts, token_totals: @token_totals, total_cost: @total_cost
+
+  / ── Child Chats Panel (full width between details and messages) ──
+  - if @child_chats.any?
+    .inspector-children-panel
+      .inspector-children-header
+        %i.fa-solid.fa-diagram-project.mr-2
+        Child Chats (#{@child_chats.size})
+      .inspector-children-list
+        - @child_chats.each do |child|
+          -# child chat row
+          - child_metrics = @child_chat_metrics[child.id] || { cost: 0, tokens: { input: 0, output: 0 } }
+          = render "inspector/chats/child_chat_row", child:, metrics: child_metrics
+
+  / ── Messages ──
+  .inspector-messages-section{ data: { controller: "inspector-collapse" } }
+    .inspector-section-header{ data: { action: "click->inspector-collapse#toggle" } }
+      .inspector-section-title
+        %i.fa-solid.fa-comments.mr-2
+        Messages (#{@messages.size})
+      .inspector-section-badges
+        %span.badge.badge-brand #{@message_counts[:user]} user
+        %span.badge.badge-success #{@message_counts[:assistant]} assistant
+        - if @message_counts[:tool].positive?
+          %span.badge.badge-warning #{@message_counts[:tool]} tool
+        - if @message_counts[:system].positive?
+          %span.badge.badge-neutral #{@message_counts[:system]} system
+      %i.fa-solid.fa-chevron-down.inspector-collapse-icon{ data: { inspector_collapse_target: "icon" } }
+
+    .inspector-section-body{ data: { inspector_collapse_target: "body" } }
+      - @messages.each_with_index do |message, index|
+        = render "inspector/chats/message_detail", message:, index:

@@ -1,0 +1,61 @@
+/ ── Hero Metrics — Key performance indicators ──
+.dash-hero.mb-6
+  .dash-hero-card.dash-hero-card--conversations
+    .dash-hero-visual
+      .dash-hero-icon-ring
+        %i.fa-solid.fa-comments
+    .dash-hero-data
+      .dash-hero-value= number_with_delimiter(presenter.chats_count)
+      .dash-hero-label Conversations
+    .dash-hero-detail
+      %span
+        %i.fa-solid.fa-message.mr-1
+        #{number_with_delimiter(presenter.messages_count)} messages
+
+  .dash-hero-card.dash-hero-card--tokens
+    .dash-hero-visual
+      .dash-hero-icon-ring
+        %i.fa-solid.fa-coins
+    .dash-hero-data
+      .dash-hero-value= format_token_count(presenter.total_tokens)
+      .dash-hero-label Token Usage
+    .dash-hero-detail
+      %span
+        %i.fa-solid.fa-arrow-down.mr-1
+        = format_token_count(presenter.input_tokens)
+      %span.dash-hero-divider /
+      %span
+        %i.fa-solid.fa-arrow-up.mr-1
+        = format_token_count(presenter.output_tokens)
+
+  .dash-hero-card.dash-hero-card--tool-calls
+    .dash-hero-visual
+      .dash-hero-icon-ring
+        %i.fa-solid.fa-wrench
+    .dash-hero-data
+      .dash-hero-value= number_with_delimiter(presenter.total_tool_calls)
+      .dash-hero-label Tool Calls
+    .dash-hero-detail
+      - if presenter.tools_count.positive?
+        %span
+          %i.fa-solid.fa-toolbox.mr-1
+          #{presenter.tools_count} tools available
+      - else
+        %span No tools configured
+
+  .dash-hero-card.dash-hero-card--missions
+    .dash-hero-visual
+      .dash-hero-icon-ring
+        %i.fa-solid.fa-diagram-project
+    .dash-hero-data
+      .dash-hero-value= number_with_delimiter(presenter.mission_runs_count)
+      .dash-hero-label Mission Runs
+    .dash-hero-detail
+      - if presenter.active_mission_runs.positive?
+        %span.text-amber-500
+          %i.fa-solid.fa-circle-notch.fa-spin.mr-1
+          #{presenter.active_mission_runs} running
+      - else
+        %span
+          %i.fa-solid.fa-diagram-project.mr-1
+          #{presenter.missions_count} missions

@@ -1,0 +1,8 @@
+{
+  "ignored_warnings": [
+    {
+      "fingerprint": "9b333f8eeadb7b5bb3165695ca0bac89e1a43402445a309af1c9f8dfff10f3b0",
+      "note": "Intentional mission-designer feature: HTTP Request nodes can explicitly disable SSL verification for controlled internal endpoints via verify_ssl=false."
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+.playground-sidebar{ data: { controller: "playground-sidebar", playground_sidebar_active_chat_id_value: current_chat&.id } }
+  - if chats.any?
+    .playground-sidebar-section-label.playground-sidebar-section-label--history Chat History
+    .playground-sidebar-list{ data: { playground_sidebar_target: "chatList" } }
+      - chats.each do |chat|
+        = render "admin/playground/chats/chat_item", chat:, current_chat:
+      = render "admin/playground/chats/load_more", pagy:, agent: agent if pagy&.next
+  - elsif agents.any?
+    .playground-sidebar-empty.playground-sidebar-empty--body
+      - if agent
+        %h3 No chats yet
+        %p Start a new chat with #{agent.name}.
+      - else
+        %h3 Select an agent
+        %p Choose an agent from the header to open the Playground.
+  - else
+    .playground-sidebar-empty.playground-sidebar-empty--body
+      %h3= t("playground.chats.no_available_agents.sidebar_title")
+      %p= t("playground.chats.no_available_agents.description")

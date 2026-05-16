@@ -1,0 +1,42 @@
+- rag_flow = run.rag_flow
+- step_runs = run.rag_step_runs.ordered
+- step_runs_by_type = step_runs.index_by(&:step_stage_key)
+
+%div{ id: "rag-run-#{run.id}", data: { controller: "rag-run", rag_run_started_at_value: run.started_at&.iso8601, rag_run_finished_value: run.finished?.to_s } }
+  / ── Run Header ──
+  - meta = []
+  - meta << run_status_badge(run)
+  - meta << tag.span(rag_flow.name, class: "badge badge-neutral")
+  - meta << tag.span(run_duration(run), class: "badge badge-neutral font-mono", data: { rag_run_target: "duration" })
+  - meta << tag.span("Triggered #{run.triggered_by.titleize}", class: "badge badge-secondary") if run.triggered_by.present?
+  - actions = []
+  - actions << { label: "Cancel", url: cancel_admin_rag_flow_run_path(rag_flow, run), icon: "fa-solid fa-stop", style: :danger_outline, method: :post } if run.running? || run.pending?
+
+  = render_page_hero(title: "Run", variant: :compact, title_icon: "fa-solid fa-play", record_title: "##{run.id}", back_link: { label: "Back to Runs", url: admin_rag_flow_runs_path(rag_flow) }, meta:, actions:)
+
+  / ── Pipeline Steps ──
+  .rag-flow.rag-flow--run
+    - RagFlow::STAGES.each_with_index do |stage_config, index|
+      - if index.positive?
+        .rag-flow-connector
+          %i.fa-solid.fa-chevron-right.rag-flow-arrow
+      - step_run = step_runs_by_type[stage_config[:key].to_s]
+      - if step_run
+        = render("admin/rag/runs/step_run_card", step_run:)
+      - else
+        .rag-step-card.rag-step-card--unconfigured{ class: "rag-step-card--#{stage_config[:key]}" }
+          %span.rag-step-number= index + 1
+          .rag-step-icon{ class: "rag-step-icon--#{stage_config[:key]}" }
+            %i{ class: stage_config[:icon] }
+          .rag-step-body
+            %span.rag-step-stage= stage_config[:label]
+
+  / ── Error Details ──
+  - if run.error_message.present?
+    .card.mt-6
+      .card-header
+        %h3.text-base.font-semibold.text-red-500
+          %i.fa-solid.fa-triangle-exclamation.mr-2
+          Error Details
+      .card-body
+        %pre.text-sm.text-red-400.whitespace-pre-wrap.font-mono= run.error_message

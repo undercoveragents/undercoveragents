@@ -1,0 +1,15 @@
+exclude:
+  - 'lib/templates/haml/scaffold/**/*'
+  - 'vendor/bundle/**/*.haml'
+
+linters:
+  LineLength:
+    enabled: false
+  ConsecutiveSilentScripts:
+    max_consecutive: 10
+  ViewLength:
+    max: 150
+  RuboCop:
+    enabled: true
+    ignored_cops:
+      - Rails/HttpStatus

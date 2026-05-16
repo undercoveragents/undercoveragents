@@ -1,0 +1,30 @@
+.ui-wizard__panel#sql-connector-step-defaults
+  = render "shared/wizard/section_head",
+           step:,
+           copy: "Set the schema and query guardrails that downstream SQL tooling should use by default."
+  .form-grid.mt-4
+    .form-group
+      = f.label "sql_database[schema_name]", "Schema Name", class: "form-label"
+      = f.text_field "sql_database[schema_name]", value: connector.schema_name, class: "form-input", placeholder: "public"
+      .form-hint Default schema used for discovery and generated queries.
+
+    .form-group
+      = f.label "sql_database[pool_size]", "Pool Size", class: "form-label"
+      = f.number_field "sql_database[pool_size]", value: connector.pool_size, class: "form-input", min: 1, max: 50
+      .form-hint Number of connections kept ready in the pool.
+
+    .form-group
+      = f.label "sql_database[timeout]", "Timeout (ms)", class: "form-label"
+      = f.number_field "sql_database[timeout]", value: connector.timeout, class: "form-input", min: 1, max: 60_000
+      .form-hint Maximum time to wait for a query result.
+
+    .form-group
+      = f.label "sql_database[max_results]", "Max Results", class: "form-label"
+      = f.number_field "sql_database[max_results]", value: connector.max_results, class: "form-input", min: 1, max: 10_000
+      .form-hint Hard cap applied to returned rows per query.
+
+    .form-group
+      .form-check
+        = check_box_tag "sql_database[read_only]", "1", connector.read_only?, class: "form-check-input", id: "sql_database_read_only"
+        = label_tag "sql_database_read_only", "Read Only", class: "form-check-label"
+      .form-hint Restrict generated and manual tool queries to read-only operations.

@@ -1,0 +1,15 @@
+/ ── Delay Node Configuration ──
+.ms-prop-field
+  %label.ms-prop-label
+    Duration
+    %span.ms-prop-required *
+  %input.ms-prop-input{ type: "number", min: "0", max: "300", step: "0.5", placeholder: "e.g. 5", value: presenter.data("duration"), data: { action: "blur->mission#updateNodeProp", "prop-key": "duration" } }
+/ Unit
+.ms-prop-field
+  %label.ms-prop-label Unit
+  %select.ms-prop-select{ data: { action: "change->mission#updateNodeProp", "prop-key": "unit" } }
+    %option{ value: "seconds", selected: presenter.data("unit", "seconds") == "seconds" } Seconds
+    %option{ value: "minutes", selected: presenter.data("unit", "seconds") == "minutes" } Minutes
+  .ms-prop-hint
+    %i.fa-solid.fa-circle-info
+    Maximum delay: 300 seconds (5 minutes).

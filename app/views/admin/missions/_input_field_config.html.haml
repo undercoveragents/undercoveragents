@@ -1,0 +1,69 @@
+.ms-api-field-config{ data: { "input-fields-target": "configSection" } }
+  / ── String config ──
+  .ms-api-cfg{ data: { "field-types": "string string_array" } }
+    .ms-prop-field
+      %label.ms-prop-label Max Length
+      %input.ms-prop-input{ type: "number", min: "1", placeholder: "No limit", data: { "config-key": "max_length", "config-parse": "integer" } }
+    .ms-prop-field
+      %label.ms-prop-label Default Value
+      %input.ms-prop-input{ type: "text", placeholder: "Optional", data: { "config-key": "default_value" } }
+  / ── Number config ──
+  .ms-api-cfg{ data: { "field-types": "number number_array" } }
+    .ms-prop-field
+      %label.ms-prop-label Min Value
+      %input.ms-prop-input{ type: "number", step: "any", placeholder: "No minimum", data: { "config-key": "min_value", "config-parse": "float" } }
+    .ms-prop-field
+      %label.ms-prop-label Max Value
+      %input.ms-prop-input{ type: "number", step: "any", placeholder: "No maximum", data: { "config-key": "max_value", "config-parse": "float" } }
+    .ms-prop-field
+      %label.ms-prop-label Default Value
+      %input.ms-prop-input{ type: "number", step: "any", placeholder: "Optional", data: { "config-key": "default_value", "config-parse": "float" } }
+  / ── Boolean config ──
+  .ms-api-cfg{ data: { "field-types": "boolean boolean_array" } }
+    .ms-prop-field
+      %label.ms-prop-label Default Value
+      %select.ms-prop-select{ data: { "config-key": "default_value", "config-parse": "boolean" } }
+        %option{ value: "" } No default
+        %option{ value: "true" } True
+        %option{ value: "false" } False
+  / ── File config ──
+  .ms-api-cfg{ data: { "field-types": "file file_array" } }
+    .ms-prop-field
+      %label.ms-prop-label Max Size (MB)
+      %input.ms-prop-input{ type: "number", min: "0.1", step: "0.1", placeholder: "No limit", data: { "config-key": "max_size_mb", "config-parse": "float" } }
+    .ms-prop-field
+      %label.ms-prop-label Allowed Types
+      %input.ms-prop-input{ type: "text", placeholder: "e.g. pdf, jpg, png", data: { "config-key": "allowed_types", "config-parse": "csv-array" } }
+      .ms-prop-hint Comma-separated file extensions.
+  / ── JSON config ──
+  .ms-api-cfg{ data: { "field-types": "json" } }
+    .ms-prop-field
+      %label.ms-prop-label Default Value
+      %textarea.ms-prop-textarea{ rows: 3, placeholder: '{"key": "value"}', data: { "config-key": "default_value" } }
+  / ── Date config ──
+  .ms-api-cfg{ data: { "field-types": "date date_array" } }
+    .ms-prop-field
+      %label.ms-prop-label Min Date
+      %input.ms-prop-input{ type: "date", data: { "config-key": "min_date" } }
+    .ms-prop-field
+      %label.ms-prop-label Max Date
+      %input.ms-prop-input{ type: "date", data: { "config-key": "max_date" } }
+    .ms-prop-field
+      %label.ms-prop-label Default Value
+      %input.ms-prop-input{ type: "date", data: { "config-key": "default_value" } }
+  / ── DateTime config ──
+  .ms-api-cfg{ data: { "field-types": "datetime datetime_array" } }
+    .ms-prop-field
+      %label.ms-prop-label Min DateTime
+      %input.ms-prop-input{ type: "datetime-local", data: { "config-key": "min_datetime" } }
+    .ms-prop-field
+      %label.ms-prop-label Max DateTime
+      %input.ms-prop-input{ type: "datetime-local", data: { "config-key": "max_datetime" } }
+    .ms-prop-field
+      %label.ms-prop-label Default Value
+      %input.ms-prop-input{ type: "datetime-local", data: { "config-key": "default_value" } }
+  / ── Array-specific config (shown for all array types) ──
+  .ms-api-cfg{ data: { "field-types": "string_array number_array boolean_array file_array date_array datetime_array" } }
+    .ms-prop-field
+      %label.ms-prop-label Max Items
+      %input.ms-prop-input{ type: "number", min: "1", placeholder: "No limit", data: { "config-key": "max_items", "config-parse": "integer" } }

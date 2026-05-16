@@ -1,0 +1,72 @@
+/ ── Model Configuration Fields ──
+/ Reusable LLM model configuration: LLM Connection, Model, and Temperature.
+/ This partial renders ONLY the form fields (inside a .form-grid).
+/ The caller is responsible for the wrapping card/container and Stimulus controller.
+/
+/ Locals:
+/   field_prefix             — form field name prefix (e.g. "agent", "sql_query")
+/   frame_id                 — Turbo Frame id for model select (e.g. "agent_model_select")
+/   connector_change_action  — Stimulus action for connector change (e.g. "change->agent-form#onConnectorChange")
+/   available_llm_connectors — Array of LLM Provider Connector records
+/   available_models         — Array of Model records for the currently selected connector
+/   selected_connector_id    — Integer or nil
+/   selected_model_id        — String or nil
+/   temperature_value        — Float (current temperature)
+/   required                 — Boolean (default true)
+
+- required = local_assigns.fetch(:required, true)
+- show_reasoning_settings = local_assigns.fetch(:show_reasoning_settings, false)
+- thinking_effort_value = local_assigns.fetch(:thinking_effort_value, "")
+- thinking_budget_value = local_assigns.fetch(:thinking_budget_value, nil)
+- custom_params_value = local_assigns.fetch(:custom_params_value, "")
+
+.form-grid{ data: { controller: "llm-settings" } }
+  .form-group.col-span-full{ data: { controller: "choices", choices_search_value: "true", choices_placeholder_value: "Select an LLM connection\u2026" } }
+    %label.form-label{ for: "#{field_prefix}_llm_connector_id" }
+      LLM Connection
+      - if required
+        %span.text-danger-500.ml-0.5 *
+    = select_tag "#{field_prefix}[llm_connector_id]", options_for_select([["Select an LLM connection\u2026", ""]] + llm_connectors_for_select(available_llm_connectors), selected_connector_id), id: "#{field_prefix}_llm_connector_id", class: "form-input form-select", required:, data: { choices_target: "select", action: connector_change_action, required: "" }
+    .form-hint Select which LLM provider connection to use.
+
+  = render "shared/model_select", frame_id:, field_prefix:, available_models:, selected_model_id:, required:, frame_data: { llm_settings_target: "modelFrame", action: "turbo:frame-load->llm-settings#syncCapabilities" }, select_action: "change->llm-settings#syncCapabilities"
+
+  .form-group.col-span-full{ data: { controller: "temperature-slider", llm_settings_target: "temperatureField" } }
+    %label.form-label{ for: "#{field_prefix}_temperature" }
+      Temperature
+      %span.text-sm.font-normal.text-text-muted.ml-2{ data: { temperature_slider_target: "label" } }
+        = "(#{temperature_label(temperature_value)})"
+    = range_field_tag "#{field_prefix}[temperature]", temperature_value, min: 0.0, max: 2.0, step: 0.1, id: "#{field_prefix}_temperature", class: "form-range w-full", data: { action: "input->temperature-slider#update", temperature_slider_target: "slider", llm_settings_target: "temperatureInput" }
+    .flex.items-center.justify-between.mt-1
+      %span.text-xs.text-text-muted 0.0 — Precise
+      %span.text-xs.font-medium.text-text-secondary{ data: { temperature_slider_target: "value" } }= temperature_value
+      %span.text-xs.text-text-muted 2.0 — Experimental
+    .form-hint{ data: { llm_settings_target: "temperatureHint", llm_settings_supported_message: "Lower values produce more focused output; higher values add randomness and creativity.", llm_settings_unsupported_message: "Selected model does not expose temperature control.", llm_settings_unselected_message: "Select a model to configure temperature." } }
+      Lower values produce more focused output; higher values add randomness and creativity.
+      Not all models support temperature — some may ignore this setting.
+
+  - if show_reasoning_settings
+    .llm-settings-advanced.col-span-full
+      %details.llm-settings-advanced__details
+        %summary.llm-settings-advanced__summary
+          .llm-settings-advanced__summary-copy
+            %span.llm-settings-advanced__summary-title Advanced Model Options
+            %span.llm-settings-advanced__summary-description Reasoning controls and provider-specific params
+          %i.fa-solid.fa-chevron-right.llm-settings-advanced__summary-icon
+        .llm-settings-advanced__body
+          .form-grid
+            .form-group{ data: { llm_settings_target: "thinkingField" } }
+              %label.form-label{ for: "#{field_prefix}_thinking_effort" } Reasoning
+              = select_tag "#{field_prefix}[thinking_effort]", options_for_select(thinking_effort_options_for_select, thinking_effort_value), id: "#{field_prefix}_thinking_effort", class: "form-input form-select", data: { action: "change->llm-settings#syncThinkingBudget", llm_settings_target: "thinkingEffortInput" }
+              .form-hint{ data: { llm_settings_target: "thinkingHint", llm_settings_supported_message: "Increase reasoning effort only when the task needs extra deliberation.", llm_settings_unsupported_message: "Selected model does not expose reasoning controls.", llm_settings_unselected_message: "Select a model to enable reasoning controls." } }
+                Increase reasoning effort only when the task needs extra deliberation.
+
+            .form-group{ data: { llm_settings_target: "thinkingBudgetField" } }
+              %label.form-label{ for: "#{field_prefix}_thinking_budget" } Thinking Budget
+              = number_field_tag "#{field_prefix}[thinking_budget]", thinking_budget_value, min: 1, step: 1, id: "#{field_prefix}_thinking_budget", class: "form-input", data: { llm_settings_target: "thinkingBudgetInput" }
+              .form-hint Optional reasoning budget for providers that support it.
+
+            .form-group.col-span-full
+              %label.form-label{ for: "#{field_prefix}_custom_llm_params" } Custom Params JSON
+              = text_area_tag "#{field_prefix}[custom_llm_params]", custom_params_value, id: "#{field_prefix}_custom_llm_params", rows: 6, class: "form-input form-textarea llm-settings-json-input", placeholder: '{"top_p": 0.9}'
+              .form-hint Merge provider-specific request params into the model call as a JSON object.

@@ -1,0 +1,91 @@
+# PostgreSQL. Versions 9.3 and up are supported.
+#
+# Install the pg driver:
+#   gem install pg
+# On macOS with Homebrew:
+#   gem install pg -- --with-pg-config=/opt/homebrew/bin/pg_config
+# On Windows:
+#   gem install pg
+#       Choose the win32 build.
+#       Install PostgreSQL and put its /bin directory on your path.
+#
+# Configure Using Gemfile
+# gem "pg"
+#
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  # Avoid libpq Kerberos/GSS probing crashes on some macOS setups.
+  # Override with PG_GSSENCMODE (e.g. prefer/require) when needed.
+  gssencmode: <%= ENV.fetch("PG_GSSENCMODE", "disable") %>
+  # For details on connection pooling, see Rails configuration guide
+  # https://guides.rubyonrails.org/configuring.html#database-pooling
+  max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+
+
+development:
+  primary:
+    <<: *default
+    database: undercover_agents_development_demo
+  queue:
+    <<: *default
+    database: undercover_agents_development_queue_demo
+    migrations_paths: db/queue_migrate
+
+# Warning: The database defined as "test" will be erased and
+# re-generated from your development database when you run "rake".
+# Do not set this db to the same as development or production.
+test:
+  primary:
+    <<: *default
+    database: undercover_agents_test
+  queue:
+    <<: *default
+    database: undercover_agents_test_queue
+    migrations_paths: db/queue_migrate
+
+# As with config/credentials.yml, you never want to store sensitive information,
+# like your database password, in your source code. If your source code is
+# ever seen by anyone, they now have access to your database.
+#
+# Instead, provide the password or a full connection URL as an environment
+# variable when you boot the app. For example:
+#
+#   DATABASE_URL="postgres://myuser:mypass@localhost/somedatabase"
+#
+# If the connection URL is provided in the special DATABASE_URL environment
+# variable, Rails will automatically merge its configuration values on top of
+# the values provided in this file. Alternatively, you can specify a connection
+# URL environment variable explicitly:
+#
+#   production:
+#     url: <%= ENV["MY_APP_DATABASE_URL"] %>
+#
+# Connection URLs for non-primary databases can also be configured using
+# environment variables. The variable name is formed by concatenating the
+# connection name with `_DATABASE_URL`. For example:
+#
+#   CACHE_DATABASE_URL="postgres://cacheuser:cachepass@localhost/cachedatabase"
+#
+# Read https://guides.rubyonrails.org/configuring.html#configuring-a-database
+# for a full overview on how database connection configuration can be specified.
+#
+# On Railway and similar container platforms, queue and cache can share the
+# primary DATABASE_URL unless dedicated URLs are provided.
+production:
+  primary: &primary_production
+    <<: *default
+    url: <%= ENV["DATABASE_URL"].presence %>
+    database: undercover_agents_production
+    username: undercover_agents
+    password: <%= ENV["undercover_agents_DATABASE_PASSWORD"] %>
+  cache:
+    <<: *primary_production
+    url: <%= ENV["CACHE_DATABASE_URL"].presence || ENV["DATABASE_URL"].presence %>
+    database: undercover_agents_production_cache
+    migrations_paths: db/cache_migrate
+  queue:
+    <<: *primary_production
+    url: <%= ENV["QUEUE_DATABASE_URL"].presence || ENV["DATABASE_URL"].presence %>
+    database: undercover_agents_production_queue
+    migrations_paths: db/queue_migrate

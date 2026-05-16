@@ -1,0 +1,13 @@
+/ ── Unique Node Configuration ──
+.ms-prop-field
+  %label.ms-prop-label
+    Collection
+    %span.ms-prop-required *
+  %textarea.ms-prop-textarea{ rows: 2, placeholder: "Variable name or JSON array", data: { action: "blur->mission#updateNodeProp", "prop-key": "collection" } }= presenter.data("collection")
+/ Field
+.ms-prop-field
+  %label.ms-prop-label Field (optional)
+  %input.ms-prop-input{ type: "text", placeholder: "e.g. email, id", value: presenter.data("field"), data: { action: "blur->mission#updateNodeProp", "prop-key": "field" } }
+  .ms-prop-hint
+    %i.fa-solid.fa-circle-info
+    For arrays of objects, deduplicate by this field. Leave empty to compare full items.

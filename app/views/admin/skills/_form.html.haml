@@ -1,0 +1,96 @@
+- action = skill.persisted? ? admin_skill_catalog_skill_path(skill_catalog, skill) : admin_skill_catalog_skills_path(skill_catalog)
+- method = skill.persisted? ? :patch : :post
+- metadata_json = JSON.pretty_generate(skill.metadata.presence || {})
+- form_id = local_assigns.fetch(:form_id, "skill-form")
+
+= form_with model: [:admin, skill_catalog, skill], url: action, method:, local: true, html: { class: "skill-form", id: form_id, multipart: true } do |f|
+  = render "shared/forms/validation_errors", record: skill, resource_name: "skill"
+
+  - if skill.imported? && skill.source_metadata["warnings"].present?
+    .card.mb-6{ class: "border-warning-500/40" }
+      .card-body
+        %h3.text-sm.font-semibold.text-text-primary.mb-2
+          %i.fa-solid.fa-triangle-exclamation.mr-2.text-warning-500
+          Imported Skill Notes
+        %ul.list-disc.list-inside.text-sm.text-text-secondary.space-y-1
+          - Array(skill.source_metadata["warnings"]).each do |warning|
+            %li= warning
+
+  .card.mb-6
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-sparkles.mr-2.text-accent
+        Skill Metadata
+    .card-body
+      .form-grid
+        .form-group.col-span-full
+          = f.label :name, class: "form-label" do
+            Skill name
+            %span.text-danger-500.ml-0.5 *
+          = f.text_field :name, class: "form-input", placeholder: "e.g. renewal-email", required: true
+          .form-hint Prefer the Agent Skills convention: lowercase letters, numbers, and single hyphens.
+
+        .form-group.col-span-full
+          = f.label :description, class: "form-label" do
+            Description
+            %span.text-danger-500.ml-0.5 *
+          = f.text_area :description, class: "form-input", rows: 4, placeholder: "Explain what this skill does and when an agent should load it.", required: true
+          .form-hint This copy becomes part of the runtime skill catalog shown to the model.
+
+        .form-group
+          = f.label :license, class: "form-label"
+          = f.text_field :license, class: "form-input", placeholder: "e.g. Apache-2.0"
+
+        .form-group
+          = f.label :compatibility, class: "form-label"
+          = f.text_field :compatibility, class: "form-input", placeholder: "Optional environment requirements"
+
+        .form-group.col-span-full
+          = f.label :allowed_tools, "Allowed tools", class: "form-label"
+          = f.text_field :allowed_tools, class: "form-input", placeholder: "Optional experimental field, e.g. Bash(git:*) Read"
+
+        .form-group.col-span-full
+          = label_tag "skill_metadata_json", "Metadata JSON", class: "form-label"
+          = text_area_tag "skill[metadata_json]", metadata_json, class: "form-input skill-metadata-editor", rows: 7
+          .form-hint Optional JSON object for additional metadata. The canonical SKILL.md is generated automatically when the skill is saved.
+
+  .card.mb-6
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-scroll.mr-2.text-accent
+        Instructions
+    .card-body
+      .form-group
+        = f.label :instructions, class: "form-label"
+        = f.text_area :instructions, class: "form-input font-mono text-sm", rows: 16, placeholder: "Write the skill body in markdown. Include step-by-step instructions, examples, and references to bundled files when needed."
+        .form-hint The body after the YAML frontmatter. Keep it focused and move deep references into bundled files when it gets too large.
+
+  .card.mb-6
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-folder-tree.mr-2.text-accent
+        Bundled Resources
+    .card-body.space-y-4
+      - if skill.skill_resources.any?
+        .skill-resource-list
+          - skill.skill_resources.each do |resource|
+            %label.skill-resource-item
+              = check_box_tag "skill[remove_resource_ids][]", resource.id, false, class: "form-check-input"
+              .entity-card__icon
+                %i{ class: skill_resource_icon(resource) }
+              .flex-1.min-w-0
+                .text-sm.font-medium.text-text-primary.truncate= resource.relative_path
+                .text-xs.text-text-secondary= resource.file.blob.content_type
+              .badge.badge-secondary= resource.resource_kind
+        .form-hint Check any existing files you want to remove on save.
+      - else
+        .text-sm.text-text-secondary No bundled resources yet.
+
+      .skill-resource-upload
+        .form-group{ class: "flex-1 min-w-[14rem]" }
+          = label_tag "skill_resource_directory", "Target directory", class: "form-label"
+          = text_field_tag "skill[resource_directory]", params.dig(:skill, :resource_directory).presence || "assets", class: "form-input", placeholder: "assets or references/checklists"
+        .form-group{ class: "flex-[1.3]" }
+          = label_tag "skill_resource_files", "Upload files", class: "form-label"
+          = file_field_tag "skill[resource_files][]", multiple: true, class: "form-input"
+      .form-hint Uploaded files are stored inside the chosen relative directory and become available through read_skill_resource.

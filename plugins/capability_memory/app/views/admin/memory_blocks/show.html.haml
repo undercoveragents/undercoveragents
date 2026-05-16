@@ -1,0 +1,95 @@
+-# haml-lint:disable InlineStyles
+- content_for(:title, "#{@memory_block.label} — Memory Block — Admin — Undercover Agents")
+- meta = []
+- meta << tag.span("Read-only", class: "badge badge-default") if @memory_block.read_only?
+= render_page_hero(title: "Memory Block", variant: :compact, title_icon: "fa-solid fa-brain", record_title: @memory_block.label, back_link: { label: "All Blocks", url: admin_memory_blocks_path }, meta:)
+
+- if @memory_block.description.present?
+  .card.mb-6
+    .card-body
+      %p.text-sm.text-text-secondary= @memory_block.description
+
+/ ── Block Info ──
+.card.mb-6
+  .card-header
+    %h3.text-sm.font-semibold.text-text-primary
+      %i.fa-solid.fa-circle-info.mr-2.text-accent
+      Block Info
+  .card-body
+    .detail-grid
+      .detail-item
+        .detail-label Label
+        .detail-value
+          %span.badge.badge-accent= @memory_block.label
+      .detail-item
+        .detail-label Char Limit
+        .detail-value= number_with_delimiter(@memory_block.char_limit)
+      .detail-item
+        .detail-label Your Agents
+        .detail-value= @my_blocks.size
+
+/ ── Default Value (seed for new users) ──
+.card.mb-6
+  .card-header
+    %h3.text-sm.font-semibold.text-text-primary
+      %i.fa-solid.fa-pen.mr-2.text-accent
+      Default Value
+      %span.badge.badge-default.ml-2 used when bootstrapping new users
+  .card-body
+    - if @memory_block.read_only?
+      .p-4.rounded-lg.bg-surface-secondary
+        %pre.text-sm.text-text-primary.whitespace-pre-wrap.break-words
+          = @memory_block.default_value.presence || "(empty)"
+    - else
+      - edit_url = admin_memory_block_path(@memory_block.label)
+      = form_with model: @memory_block, url: edit_url, method: :patch, local: true do |f|
+        - if @memory_block.errors.any?
+          .mb-4.p-3.rounded-lg.border.border-danger-500{ class: "bg-danger-500/10" }
+            %ul.list-disc.list-inside.text-sm.text-danger-500
+              - @memory_block.errors.full_messages.each do |msg|
+                %li= msg
+        .form-grid.mb-4
+          .form-group
+            = f.label :description, class: "form-label" do
+              Description
+            = f.text_field :description, class: "form-input"
+          .form-group
+            = f.label :char_limit, class: "form-label" do
+              Char Limit
+            = f.number_field :char_limit, class: "form-input", min: 1, max: 50_000, step: 1
+        .form-group
+          = f.label :default_value, class: "form-label" do
+            Default Value
+          = f.text_area :default_value, class: "form-input", rows: 10, maxlength: @memory_block.char_limit
+          .form-hint Default value used when bootstrapping new users. #{@memory_block.default_value.to_s.length} / #{@memory_block.char_limit} characters.
+        .flex.justify-end
+          = f.submit "Save", class: "btn btn-primary"
+
+/ ── My Memory by Agent ──
+.card
+  .card-header
+    %h3.text-sm.font-semibold.text-text-primary
+      %i.fa-solid.fa-user-secret.mr-2.text-accent
+      My Memory by Agent
+  .card-body
+    - if @my_blocks.empty?
+      .text-center.py-6
+        %i.fa-solid.fa-inbox.text-xl.text-text-muted.mb-2
+        %p.text-sm.text-text-muted Your user has no memory for this block yet.
+    - else
+      .space-y-4
+        - @my_blocks.each do |amb|
+          .p-4.rounded-lg.bg-surface-secondary
+            .flex.items-center.justify-between.mb-2
+              .flex.items-center.gap-2
+                .flex.items-center.justify-center.w-6.h-6.rounded.bg-surface-tertiary
+                  %i.fa-solid.fa-user-secret.text-xs.text-text-muted
+                %span.text-sm.font-medium.text-text-primary= amb.agent.name
+              .text-xs.text-text-muted
+                - used = amb.value.to_s.length
+                - pct = @memory_block.char_limit.positive? ? (used * 100.0 / @memory_block.char_limit).round : 0
+                #{used} / #{@memory_block.char_limit} chars (#{pct}%)
+            - if amb.value.present?
+              %pre.text-sm.text-text-primary.whitespace-pre-wrap.break-words.mb-0= amb.value
+            - else
+              %span.text-sm.text-text-muted (empty — default will be used)

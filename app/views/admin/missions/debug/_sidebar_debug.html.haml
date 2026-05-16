@@ -1,0 +1,80 @@
+-# Debug panel — 3 collapsible sections: Controls+Inputs, Execution (timeline + global vars), History.
+- latest_run = local_assigns.fetch(:latest_run, nil)
+- recent_runs = local_assigns.fetch(:recent_runs, [])
+- execution_log = local_assigns.fetch(:execution_log, [])
+- run_status = local_assigns.fetch(:run_status, latest_run ? latest_run.status : "none")
+- run_error = local_assigns.fetch(:run_error, nil)
+- debug_state = local_assigns.fetch(:debug_state, nil)
+- active_run_id = latest_run&.active? ? latest_run.id : nil
+- node_states = local_assigns.fetch(:node_states, {})
+
+.ms-debug-sidebar{ id: "mission-debug-panel", data: { controller: "mission-debug", "mission-debug-mission-id-value": mission.id, "mission-debug-execute-url-value": execute_debug_admin_mission_path(mission), "mission-debug-cancel-url-value": cancel_run_admin_mission_path(mission), "mission-debug-run-status-url-value": run_status_admin_mission_path(mission), "mission-debug-run-catch-up-url-value": run_catch_up_admin_mission_path(mission), "mission-debug-debug-inputs-url-value": debug_inputs_admin_mission_path(mission), "mission-debug-load-debug-run-url-value": load_debug_run_admin_mission_path(mission), "mission-debug-reset-debug-url-value": reset_debug_admin_mission_path(mission), "mission-debug-active-run-id-value": active_run_id || 0 } }
+  / ── Run controls & status ──
+  .ms-debug-sidebar-controls
+    = render "admin/missions/debug/run_controls", run_status:
+    -# status indicator
+    .ms-debug-sidebar-status
+      - r_dur = local_assigns.fetch(:run_duration, nil)
+      = render "admin/missions/debug/run_status", run_status:, run_error:, run_duration: r_dur
+
+  / ── Section 1: Inputs ──
+  %details.ms-debug-section{ open: true }
+    %summary.ms-debug-section-summary
+      %i.fa-solid.fa-sliders
+      %span Inputs
+    .ms-debug-section-body.ms-debug-sidebar-inputs
+      = render "admin/missions/debug/inputs", mission:
+
+  / ── Section 2: Execution Timeline ──
+  %details.ms-debug-section{ open: true }
+    %summary.ms-debug-section-summary
+      %i.fa-solid.fa-clock-rotate-left
+      %span Execution
+    .ms-debug-section-body
+      #mission-timeline-content
+        - if execution_log.any?
+          .ms-debug-timeline#mission-timeline-entries
+            - execution_log.each do |entry|
+              -# entry
+              = render "admin/missions/debug/timeline_entry", entry:
+        - else
+          .ms-debug-empty
+            %i.fa-solid.fa-play-circle
+            %span Run the mission to see execution timeline
+
+  / ── Section 3: Global Variables ──
+  - filtered_vars = debug_state ? debug_state.filtered_variables(fallback: :none) : {}
+  %details.ms-debug-section{ open: filtered_vars.any? }
+    %summary.ms-debug-section-summary
+      %i.fa-solid.fa-globe
+      %span Variables
+      - if filtered_vars.any?
+        %span.ms-debug-section-badge= filtered_vars.size
+    .ms-debug-section-body
+      = render "admin/missions/debug/variables", variables: filtered_vars, node_outputs: {}
+
+  / ── Section 4: History ──
+  %details.ms-debug-section
+    %summary.ms-debug-section-summary
+      %i.fa-solid.fa-history
+      %span History
+      - if recent_runs.any?
+        %span.ms-debug-section-badge= recent_runs.size
+    .ms-debug-section-body
+      = render "admin/missions/debug/past_runs", recent_runs:, active_run_id: latest_run&.id
+
+  / ── Hidden container for node state events ──
+  - ns = node_states
+  .hidden#mission-node-events{ data: { "mission-debug-target": "nodeEvents" } }
+    -# Pre-render node/edge events for active runs so canvas recovers state on page load
+    - if debug_state&.active? && (execution_log.any? || ns.any?)
+      - debug_state.node_event_payloads.each do |data|
+        %div{ data: }
+      - debug_state.persisted_node_state_payloads.each do |data|
+        %div{ data: }
+      - debug_state.edge_event_payloads.each do |data|
+        %div{ data: }
+
+  / ── Turbo Stream subscription placeholder ──
+  #mission-stream-subscription
+    = turbo_stream_from "mission_debug_#{latest_run.id}" if latest_run&.active?

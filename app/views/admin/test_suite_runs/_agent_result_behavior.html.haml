@@ -1,0 +1,25 @@
+.grid.grid-cols-1.gap-3.mt-3{ class: "md:grid-cols-2" }
+  .test-result-section
+    .test-result-section-label
+      %i.fa-solid.fa-screwdriver-wrench.mr-1
+      Behavior Checks
+    .test-result-section-content
+      .text-xs
+        %span.font-semibold Semantic:
+        = test_result_check_display(result.semantic_passed)
+      .text-xs.mt-1
+        %span.font-semibold Behavior:
+        = test_result_check_display(result.behavior_passed)
+      - if result.behavior_analysis.present?
+        .text-xs.mt-1= result.behavior_analysis
+  .test-result-section
+    .test-result-section-label
+      %i.fa-solid.fa-route.mr-1
+      Runtime Evidence
+    .test-result-section-content
+      .text-xs
+        %span.font-semibold Tools:
+        = result.actual_tool_names.any? ? result.actual_tool_names.join(", ") : "-"
+      .text-xs.mt-1
+        %span.font-semibold Child chats:
+        = result.actual_child_builtin_keys.any? ? result.actual_child_builtin_keys.join(", ") : "-"

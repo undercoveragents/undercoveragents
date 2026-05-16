@@ -1,0 +1,91 @@
+/ ── Code Node Configuration ──
+.ms-prop-field{ data: { action: "code-editor:change->mission#onCodeEditorChange" } }
+  %label.ms-prop-label
+    Ruby Code
+    %span.ms-prop-required *
+  .ce-container{
+    data: {
+      controller: "code-editor",
+      code_editor_input_variables_value: presenter.selectable_upstream_variables.map do |v|
+        { name: v[:name], type: "any", description: v[:description] || "" }
+      end.to_json,
+      "mission-target": "propCodeEditor",
+    },
+  }
+    .ce-editor-wrap{ data: { "code-editor-target": "editorWrap" } }
+    %input{ type: "hidden", value: presenter.data("code"), data: { "code-editor-target": "hiddenInput" } }
+    .ce-actions
+      %button.ce-action-btn{ type: "button", title: "Toggle editor theme", data: { action: "click->code-editor#toggleTheme", "code-editor-target": "themeToggle" } }
+        %i.fa-solid.fa-circle-half-stroke
+      %button.ce-action-btn{ type: "button", title: "Maximize", data: { action: "click->code-editor#openMaximize" } }
+        %i.fa-solid.fa-expand
+
+    / ── Maximize Dialog ──
+    %dialog.dialog.ce-maximize-dialog{ data: { "code-editor-target": "maximizeDialog", action: "click->code-editor#maximizeBackdropClick" } }
+      .dialog-content.ce-maximize-content
+        .dialog-header
+          %h3.dialog-title Ruby Code
+          %button.dialog-close{ type: "button", data: { action: "click->code-editor#closeMaximize" } }
+            %i.fa-solid.fa-xmark
+        .ce-maximize-body
+          .ce-maximize-editor-wrap{ data: { "code-editor-target": "maximizeEditorWrap" } }
+        .ce-maximize-footer
+          .ce-maximize-footer-left
+            %button.ce-action-btn{ type: "button", title: "Toggle editor theme", data: { action: "click->code-editor#toggleTheme" } }
+              %i.fa-solid.fa-circle-half-stroke
+          .ce-maximize-footer-right
+            %button.btn.btn-secondary{ type: "button", data: { action: "click->code-editor#closeMaximize" } } Cancel
+            %button.btn.btn-primary{ type: "button", data: { action: "click->code-editor#saveMaximize" } }
+              %i.fa-solid.fa-check.mr-1
+              Apply
+
+/ ── Output Variables ──
+.ms-prop-field{ data: { controller: "output-fields" } }
+  %label.ms-prop-label
+    Output Variables
+    %button.ms-prop-add-btn{ type: "button", data: { action: "click->output-fields#addField" } }
+      %i.fa-solid.fa-plus
+  .ms-api-fields-list{ data: { "output-fields-target": "fieldList" } }
+    - output_vars = presenter.code_output_variables
+    - if output_vars.any?
+      - output_vars.each_with_index do |ov, i|
+        .ms-api-field-row
+          .ms-api-field-info
+            %span.ms-api-field-name= ov["name"]
+          - if ov["description"].present?
+            .ms-api-field-label= ov["description"]
+          .ms-api-field-actions
+            %button.ms-api-field-action-btn{ type: "button", data: { action: "click->output-fields#editField", index: i }, title: "Edit" }
+              %i.fa-solid.fa-pen-to-square
+            %button.ms-api-field-action-btn.ms-api-field-action-btn-danger{ type: "button", data: { action: "click->output-fields#removeField", index: i }, title: "Remove" }
+              %i.fa-solid.fa-trash-can
+    - else
+      .ms-api-fields-empty No output variables defined yet.
+  .ms-prop-hint
+    %i.fa-solid.fa-circle-info
+    Define output variables that the code must set via
+    %code set("name", value)
+    \. The implicit
+    %code result
+    variable is always available.
+
+  / ── Output Variable Dialog ──
+  %dialog.ms-api-field-dialog{ data: { "output-fields-target": "dialog", action: "click->output-fields#backdropClick" } }
+    .ms-api-field-dialog-content
+      .ms-api-field-dialog-header
+        %h4.ms-api-field-dialog-title{ data: { "output-fields-target": "dialogTitle" } } Add Output Variable
+        %button.ms-api-field-dialog-close{ type: "button", data: { action: "click->output-fields#closeDialog" } }
+          %i.fa-solid.fa-xmark
+      .ms-api-field-dialog-body
+        .ms-prop-field
+          %label.ms-prop-label
+            Variable Name
+            %span.ms-prop-required *
+          %input.ms-prop-input{ type: "text", placeholder: "e.g. filtered_count", pattern: "[a-z][a-z0-9_]*", data: { "output-fields-target": "fieldName" } }
+          .ms-prop-hint Use lowercase letters, numbers, and underscores.
+        .ms-prop-field
+          %label.ms-prop-label Description
+          %input.ms-prop-input{ type: "text", placeholder: "e.g. Number of filtered items", data: { "output-fields-target": "fieldDescription" } }
+      .ms-api-field-dialog-footer
+        %button.ms-btn.ms-btn-secondary{ type: "button", data: { action: "click->output-fields#closeDialog" } } Cancel
+        %button.ms-btn.ms-btn-primary{ type: "button", data: { action: "click->output-fields#saveField" } } Save

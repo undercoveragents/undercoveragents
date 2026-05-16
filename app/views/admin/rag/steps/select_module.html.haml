@@ -1,0 +1,20 @@
+- content_for(:title, "#{@stage_config[:label]} — #{@rag_flow.name}")
+= render_page_hero(title: @stage_config[:label], variant: :compact, title_icon: @stage_config[:icon], record_title: @rag_flow.name, back_link: { label: "Back to #{@rag_flow.name}", url: admin_rag_flow_path(@rag_flow) })
+
+.module-select-wizard
+  %h2.text-lg.font-semibold.mb-2.text-text-primary Choose Module
+  %p.text-sm.text-text-secondary.mb-6 Select how this stage should process your data.
+
+  .grid.grid-cols-1.md:grid-cols-2.lg:grid-cols-3.gap-5
+    - @available_modules.each do |mod|
+      - edit_url = edit_admin_rag_flow_step_path(@rag_flow, @stage, module_type: mod[:key])
+      = link_to edit_url, class: "module-type-card" do
+        .module-type-card-content
+          .module-type-icon
+            %i{ class: "#{mod[:icon]} text-2xl" }
+          %h3.text-base.font-semibold.mb-1.text-text-primary= mod[:label]
+          %p.text-sm.text-text-secondary= mod[:description]
+        .module-type-card-footer
+          %span.badge.badge-brand
+            %i.fa-solid.fa-arrow-right.mr-1
+            Configure

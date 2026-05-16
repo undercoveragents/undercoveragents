@@ -1,0 +1,69 @@
+- content_for(:title, "Profile — #{APP_NAME}")
+
+.chat-profile-page
+  .chat-profile-header
+    .chat-profile-avatar
+      = @user.initials
+    .chat-profile-info
+      %h1.chat-profile-name= @user.display_name
+      %p.chat-profile-email= @user.email
+
+  .chat-profile-body
+    / ── Account Info ──
+    .card
+      .card-header
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-user.mr-2.text-accent
+          Account Information
+      .card-body
+        .detail-grid
+          .detail-item
+            .detail-label Email
+            .detail-value= @user.email
+          .detail-item
+            .detail-label Role
+            .detail-value
+              - if @user.admin?
+                %span.badge.badge-accent Admin
+              - else
+                %span.badge.badge-default User
+          .detail-item
+            .detail-label Authentication
+            .detail-value
+              - if @user.oauth?
+                %span.badge.badge-info
+                  %i.fa-solid.fa-key.mr-1
+                  = @user.provider.titleize
+              - else
+                %span.badge.badge-default Local
+          .detail-item
+            .detail-label Status
+            .detail-value
+              - if @user.active?
+                %span.badge.badge-success Active
+              - else
+                %span.badge.badge-danger Inactive
+
+    / ── Plugin Profile Panels ──
+    = render_plugin_profile_panels(@user)
+
+    / ── Quick Actions ──
+    .card{ data: { controller: "dialog" } }
+      .card-header
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-bolt.mr-2.text-accent
+          Quick Actions
+      .card-body
+        .flex.flex-wrap.gap-3
+          - if @user.local?
+            %button.btn.btn-secondary{ type: "button", data: { action: "dialog#open" } }
+              %i.fa-solid.fa-key.mr-1
+              Change Password
+            %dialog.dialog{ data: { dialog_target: "dialog", action: "click->dialog#backdropClick" } }
+              .dialog-content
+                .dialog-header
+                  %h3.dialog-title Change Password
+                  %button.dialog-close{ type: "button", data: { action: "dialog#close" } }
+                    %i.fa-solid.fa-times
+                .dialog-body
+                  = turbo_frame_tag :password_change_dialog, src: edit_password_change_path, loading: :lazy

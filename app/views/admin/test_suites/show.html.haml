@@ -1,0 +1,108 @@
+-# haml-lint:disable ViewLength
+- content_for(:title, "#{@test_suite.name} — Test Suites — #{APP_NAME}")
+- actions = []
+- actions << { label: "Run Tests", url: run_suite_admin_test_suite_path(@test_suite), icon: "fa-solid fa-play", style: :primary, method: :post } if @test_suite.can_run?
+- actions << { label: "Edit", url: edit_admin_test_suite_path(@test_suite), icon: "fa-solid fa-pen", style: :secondary } if policy(@test_suite).update?
+- actions << { label: "Delete", url: admin_test_suite_path(@test_suite), icon: "fa-solid fa-trash", style: :danger_outline, method: :delete, data: { controller: "confirm", confirm_title_value: "Delete Test Suite", confirm_message_value: "Are you sure? All test cases and run history will be permanently deleted." } } if policy(@test_suite).destroy?
+
+= turbo_stream_from "test_suite_#{@test_suite.id}"
+= render_page_hero(title: "Test Suite", variant: :compact, title_icon: @test_suite.suite_icon, record_title: @test_suite.name, back_link: { label: "Back to Test Suites", url: admin_test_suites_path }, meta: [test_suite_type_badge(@test_suite), test_suite_status_badge(@test_suite), tag.span(@test_suite.target_name, class: "badge badge-neutral")], actions:)
+
+- if @test_suite.description.present?
+  .card.mb-6
+    .card-body
+      %p.text-sm.text-text-secondary= @test_suite.description
+
+/ ── Stats Row ──
+.grid.grid-cols-2.md:grid-cols-4.gap-4.mb-6
+  .stat-card
+    .flex.items-center.gap-3
+      .stat-icon-box
+        %i.fa-solid.fa-list-check.stat-icon
+      %div
+        .stat-label Test Cases
+        #test-cases-count
+          = render "test_suites/test_cases_count", test_suite: @test_suite
+  .stat-card
+    .flex.items-center.gap-3
+      .stat-icon-box
+        %i.fa-solid.fa-play.stat-icon
+      %div
+        .stat-label Total Runs
+        .stat-value.text-xl= @test_suite.test_suite_runs.size
+  - if @latest_run&.completed?
+    .stat-card
+      .flex.items-center.gap-3
+        .stat-icon-box
+          %i.fa-solid.fa-chart-line.stat-icon
+        %div
+          .stat-label Last Pass Rate
+          .stat-value.text-xl= test_run_pass_rate_display(@latest_run)
+    .stat-card
+      .flex.items-center.gap-3
+        .stat-icon-box
+          %i.fa-solid.fa-stopwatch.stat-icon
+        %div
+          .stat-label Last Duration
+          .stat-value.text-xl= test_run_duration_display(@latest_run)
+
+/ ── Test Cases Table ──
+.card.mb-6{ data: { controller: "dialog" } }
+  .card-header
+    .flex.items-center.justify-between
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-list-check.mr-2.text-accent
+        Test Cases
+      - if policy(@test_suite).update?
+        %button.btn.btn-primary.btn-sm{ type: "button", data: { action: "dialog#open" } }
+          %i.fa-solid.fa-plus.mr-1
+          Add Case
+
+  .card-body.p-0
+    = render "test_suites/test_cases_list", test_suite: @test_suite, test_cases: @test_cases
+
+  / ── Add Test Case Dialog ──
+  - if policy(@test_suite).update?
+    %dialog.dialog{ data: { dialog_target: "dialog", action: "click->dialog#backdropClick" } }
+      .dialog-content
+        .dialog-header
+          %h3.dialog-title
+            %i.fa-solid.fa-plus.mr-2.text-accent
+            Add Test Case
+          %button.dialog-close{ type: "button", data: { action: "dialog#close" } }
+            %i.fa-solid.fa-xmark
+        .dialog-body
+          = render "test_suites/test_case_form", test_suite: @test_suite, test_case: @test_suite.test_cases.build
+
+/ ── Recent Runs ──
+- if @runs.any?
+  .card
+    .card-header
+      .flex.items-center.justify-between
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-clock-rotate-left.mr-2.text-accent
+          Recent Runs
+    .card-body
+      .space-y-3
+        - @runs.each do |run|
+          = link_to admin_test_suite_test_suite_run_path(@test_suite, run), class: "test-run-history-item no-underline" do
+            .flex.items-center.justify-between
+              .flex.items-center.gap-3
+                = test_run_status_badge(run)
+                .text-sm.font-medium.text-text-primary
+                  Run ##{run.id}
+                .text-xs.text-text-muted
+                  = run.created_at.strftime("%b %d, %Y %H:%M")
+              .flex.items-center.gap-4
+                - if run.completed?
+                  .flex.items-center.gap-2
+                    .text-xs.text-text-muted
+                      #{run.passed_count}/#{run.total_count} passed
+                    .test-mini-progress-bar.w-20
+                      -# haml-lint:disable InlineStyles
+                      .test-mini-progress-fill{ style: "width: #{run.pass_rate}%", class: test_run_progress_color(run) }
+                    = test_run_pass_rate_display(run)
+                  .text-xs.text-text-muted
+                    %i.fa-solid.fa-stopwatch.mr-1
+                    = test_run_duration_display(run)
+                %i.fa-solid.fa-chevron-right.text-xs.text-text-muted

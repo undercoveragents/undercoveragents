@@ -1,0 +1,24 @@
+- content_for(:title, "Mission Control — #{@run.mission.name} ##{@run.id} — #{APP_NAME}")
+
+/ ── Run Header ──
+= render "mission_control/runs/run_header", run: @run
+
+.mc-show-content
+  / ── Run Details Grid ──
+  = render "mission_control/runs/run_details", run: @run, execution_stats: @execution_stats
+
+  / ── Timeline (lazy-loaded to avoid deserializing large JSONB columns) ──
+  = turbo_frame_tag "mc-timeline-#{@run.id}", src: timeline_admin_mission_control_run_path(@run), loading: :lazy do
+    .mc-timeline-loading
+      .mc-timeline-loading-inner
+        %i.fa-solid.fa-spinner.fa-spin.mr-2
+        Loading execution timeline…
+
+  / ── Variables Panel ──
+  = render("mission_control/runs/variables_panel", run: @run) if @run.variables.present? && @run.variables.any?
+
+  / ── Trigger Data Panel ──
+  = render("mission_control/runs/trigger_data_panel", run: @run) if @run.trigger_data.present? && @run.trigger_data.any?
+
+  / ── Agent Chats Panel ──
+  = render("mission_control/runs/agent_chats_panel", agent_chats: @agent_chats) if @agent_chats.any?

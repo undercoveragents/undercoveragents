@@ -1,0 +1,7 @@
+- content_for(:title, "Edit — #{@tool.name} — #{APP_NAME}")
+- form_id = "tool-widget-form"
+- actions = [page_hero_form_action(label: "Update", form_id:)]
+= render_page_hero(title: "Edit", variant: :compact, title_icon: "fa-solid fa-wand-magic-sparkles", record_title: @tool.name, back_link: { label: "Back to #{@tool.name}", url: admin_tool_path(@tool) }, meta: [tag.span(tool_type_label(@tool), class: "badge badge-neutral")], actions:)
+
+= form_with url: update_widget_admin_tool_path(@tool), method: :patch, local: true, html: { class: "connector-form", id: form_id } do |f|
+  = render "tools/shared/widget_configuration", f:, tool: @tool, toolable: @toolable

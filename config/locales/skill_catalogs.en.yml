@@ -1,0 +1,16 @@
+en:
+  skill_catalogs:
+    created: "Skill catalog created successfully."
+    updated: "Skill catalog updated successfully."
+    deleted: "Skill catalog deleted successfully."
+    restored: "Built-in skill catalog restored successfully."
+    restored_all: "Restored %{count} built-in skill catalogs."
+    agent_attached: "Agent attached to the skill catalog."
+    agent_detached: "Agent detached from the skill catalog."
+    import_upload_required: "Upload a SKILL.md file or ZIP collection to continue."
+  skills:
+    created: "Skill created successfully."
+    updated: "Skill updated successfully."
+    deleted: "Skill deleted successfully."
+    restored: "Built-in skill restored successfully."
+    import_upload_required: "Upload a SKILL.md file or a ZIP archive containing exactly one skill."

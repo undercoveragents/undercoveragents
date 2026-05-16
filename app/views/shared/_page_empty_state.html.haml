@@ -1,0 +1,7 @@
+.page-empty-state
+  .page-empty-state__content
+    %h3.page-empty-state__title= empty_state.title
+    %p.page-empty-state__body= empty_state.body
+    - if empty_state.actions.present?
+      .page-empty-state__actions
+        = empty_state.actions

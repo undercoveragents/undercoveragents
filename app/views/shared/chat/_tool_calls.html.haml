@@ -1,0 +1,14 @@
+- visible_tool_calls = tool_calls.select { |tool_call| chat_tool_call_badge_visible?(tool_call) }
+- render_entries = chat_tool_call_render_entries(visible_tool_calls, message: local_assigns[:message], chat: local_assigns[:chat])
+- custom_widgets = tool_calls.filter_map do |tool_call|
+  - render_chat_tool_call_widget(tool_call).presence
+
+- if render_entries.any?
+  .shared-chat__tool-calls
+    - render_entries.each do |entry|
+      = render partial: "shared/chat/tool_call_group", locals: { group_title: entry[:group_title], items: entry[:items], status: entry[:status] }
+
+- if custom_widgets.any?
+  .shared-chat__tool-call-widgets
+    - custom_widgets.each do |widget|
+      .shared-chat__tool-call-widget= widget

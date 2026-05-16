@@ -1,0 +1,20 @@
+- content_for(:title, "#{@channel.name} - #{APP_NAME}")
+- credential = channel_primary_credential(@channel)
+= render_page_hero(title: "Channel", variant: :compact, title_icon: @channel.type_icon, record_title: @channel.name, back_link: { label: "Back to Channels", url: admin_channels_path }, meta: channel_show_meta(@channel), actions: channel_show_actions(@channel, credential:))
+
+- if flash[:channel_token].present?
+  .card.mb-6.border-success-500
+    .card-body
+      .flex.items-start.gap-3
+        .flex.items-center.justify-center.w-8.h-8.rounded-full.shrink-0{ class: "bg-success-500/10 text-success-500" }
+          %i.fa-solid.fa-check-circle
+        .flex-1
+          %h3.text-sm.font-semibold.text-success-500.mb-1 Channel Token Generated
+          %p.text-xs.text-text-secondary.mb-3 Copy this token now. It will not be shown again.
+          .flex.items-center.gap-2{ data: { controller: "clipboard", clipboard_text_value: flash[:channel_token] } }
+            %code.text-sm.font-mono.bg-surface-secondary.border.border-border-default.rounded.px-3.py-2.flex-1.break-all= flash[:channel_token]
+            %button.btn.btn-secondary.btn-sm{ type: "button", data: { action: "click->clipboard#copy" } }
+              %i.fa-solid.fa-copy.mr-1
+              Copy
+
+= render_channel_show(@channel, credential:)

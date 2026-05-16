@@ -1,0 +1,7 @@
+= render "shared/forms/validation_errors", record: rag_flow, resource_name: "RAG flow"
+
+.form-grid
+  .form-group
+    = f.label :name, class: "form-label"
+    = f.text_field :name, class: "form-input", placeholder: "e.g., Knowledge Base Loader", maxlength: 100, required: true
+    .form-hint A unique name for this RAG.

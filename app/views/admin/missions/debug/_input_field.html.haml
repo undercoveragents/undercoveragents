@@ -1,0 +1,36 @@
+-# Renders a type-aware input field for the debug inputs panel. Trigger variables use field_type metadata; other variables use plain text inputs.
+- field_type = var[:field_type]
+- key = var[:key]
+- default_value = var[:default_value]
+- target_data = { "mission-debug-target": "inputField" }
+
+- if is_trigger && field_type.present?
+  - case field_type
+  - when "number"
+    %input.ms-debug-input-text{ type: "number", step: "any", name: "trigger_data[#{key}]", placeholder: "Enter number...", autocomplete: "new-password", data: target_data }
+  - when "boolean"
+    %label.ms-debug-input-checkbox
+      %input{ type: "checkbox", name: "trigger_data[#{key}]", value: "true", data: target_data }
+      %span= key
+  - when "date"
+    %input.ms-debug-input-text{ type: "date", name: "trigger_data[#{key}]", autocomplete: "new-password", data: target_data }
+  - when "datetime"
+    %input.ms-debug-input-text{ type: "datetime-local", name: "trigger_data[#{key}]", autocomplete: "new-password", data: target_data }
+  - when "json"
+    %textarea.ms-debug-input-textarea{ name: "trigger_data[#{key}]", placeholder: '{"key": "value"}', rows: 3, autocomplete: "new-password", data: target_data }
+  - when "file"
+    %input.ms-debug-input-file{ type: "file", name: "trigger_files[#{key}]", data: target_data }
+  - when "file_array"
+    %input.ms-debug-input-file{ type: "file", name: "trigger_files[#{key}][]", multiple: true, data: target_data }
+  - when "string_array", "number_array", "date_array", "datetime_array"
+    %textarea.ms-debug-input-textarea{ name: "trigger_data[#{key}]", placeholder: "One value per line", rows: 3, autocomplete: "new-password", data: target_data.merge("array-type": "true") }
+    .ms-debug-input-hint One value per line
+  - when "boolean_array"
+    %textarea.ms-debug-input-textarea{ name: "trigger_data[#{key}]", placeholder: "true\nfalse\ntrue", rows: 3, autocomplete: "new-password", data: target_data.merge("array-type": "true") }
+    .ms-debug-input-hint One value per line (true/false)
+  - else
+    %input.ms-debug-input-text{ type: "text", name: "trigger_data[#{key}]", placeholder: "Enter #{key}...", autocomplete: "new-password", data: target_data }
+- elsif var[:input_type] == "textarea"
+  %textarea.ms-debug-input-textarea{ name: "variables[#{key}]", placeholder: "Enter #{key}...", rows: 3, autocomplete: "new-password", data: target_data }= default_value
+- else
+  %input.ms-debug-input-text{ type: "text", name: "variables[#{key}]", placeholder: "Enter #{key}...", value: default_value, autocomplete: "new-password", data: target_data }

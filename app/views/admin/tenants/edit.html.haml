@@ -1,0 +1,6 @@
+- content_for(:title, "Edit Tenant — #{APP_NAME}")
+- form_id = "tenant-form"
+- back_link = { label: "Back to Tenants", url: admin_tenants_path }
+= render_page_hero(title: "Edit Tenant", variant: :compact, title_icon: "fa-solid fa-building", record_title: @tenant.name, back_link:, actions: [page_hero_form_action(label: "Update Tenant", form_id:)])
+
+= render "tenants/form", form_id:, tenant: @tenant

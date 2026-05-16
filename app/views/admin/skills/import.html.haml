@@ -1,0 +1,33 @@
+- content_for(:title, "Import Skill — #{APP_NAME}")
+- form_id = "skill-import-form"
+= render_page_hero(title: "Import Skill", variant: :compact, theme: :skills, title_icon: "fa-solid fa-file-import", actions: [page_hero_form_action(label: "Import Skill", form_id:)])
+
+= form_with url: import_admin_skill_catalog_skills_path(@skill_catalog), method: :post, local: true, multipart: true, id: form_id do
+  .skills-import-grid
+    .card.skills-import-card
+      .card-header
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-file-import.mr-2.text-accent
+          Import into #{@skill_catalog.name}
+      .card-body.space-y-5
+        .form-group
+          = label_tag :archive, "Upload file", class: "form-label"
+          = file_field_tag :archive, accept: ".md,.zip,text/markdown,application/zip", class: "form-input"
+          .form-hint Use SKILL.md for metadata-only imports or ZIP when the skill also includes scripts, references, or assets.
+
+
+    .card.skills-import-card
+      .card-header
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-circle-info.mr-2.text-accent
+          What Happens on Import
+      .card-body.space-y-4
+        .skills-import-tip
+          %strong One skill only
+          %p.text-sm.text-text-secondary.mt-1 This flow expects exactly one discovered skill. If you want to import several at once, use the collection importer from the catalogs page.
+        .skills-import-tip
+          %strong Existing name matches replace
+          %p.text-sm.text-text-secondary.mt-1 If #{@skill_catalog.name} already contains a skill with the same name, the imported SKILL.md and bundled resources replace the existing version.
+        .skills-import-tip
+          %strong Diagnostics preserved
+          %p.text-sm.text-text-secondary.mt-1 Non-fatal spec warnings are preserved so you can inspect and fix them later from the editor.

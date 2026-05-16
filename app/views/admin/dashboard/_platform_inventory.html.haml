@@ -1,0 +1,95 @@
+/ ── Platform Inventory — Everything at a glance ──
+.dash-inventory.mb-6
+  .dash-inventory-header
+    %h3.dash-inventory-title
+      %i.fa-solid.fa-cubes.mr-2
+      Platform Overview
+
+  .dash-inventory-grid
+    / ── Build ──
+    %a.dash-inv-card{ href: admin_connectors_path }
+      .dash-inv-icon.dash-inv-icon--green
+        %i.fa-solid.fa-plug
+      .dash-inv-body
+        .dash-inv-value= presenter.connectors_count
+        .dash-inv-label Connectors
+      - if presenter.active_connectors.positive?
+        .dash-inv-badge.badge.badge-success #{presenter.active_connectors} active
+
+    -# haml-lint workaround
+    %a.dash-inv-card{ href: admin_agents_path }
+      .dash-inv-icon.dash-inv-icon--purple
+        %i.fa-solid.fa-user-secret
+      .dash-inv-body
+        .dash-inv-value= presenter.agents_count
+        .dash-inv-label Agents
+      - if presenter.enabled_agents.positive?
+        .dash-inv-badge.badge.badge-success #{presenter.enabled_agents} enabled
+
+    -# haml-lint workaround
+    %a.dash-inv-card{ href: admin_skill_catalogs_path }
+      .dash-inv-icon.dash-inv-icon--sky
+        %i.fa-solid.fa-book-open
+      .dash-inv-body
+        .dash-inv-value= presenter.skill_catalogs_count
+        .dash-inv-label Skill Catalogs
+      - if presenter.skills_count.positive?
+        .dash-inv-badge.badge.badge-secondary #{presenter.skills_count} skills
+
+    -# haml-lint workaround
+    %a.dash-inv-card{ href: admin_tools_path }
+      .dash-inv-icon.dash-inv-icon--amber
+        %i.fa-solid.fa-wrench
+      .dash-inv-body
+        .dash-inv-value= presenter.tools_count
+        .dash-inv-label Tools
+      - if presenter.enabled_tools.positive?
+        .dash-inv-badge.badge.badge-success #{presenter.enabled_tools} enabled
+
+    -# haml-lint workaround
+    %a.dash-inv-card{ href: admin_missions_path }
+      .dash-inv-icon.dash-inv-icon--brand
+        %i.fa-solid.fa-diagram-project
+      .dash-inv-body
+        .dash-inv-value= presenter.missions_count
+        .dash-inv-label Missions
+      - if presenter.mission_runs_count.positive?
+        .dash-inv-badge.badge.badge-secondary #{presenter.mission_runs_count} runs
+
+    / ── RAG & Test ──
+    -# haml-lint workaround
+    %a.dash-inv-card{ href: admin_rag_flows_path }
+      .dash-inv-icon.dash-inv-icon--cyan
+        %i.fa-solid.fa-database
+      .dash-inv-body
+        .dash-inv-value= presenter.rag_flows_count
+        .dash-inv-label RAG Flows
+      - if presenter.enabled_rag_flows.positive?
+        .dash-inv-badge.badge.badge-success #{presenter.enabled_rag_flows} enabled
+
+    -# haml-lint workaround
+    %a.dash-inv-card{ href: admin_test_suites_path }
+      .dash-inv-icon.dash-inv-icon--rose
+        %i.fa-solid.fa-vial
+      .dash-inv-body
+        .dash-inv-value= presenter.test_suites_count
+        .dash-inv-label Test Suites
+      - if presenter.test_runs_count.positive?
+        .dash-inv-badge.badge.badge-secondary #{presenter.test_runs_count} runs
+
+    / ── Settings ──
+    -# haml-lint workaround
+    %a.dash-inv-card{ href: admin_users_path }
+      .dash-inv-icon.dash-inv-icon--sky
+        %i.fa-solid.fa-users
+      .dash-inv-body
+        .dash-inv-value= presenter.users_count
+        .dash-inv-label Users
+
+    -# haml-lint workaround
+    %a.dash-inv-card{ href: admin_channels_path }
+      .dash-inv-icon.dash-inv-icon--orange
+        %i.fa-solid.fa-tower-broadcast
+      .dash-inv-body
+        .dash-inv-value= presenter.channels_count
+        .dash-inv-label Channels

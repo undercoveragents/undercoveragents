@@ -1,0 +1,73 @@
+- action = tool.persisted? ? admin_tool_path(tool) : admin_tools_path
+- method = tool.persisted? ? :patch : :post
+- available_flows = RagFlow.where(operation: current_operation).enabled.ordered
+- form_id = local_assigns.fetch(:form_id, "tool-form")
+
+= form_with url: action, method:, local: true, html: { class: "connector-form", id: form_id } do |f|
+  = hidden_field_tag :tool_type, "rag_flow"
+
+  = render "tools/shared/basic_info", f:, tool:
+
+  / ── Rag Flow ──
+  .card.mb-6
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-diagram-project.mr-2.text-accent
+        Rag Flow
+    .card-body
+      - if available_flows.any?
+        .form-group{ data: { controller: "choices", choices_search_value: "false" } }
+          = f.label "rag_flow[rag_flow_id]", class: "form-label" do
+            Rag Flow
+            %span.text-danger-500.ml-0.5 *
+          = f.select "rag_flow[rag_flow_id]", options_for_select(available_flows.map { |fl| [fl.name, fl.id] }, toolable.rag_flow_id), { include_blank: "Select an rag flow…" }, class: "form-input form-select", required: true, data: { choices_target: "select" }
+          .form-hint Select the rag flow that manages the vector store. The tool will use the flow's storage and embedding configuration.
+      - else
+        .text-center.py-8
+          %i.fa-solid.fa-diagram-project.text-2xl.text-text-muted.mb-3
+          %p.text-sm.text-text-secondary.mb-2 No enabled rag flows available.
+          = link_to new_admin_rag_flow_path, class: "btn btn-secondary btn-sm" do
+            %i.fa-solid.fa-plus.mr-1
+            Create an Rag Flow
+
+  / ── Search Parameters ──
+  .card.mb-6
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-sliders.mr-2.text-accent
+        Search Parameters
+    .card-body
+      .form-grid
+        .form-group{ data: { controller: "choices", choices_search_value: "false" } }
+          = f.label "rag_flow[distance_method]", class: "form-label" do
+            Distance Method
+            %span.text-danger-500.ml-0.5 *
+          = f.select "rag_flow[distance_method]", options_for_select(Tools::RagSearchable::DISTANCE_METHODS.map { |m| [m.titleize, m] }, toolable.distance_method), {}, class: "form-input form-select", required: true, data: { choices_target: "select" }
+          .form-hint
+            The vector distance function to use.
+            %strong Cosine
+            is recommended for most embedding models.
+        .form-group
+          = f.label "rag_flow[max_distance]", class: "form-label" do
+            Max Distance
+          = f.number_field "rag_flow[max_distance]", value: toolable.max_distance, class: "form-input", step: 0.01, min: 0.01, max: 2.0, placeholder: "0.8"
+          .form-hint Maximum distance threshold — chunks farther than this are excluded. Leave blank for no limit.
+        .form-group
+          = f.label "rag_flow[results_limit]", class: "form-label" do
+            Results Limit
+            %span.text-danger-500.ml-0.5 *
+          = f.number_field "rag_flow[results_limit]", value: toolable.results_limit, class: "form-input", min: 1, max: 100, required: true
+          .form-hint Maximum number of chunks to return per query.
+
+  / ── Instructions ──
+  .card.mb-6
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-scroll.mr-2.text-accent
+        Instructions
+    .card-body
+      .form-group
+        .form-hint.mb-3
+          Instructions sent to the LLM when this tool is invoked. Supports Markdown.
+          Leave blank to use the global default.
+        = render "shared/prompt_editor", system_value: toolable.custom_instructions || "", field_name: "rag_flow[custom_instructions]", compact: true, show_variables: false, show_user_messages: false

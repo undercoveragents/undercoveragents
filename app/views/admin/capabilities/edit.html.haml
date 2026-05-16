@@ -1,0 +1,24 @@
+- content_for(:title, "Configure #{@capability_type_label} — #{@agent.name} — #{APP_NAME}")
+- form_id = "capability-form"
+- back_link = { label: "Back to #{@agent.name}", url: admin_agent_path(@agent) }
+= render_page_hero(title: "#{@capability_type_label} Capability", variant: :compact, title_icon: "fa-solid fa-bolt", record_title: @agent.name, back_link:, actions: [page_hero_form_action(label: "Save Capability", form_id:)])
+
+= form_with url: admin_agent_capability_path(@agent, @capability_key),
+            method: :patch, local: true,
+            id: form_id,
+            data: { controller: "capability-config",
+                    capability_config_model_options_url_value: model_options_admin_agents_path,
+                    capability_config_frame_id_value: "capability_model_select",
+                    capability_config_field_prefix_value: "capability", } do |_f|
+  = render "shared/forms/validation_errors", record: @capability_config, resource_name: "capability" if @capability_config.respond_to?(:errors) && @capability_config.errors.any?
+
+  / ── Type-specific settings ──
+  .card.mb-6
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-sliders.mr-2.text-accent
+        Settings
+    .card-body
+      = render_capability_form(@capability_config,
+                               capability_record: @capability_record,
+                               available_llm_connectors: @available_llm_connectors,)

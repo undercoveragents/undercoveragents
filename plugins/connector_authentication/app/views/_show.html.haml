@@ -1,0 +1,30 @@
+.detail-grid
+  .detail-item
+    .detail-label Provider
+    .detail-value= connector.provider&.titleize || "Not set"
+
+  - if connector.site_url.present?
+    .detail-item
+      .detail-label Site URL
+      .detail-value= connector.site_url
+
+  - if connector.realm.present?
+    .detail-item
+      .detail-label Realm
+      .detail-value= connector.realm
+
+  .detail-item
+    .detail-label Client ID
+    .detail-value= connector.client_id.presence || "—"
+
+  .detail-item
+    .detail-label Client Secret
+    .detail-value
+      - if connector.client_secret.present?
+        %span.inline-flex.items-center.gap-1.px-2.rounded-full.text-xs.font-medium.text-success-500{ class: "py-0.5 bg-success-500/10" }
+          %i.fa-solid.fa-lock.text-xs
+          Configured
+      - else
+        %span.inline-flex.items-center.gap-1.px-2.rounded-full.text-xs.font-medium.text-warning-500{ class: "py-0.5 bg-warning-500/10" }
+          %i.fa-solid.fa-lock-open.text-xs
+          Not configured

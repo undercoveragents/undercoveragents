@@ -1,0 +1,108 @@
+/* ==========================================================================
+   Toast Notifications
+   Fixed-position, auto-dismissing toast messages.
+   ========================================================================== */
+
+.toast-container {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  pointer-events: none;
+  max-width: min(24rem, calc(100vw - 2rem));
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  pointer-events: auto;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.15);
+  opacity: 0;
+  transform: translateX(1rem);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.toast.toast-enter {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.toast.toast-exit {
+  animation: toast-out 0.25s ease forwards;
+}
+
+@keyframes toast-out {
+  to {
+    opacity: 0;
+    transform: translateX(1rem);
+  }
+}
+
+/* ── Notice (success) ── */
+.toast-notice {
+  background-color: #dcfce7;
+  color: var(--color-success-600);
+  border: 1px solid #bbf7d0;
+
+  .dark & {
+    background-color: rgb(22 101 52 / 0.35);
+    color: var(--color-success-400, #4ade80);
+    border-color: rgb(22 101 52 / 0.5);
+  }
+}
+
+/* ── Alert / Error ── */
+.toast-alert {
+  background-color: #fee2e2;
+  color: var(--color-danger-600);
+  border: 1px solid #fecaca;
+
+  .dark & {
+    background-color: rgb(153 27 27 / 0.35);
+    color: var(--color-danger-400, #f87171);
+    border-color: rgb(153 27 27 / 0.5);
+  }
+}
+
+/* ── Content ── */
+.toast-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.toast-content span {
+  line-height: 1.4;
+}
+
+/* ── Close button ── */
+.toast-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: none;
+  background: none;
+  color: currentColor;
+  opacity: 0.5;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+  font-size: 0.75rem;
+  transition: opacity 0.15s ease;
+
+  &:hover {
+    opacity: 1;
+  }
+}

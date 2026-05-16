@@ -1,0 +1,22 @@
+/ ── Chunk Size ──
+.form-group.mb-4
+  = f.label :chunk_size, class: "form-label" do
+    Chunk Size (characters)
+    %span.text-danger-500.ml-0.5 *
+  = f.number_field :chunk_size, value: steppable.chunk_size || 1000, class: "form-input", min: 1, max: 50_000, required: true
+  .form-hint Maximum number of characters per chunk. Small paragraphs may be merged up to this limit.
+
+/ ── Chunk Overlap ──
+.form-group.mb-4
+  = f.label :chunk_overlap, class: "form-label" do
+    Chunk Overlap (characters)
+    %span.text-danger-500.ml-0.5 *
+  = f.number_field :chunk_overlap, value: steppable.chunk_overlap || 200, class: "form-input", min: 0, max: 10_000, required: true
+  .form-hint Number of overlapping characters between consecutive chunks.
+
+/ ── Min Paragraph Size ──
+.form-group
+  = f.label :min_paragraph_size, class: "form-label" do
+    Min Paragraph Size (characters)
+  = f.number_field :min_paragraph_size, value: steppable.min_paragraph_size || 100, class: "form-input", min: 1, max: 10_000
+  .form-hint Paragraphs shorter than this will be merged with adjacent ones.

@@ -1,0 +1,72 @@
+- content_for :admin_panel_sidebar_panels do
+  .ms-sidebar-panel.hidden{ data: { "panel-sidebar-target": "panel", "sidebar-tab": "components" } }
+    .ms-sidebar-panel-header
+      .ms-sidebar-panel-header-title
+        .ms-sidebar-panel-header-badge
+          %i.fa-solid.fa-shapes
+          %span Components
+    .ms-sidebar-panel-body
+      = render "admin/missions/palette"
+
+  .ms-sidebar-panel.hidden{ data: { "panel-sidebar-target": "panel", "sidebar-tab": "inspector" } }
+    .ms-sidebar-panel-header
+      .ms-sidebar-panel-header-title
+        .ms-sidebar-panel-header-badge
+          %i.fa-solid.fa-sliders
+          %span Inspector
+    = turbo_frame_tag "node-properties", data: { "mission-target": "nodePropertiesFrame", "node-properties-url": node_properties_admin_mission_path(mission), action: "prompt-editor:change->mission#onPromptEditorChange code-editor:change->mission#onCodeEditorChange" } do
+      .ms-sidebar-inspector-empty
+        .ms-sidebar-empty-state
+          %i.fa-solid.fa-mouse-pointer
+          %p Select a node to inspect its properties
+
+  .ms-sidebar-panel.hidden{ data: { "panel-sidebar-target": "panel", "sidebar-tab": "debug" } }
+    .ms-sidebar-panel-header
+      .ms-sidebar-panel-header-title
+        .ms-sidebar-panel-header-badge
+          %i.fa-solid.fa-bug
+          %span Debug
+    .ms-sidebar-panel-body.ms-sidebar-panel-body-flush
+      - debug_state = local_assigns.fetch(:debug_state, nil)
+      - latest_run = local_assigns.fetch(:latest_run, nil)
+      - recent_runs = local_assigns.fetch(:recent_runs, [])
+      - execution_log = debug_state&.execution_log || local_assigns.fetch(:execution_log, [])
+      - r_variables = debug_state&.variables || local_assigns.fetch(:run_variables, {})
+      - r_status = debug_state&.run&.status || (latest_run ? (local_assigns.fetch(:run_status, nil) || latest_run.status) : "none")
+      - r_error = debug_state&.run&.error || local_assigns.fetch(:run_error, nil)
+      - r_duration = debug_state&.duration_ms || local_assigns.fetch(:run_duration, nil)
+      = render "admin/missions/debug/sidebar_debug", mission:, latest_run:, recent_runs:, execution_log:, run_variables: r_variables, run_status: r_status, run_error: r_error, run_duration: r_duration, edge_states: debug_state&.edge_states || local_assigns.fetch(:edge_states, {}), node_states: debug_state&.node_states || local_assigns.fetch(:node_states, {}), node_completion_counts: debug_state&.node_completion_counts || local_assigns.fetch(:node_completion_counts, {}), debug_state:
+
+  .ms-sidebar-panel.hidden{ data: { "panel-sidebar-target": "panel", "sidebar-tab": "variables" } }
+    .ms-sidebar-panel-header
+      .ms-sidebar-panel-header-title
+        .ms-sidebar-panel-header-badge
+          %i.fa-solid.fa-database
+          %span Variables
+    .ms-sidebar-panel-body.ms-sidebar-panel-body-flush
+      = render "admin/missions/global_variables", mission:
+
+  .ms-sidebar-panel.hidden{ data: { "panel-sidebar-target": "panel", "sidebar-tab": "properties" } }
+    .ms-sidebar-panel-header
+      .ms-sidebar-panel-header-title
+        .ms-sidebar-panel-header-badge
+          %i.fa-solid.fa-gear
+          %span Properties
+    .ms-sidebar-panel-body
+      = render "admin/missions/sidebar_properties", mission:
+
+- content_for :admin_panel_sidebar_tabs_before_chat do
+  %button.ms-sidebar-tab-btn{ type: "button", title: "Components", data: { action: "click->panel-sidebar#switchTab", "sidebar-tab": "components", "panel-sidebar-target": "tabButton" } }
+    %i.fa-solid.fa-shapes
+  %button.ms-sidebar-tab-btn{ type: "button", title: "Inspector", data: { action: "click->panel-sidebar#switchTab", "sidebar-tab": "inspector", "panel-sidebar-target": "tabButton" } }
+    %i.fa-solid.fa-sliders
+  .ms-sidebar-activity-sep
+  %button.ms-sidebar-tab-btn{ type: "button", title: "Debug", data: { action: "click->panel-sidebar#switchTab", "sidebar-tab": "debug", "panel-sidebar-target": "tabButton" } }
+    %i.fa-solid.fa-bug
+  %button.ms-sidebar-tab-btn{ type: "button", title: "Variables", data: { action: "click->panel-sidebar#switchTab", "sidebar-tab": "variables", "panel-sidebar-target": "tabButton" } }
+    %i.fa-solid.fa-database
+
+- content_for :admin_panel_sidebar_tabs_after_chat do
+  .ms-sidebar-activity-spacer
+  %button.ms-sidebar-tab-btn{ type: "button", title: "Properties", data: { action: "click->panel-sidebar#switchTab", "sidebar-tab": "properties", "panel-sidebar-target": "tabButton" } }
+    %i.fa-solid.fa-gear

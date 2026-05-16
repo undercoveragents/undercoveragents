@@ -1,0 +1,147 @@
+- action = tool.persisted? ? admin_tool_path(tool) : admin_tools_path
+- method = tool.persisted? ? :patch : :post
+- available_connectors = current_tenant.connectors.sql_databases.enabled.ordered
+- available_llm_connectors = current_tenant.connectors.llm_providers.enabled.ordered
+- llm_provider = toolable.llm_connector
+- provider = llm_provider.provider if llm_provider&.connector_type == "llm_provider"
+- available_embedding_models = provider.present? ? Model.where(provider:).where("modalities -> 'output' @> '\"embeddings\"'").order(:name).select(:model_id, :name, :provider) : Model.none
+- form_id = local_assigns.fetch(:form_id, "tool-form")
+= form_with url: action, method:, local: true, html: { class: "connector-form", id: form_id } do |f|
+  = hidden_field_tag :tool_type, "rag_query"
+  = render "tools/shared/basic_info", f:, tool:
+
+  / ── SQL Database Connector ──
+  .card.mb-6
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-database.mr-2.text-accent
+        SQL Database Connector
+    .card-body
+      - if available_connectors.any?
+        .form-group{ data: { controller: "choices", choices_search_value: "false" } }
+          = f.label "rag_query[connector_id]", class: "form-label" do
+            Connector
+            %span.text-danger-500.ml-0.5 *
+          = f.select "rag_query[connector_id]", options_for_select(available_connectors.map { |c| [c.name, c.id] }, toolable.connector_id), { include_blank: "Select a connector…" }, class: "form-input form-select", required: true, data: { choices_target: "select" }
+          .form-hint Select the SQL database connector containing the vector data (chunks and documents tables).
+      - else
+        .text-center.py-8
+          %i.fa-solid.fa-plug.text-2xl.text-text-muted.mb-3
+          %p.text-sm.text-text-secondary.mb-2 No enabled SQL database connectors available.
+          = link_to new_admin_connector_path(type: "sql_database"), class: "btn btn-secondary btn-sm" do
+            %i.fa-solid.fa-plus.mr-1
+            Create a Connector
+
+  / ── Table Configuration ──
+  .card.mb-6
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-table.mr-2.text-accent
+        Table Configuration
+    .card-body
+      .form-grid
+        .form-group
+          = f.label "rag_query[chunks_table]", class: "form-label" do
+            Chunks Table
+            %span.text-danger-500.ml-0.5 *
+          = f.text_field "rag_query[chunks_table]", value: toolable.chunks_table, class: "form-input", placeholder: "e.g. chunks", required: true
+          .form-hint The table containing document chunks with embeddings.
+        .form-group
+          = f.label "rag_query[documents_table]", class: "form-label" do
+            Documents Table
+            %span.text-danger-500.ml-0.5 *
+          = f.text_field "rag_query[documents_table]", value: toolable.documents_table, class: "form-input", placeholder: "e.g. documents", required: true
+          .form-hint The table containing the parent documents for each chunk.
+  / ── Field Mapping ──
+  .card.mb-6
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-arrows-left-right.mr-2.text-accent
+        Field Mapping
+    .card-body
+      .form-grid
+        .form-group
+          = f.label "rag_query[embedding_field]", class: "form-label" do
+            Embedding Field
+            %span.text-danger-500.ml-0.5 *
+          = f.text_field "rag_query[embedding_field]", value: toolable.embedding_field, class: "form-input", placeholder: "embedding", required: true
+          .form-hint The column in the chunks table that contains the vector embedding.
+        .form-group
+          = f.label "rag_query[chunk_content_field]", class: "form-label" do
+            Chunk Content Field
+            %span.text-danger-500.ml-0.5 *
+          = f.text_field "rag_query[chunk_content_field]", value: toolable.chunk_content_field, class: "form-input", placeholder: "content", required: true
+          .form-hint The column in the chunks table that contains the text content.
+        .form-group
+          = f.label "rag_query[document_reference_field]", class: "form-label" do
+            Document Reference Field
+            %span.text-danger-500.ml-0.5 *
+          = f.text_field "rag_query[document_reference_field]", value: toolable.document_reference_field, class: "form-input", placeholder: "document_id", required: true
+          .form-hint The foreign key column in the chunks table that references the documents table.
+        .form-group.col-span-full
+          = f.label "rag_query[document_fields][]", "Document Metadata Fields", class: "form-label"
+          = f.text_field "rag_query[document_fields_input]", value: toolable.selected_document_fields.join(", "), class: "form-input", placeholder: "title, description, url, keywords", name: nil, id: "document_fields_display", data: { controller: "rag-document-fields", rag_document_fields_hidden_target: "input" }
+          - toolable.selected_document_fields.each do |field|
+            = hidden_field_tag "rag_query[document_fields][]", field
+          .form-hint
+            Comma-separated list of columns from the documents table to include in results.
+            %br
+            Example: title, description, url, keywords
+
+  / ── Search Parameters ──
+  .card.mb-6
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-sliders.mr-2.text-accent
+        Search Parameters
+    .card-body
+      .form-grid
+        .form-group{ data: { controller: "choices", choices_search_value: "false" } }
+          = f.label "rag_query[distance_method]", class: "form-label" do
+            Distance Method
+            %span.text-danger-500.ml-0.5 *
+          = f.select "rag_query[distance_method]", options_for_select(Tools::RagSearchable::DISTANCE_METHODS.map { |m| [m.titleize, m] }, toolable.distance_method), {}, class: "form-input form-select", required: true, data: { choices_target: "select" }
+          .form-hint
+            The vector distance function to use.
+            %strong Cosine
+            is recommended for most embedding models.
+        .form-group
+          = f.label "rag_query[max_distance]", class: "form-label" do
+            Max Distance
+          = f.number_field "rag_query[max_distance]", value: toolable.max_distance, class: "form-input", step: 0.01, min: 0.01, max: 2.0, placeholder: "0.8"
+          .form-hint Maximum distance threshold — chunks farther than this are excluded. Leave blank for no limit.
+        .form-group
+          = f.label "rag_query[results_limit]", class: "form-label" do
+            Results Limit
+            %span.text-danger-500.ml-0.5 *
+          = f.number_field "rag_query[results_limit]", value: toolable.results_limit, class: "form-input", min: 1, max: 100, required: true
+          .form-hint Maximum number of chunks to return per query.
+
+  / ── Embedding Model ──
+  .card.mb-6{ data: { controller: "rag-embedding-config", rag_embedding_config_model_options_url_value: embedding_model_options_admin_agents_path(frame_id: "rag_embedding_model_select", field_prefix: "rag_query"), rag_embedding_config_frame_id_value: "rag_embedding_model_select" } }
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-brain.mr-2.text-accent
+        Embedding Model
+    .card-body
+      .form-grid
+        .form-group.col-span-full{ data: { controller: "choices", choices_search_value: "true", choices_placeholder_value: "Select an LLM connection…" } }
+          %label.form-label{ for: "rag_query_llm_connector_id" }
+            LLM Connection
+            %span.text-danger-500.ml-0.5 *
+          = select_tag "rag_query[llm_connector_id]", options_for_select([["Select an LLM connection…", ""]] + llm_connectors_for_select(available_llm_connectors), toolable.llm_connector_id), id: "rag_query_llm_connector_id", class: "form-input form-select", required: true, data: { choices_target: "select", action: "change->rag-embedding-config#onConnectorChange", required: "" }
+          .form-hint Select the LLM provider that provides the embedding model.
+
+        = render "shared/model_select", frame_id: "rag_embedding_model_select", field_prefix: "rag_query", available_models: available_embedding_models, selected_model_id: toolable.embedding_model_id, required: true
+
+  .card.mb-6
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-scroll.mr-2.text-accent
+        Instructions
+    .card-body
+      .form-group
+        .form-hint.mb-3
+          Instructions sent to the LLM when this tool is invoked. Supports Markdown.
+          Leave blank to use the global default.
+        = render "shared/prompt_editor", system_value: toolable.custom_instructions || "", field_name: "rag_query[custom_instructions]", compact: true, show_variables: false, show_user_messages: false

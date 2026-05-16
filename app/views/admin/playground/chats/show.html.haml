@@ -1,0 +1,16 @@
+- content_for(:title, "Playground — #{APP_NAME}")
+- content_for(:head) { tag.meta(name: "turbo-cache-control", content: "no-cache") }
+- agent_select = render("admin/playground/chats/agent_select", agents: @agents, agent: @agent).presence
+- actions = [{ label: "New Chat", url: admin_playground_chats_path, icon: "fa-solid fa-plus", style: :primary, method: :post, params: { agent_id: @agent.id } }]
+= render_page_hero(title: "Playground", variant: :compact, title_icon: "fa-solid fa-flask", record_title: @agent&.name, meta: [agent_select], actions:)
+
+.playground-container
+  = render "admin/playground/chats/sidebar", agents: @agents, agent: @agent, chats: @chats, pagy: @pagy_chats, current_chat: @chat
+  -# Shared conversation shell
+  = render "shared/chat/shell",
+           chat: @chat,
+           messages: @messages,
+           component: @chat_component,
+           form_url: admin_playground_chat_messages_path(@chat),
+           cancel_url: cancel_admin_playground_chat_path(@chat),
+           poll_url: admin_playground_chat_path(@chat, format: :turbo_stream)

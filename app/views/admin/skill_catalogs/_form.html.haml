@@ -1,0 +1,25 @@
+- action = skill_catalog.persisted? ? admin_skill_catalog_path(skill_catalog) : admin_skill_catalogs_path
+- method = skill_catalog.persisted? ? :patch : :post
+- form_id = local_assigns.fetch(:form_id, "skill-catalog-form")
+
+= form_with model: skill_catalog, url: action, method:, local: true, html: { class: "skill-catalog-form", id: form_id } do |f|
+  = render "shared/forms/validation_errors", record: skill_catalog, resource_name: "catalog"
+
+  .card.mb-6
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-book-open.mr-2.text-accent
+        Catalog Details
+    .card-body
+      .form-grid
+        .form-group.col-span-full
+          = f.label :name, class: "form-label" do
+            Name
+            %span.text-danger-500.ml-0.5 *
+          = f.text_field :name, class: "form-input", placeholder: "e.g. Sales Enablement Library", required: true
+          .form-hint Give this catalog a clear, reusable name that makes sense inside an operation.
+
+        .form-group.col-span-full
+          = f.label :description, class: "form-label"
+          = f.text_area :description, class: "form-input", rows: 5, placeholder: "What kinds of skills live in this catalog, who owns them, and when should agents use them?"
+          .form-hint Catalog descriptions help operators understand scope before attaching the catalog to agents.

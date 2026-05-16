@@ -1,0 +1,56 @@
+- content_for(:title, "Try in Cloud — #{APP_NAME}")
+
+%p.text-sm.text-text-secondary.mb-6
+  Create your own workspace and become its first admin. We will generate the workspace name from your email and you can rename it later.
+
+= form_with scope: :cloud_signup,
+            url: cloud_signup_path,
+            method: :post,
+            local: true,
+            html: { class: "auth-form", data: { turbo: false } } do |f|
+  - if @errors.any?
+    = render "shared/forms/validation_errors",
+             errors: @errors,
+             count: @errors.count,
+             resource_name: "workspace"
+
+  .form-group
+    = f.label :admin_email, "Admin email", class: "form-label"
+    = f.email_field :admin_email,
+                    value: @admin_email,
+                    class: "form-input",
+                    placeholder: "admin@example.com",
+                    autofocus: true
+    .form-hint Your workspace name will be created automatically from this email.
+
+  .form-group
+    = f.label :password, class: "form-label"
+    = f.password_field :password,
+                       class: "form-input",
+                       placeholder: "Create a password"
+
+  .form-group
+    = f.label :password_confirmation, "Confirm password", class: "form-label"
+    = f.password_field :password_confirmation,
+                       class: "form-input",
+                       placeholder: "Repeat your password"
+
+  %button.btn.btn-primary.w-full{ type: "submit" }
+    %i.fa-solid.fa-rocket.mr-2
+    Create workspace
+
+- if google_oauth_enabled?
+  .auth-divider
+    %span or
+
+  = form_tag "/auth/google", method: :post, class: "auth-oauth", data: { turbo: false } do
+    = hidden_field_tag "cloud_signup[flow]", Cloud::PendingSignup::FLOW
+
+    %button.btn.btn-google.w-full{ type: "submit" }
+      %i.fa-brands.fa-google.mr-2
+      Continue with Google
+    %p.text-xs.text-text-secondary.text-center
+      We will create your workspace from your Google email and you can rename it later.
+
+.auth-links
+  = link_to "Already have a workspace? Sign in", new_session_path, class: "auth-link"

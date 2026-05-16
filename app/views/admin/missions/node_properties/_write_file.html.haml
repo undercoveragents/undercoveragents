@@ -1,0 +1,26 @@
+/ ── Write File Node Configuration ──
+.ms-prop-field
+  %label.ms-prop-label
+    Filename
+    %span.ms-prop-required *
+  = render "shared/expression_editor", value: presenter.data("filename"), variables: presenter.selectable_upstream_variables, prop_key: "filename", placeholder: "report_{{date}}.html", rows: 1
+  .ms-prop-hint.ms-prop-hint-vars
+    %i.fa-solid.fa-circle-info
+    Supports
+    %code {{variable}}
+    interpolation for dynamic filenames.
+-# content field
+.ms-prop-field
+  %label.ms-prop-label
+    Content
+    %span.ms-prop-required *
+  = render "shared/expression_editor", value: presenter.data("content"), variables: presenter.selectable_upstream_variables, prop_key: "content", placeholder: "{{llm_node.response}}", rows: 6
+  .ms-prop-hint.ms-prop-hint-vars
+    %i.fa-solid.fa-circle-info
+    Use
+    %code {{variable}}
+    syntax to interpolate upstream variables. Type
+    %code @
+    to insert a variable.
+  -# expression guide trigger
+  = render "shared/expression_guide_link"

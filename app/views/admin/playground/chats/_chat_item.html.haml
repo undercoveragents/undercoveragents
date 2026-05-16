@@ -1,0 +1,9 @@
+- active = chat_active?(chat, current_chat)
+- active_class = active ? "active" : ""
+.playground-sidebar-item-wrapper{ class: active_class, data: { playground_sidebar_target: "chatItem", chat_id: chat.id } }
+  %a.playground-sidebar-item-link{ href: admin_playground_chat_path(chat) }
+    %span.playground-sidebar-item-title
+      %span{ id: "chat-#{chat.id}-title" }= chat_display_title(chat)
+    .playground-sidebar-item-time #{time_ago_in_words(chat.updated_at)} ago
+  = button_to admin_playground_chat_path(chat), method: :delete, class: "playground-sidebar-delete-btn", title: "Delete chat", data: { controller: "confirm", confirm_title_value: "Delete Chat", confirm_message_value: "Are you sure you want to delete this chat? This action cannot be undone.", confirm_confirm_label_value: "Delete", confirm_confirm_icon_value: "fa-solid fa-trash", confirm_confirm_style_value: "danger" } do
+    %i.fa-solid.fa-trash

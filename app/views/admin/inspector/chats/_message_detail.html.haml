@@ -1,0 +1,140 @@
+- number = index + 1
+- display_content = message.display_content.to_s
+- content_length = display_content.length
+.inspector-message{ class: inspector_role_color_class(message.role), data: { controller: "inspector-collapse", inspector_collapse_expanded_value: "false" } }
+  .inspector-message-header{ data: { action: "click->inspector-collapse#toggle" } }
+    .inspector-message-header-left
+      .inspector-message-number ##{number}
+      .inspector-message-role-badge{ class: inspector_role_color_class(message.role) }
+        %i{ class: inspector_role_icon(message.role) }
+        = message.role
+      - if message.model
+        .inspector-message-model
+          %i.fa-solid.fa-microchip.mr-0.5
+          = message.model.model_id
+      - elsif message.assistant?
+        .inspector-message-model
+          %i.fa-solid.fa-microchip.mr-0.5
+          = message.chat.model&.model_id || "—"
+    .inspector-message-header-right
+      - if message.duration_ms.to_i.positive?
+        %span.inspector-message-duration
+          %i.fa-solid.fa-stopwatch
+          = inspector_format_duration(message.duration_ms)
+      - if message.calculate_cost&.positive?
+        %span.inspector-message-cost
+          %i.fa-solid.fa-dollar-sign
+          = format("%.6f", message.calculate_cost)
+      - if message.input_tokens.to_i.positive? || message.output_tokens.to_i.positive?
+        %span.inspector-message-tokens
+          %i.fa-solid.fa-arrow-down.text-xs
+          = number_with_delimiter(message.input_tokens.to_i)
+          %span.mx-0.5 /
+          %i.fa-solid.fa-arrow-up.text-xs
+          = number_with_delimiter(message.output_tokens.to_i)
+      - if content_length.positive?
+        %span.inspector-message-chars #{number_with_delimiter(content_length)} chars
+      %i.fa-solid.fa-chevron-down.inspector-collapse-icon{ data: { inspector_collapse_target: "icon" } }
+  .inspector-message-body{ data: { inspector_collapse_target: "body" } }
+    .inspector-message-meta-grid
+      .inspector-meta-item
+        .inspector-meta-label DB ID
+        .inspector-meta-value= message.id
+      .inspector-meta-item
+        .inspector-meta-label Role
+        .inspector-meta-value= message.role
+      .inspector-meta-item
+        .inspector-meta-label Created
+        .inspector-meta-value{ title: message.created_at.iso8601 }= message.created_at.strftime("%b %d, %Y at %I:%M:%S %p")
+      - if message.model
+        .inspector-meta-item
+          .inspector-meta-label Model
+          .inspector-meta-value.font-mono= message.model.model_id
+        .inspector-meta-item
+          .inspector-meta-label Model DB ID
+          .inspector-meta-value= message.model.id
+      - if message.duration_ms.to_i.positive?
+        .inspector-meta-item
+          .inspector-meta-label Duration
+          .inspector-meta-value= inspector_format_duration(message.duration_ms)
+    - if message.input_tokens.to_i.positive? || message.output_tokens.to_i.positive?
+      .inspector-message-token-grid
+        .inspector-token-box
+          .inspector-token-label INPUT
+          .inspector-token-value= number_with_delimiter(message.input_tokens.to_i)
+        .inspector-token-box
+          .inspector-token-label OUTPUT
+          .inspector-token-value= number_with_delimiter(message.output_tokens.to_i)
+        .inspector-token-box
+          .inspector-token-label CACHED
+          .inspector-token-value= number_with_delimiter(message.cached_tokens.to_i)
+        .inspector-token-box
+          .inspector-token-label CACHE CREATE
+          .inspector-token-value= number_with_delimiter(message.cache_creation_tokens.to_i)
+        - if message.thinking_tokens.to_i.positive?
+          .inspector-token-box
+            .inspector-token-label THINKING
+            .inspector-token-value= number_with_delimiter(message.thinking_tokens.to_i)
+    - if message.tool_calls.any?
+      .inspector-message-section
+        .inspector-message-section-label
+          %i.fa-solid.fa-wrench.mr-1
+          Tool Calls (#{message.tool_calls.size})
+        - message.tool_calls.each do |tc|
+          .inspector-tool-call
+            .inspector-tool-call-header
+              %span.font-semibold= tc.name
+              %span.font-mono.text-text-muted.text-xs= tc.tool_call_id
+              - if tc.duration_ms.to_i.positive?
+                %span.inspector-tool-call-duration
+                  %i.fa-solid.fa-stopwatch.mr-0.5
+                  = inspector_format_duration(tc.duration_ms)
+            - if tc.arguments.present?
+              .inspector-tool-call-args
+                %pre.inspector-code-block= JSON.pretty_generate(tc.arguments)
+    - if message.tool? && message.tool_call_id.present?
+      .inspector-message-section
+        .inspector-message-section-label
+          %i.fa-solid.fa-link.mr-1
+          Tool Call Reference
+        .inspector-meta-item
+          .inspector-meta-label Tool Call DB ID
+          .inspector-meta-value= message.tool_call_id
+    - if message.thinking_text.present?
+      .inspector-message-section
+        .inspector-message-section-label
+          %i.fa-solid.fa-brain.mr-1
+          Thinking
+        .inspector-code-block-wrapper
+          %pre.inspector-code-block= message.thinking_text
+    - if message.thinking_signature.present?
+      .inspector-message-section
+        .inspector-message-section-label
+          %i.fa-solid.fa-signature.mr-1
+          Thinking Signature
+        .inspector-code-block-wrapper
+          %pre.inspector-code-block.text-xs= truncate(message.thinking_signature, length: 200)
+    .inspector-message-section
+      .inspector-message-section-label
+        %i.fa-solid.fa-align-left.mr-1
+        Content
+      - if display_content.present?
+        .inspector-code-block-wrapper
+          %pre.inspector-code-block= display_content
+      - else
+        .text-text-muted.text-xs.italic No content
+
+    - if message.chat_references.any?
+      .inspector-message-section
+        .inspector-message-section-label
+          %i.fa-solid.fa-hashtag.mr-1
+          References
+        .inspector-code-block-wrapper
+          %pre.inspector-code-block= JSON.pretty_generate(message.chat_references)
+    - if message.content_raw.present?
+      .inspector-message-section
+        .inspector-message-section-label
+          %i.fa-solid.fa-code.mr-1
+          Content Raw (JSON)
+        .inspector-code-block-wrapper
+          %pre.inspector-code-block= JSON.pretty_generate(message.content_raw)

@@ -1,0 +1,26 @@
+- url = operation.persisted? ? admin_operation_path(operation) : admin_operations_path
+- method = operation.persisted? ? :patch : :post
+- form_id = local_assigns.fetch(:form_id, "operation-form")
+
+= form_with model: operation, url:, method:, class: "space-y-6", id: form_id do |f|
+  = render "shared/forms/validation_errors", record: operation, resource_name: "operation"
+
+  .card
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-briefcase.mr-2.text-accent
+        Operation Details
+    .card-body
+      .form-grid
+        .form-group
+          = f.label :name, class: "form-label" do
+            Name
+            %span.text-red-500.ml-0.5 *
+          = f.text_field :name, class: "form-input", placeholder: "e.g. Customer Support", required: true, autofocus: true, disabled: operation.system?
+          .form-hint A descriptive name to identify this operation.
+
+        .form-group
+          = f.label :description, class: "form-label" do
+            Description
+          = f.text_area :description, class: "form-input", placeholder: "Describe the purpose of this operation…", rows: 3
+          .form-hint Optional — helps teammates understand the operation's purpose.

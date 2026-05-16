@@ -1,0 +1,13 @@
+.ui-wizard__panel#sql-connector-step-verify
+  = render "shared/wizard/section_head",
+           step:,
+           copy: "Test the unsaved form values before creating or updating the connector."
+  .ui-wizard__action-row.sql-connector-wizard__verify-action.mt-4
+    %p.ui-wizard__action-note The connection test uses the values currently entered in the wizard, including unsaved credentials.
+    = button_tag type: "button",
+                 class: "btn btn-secondary btn-sm",
+                 data: { action: "click->sql-database-connector-form#testConnection", sql_database_connector_form_target: "testBtn" } do
+      %i.fa-solid.fa-plug-circle-check.mr-1
+      Test Connection
+
+  .test-connection-result.mt-4{ data: { sql_database_connector_form_target: "testResult" } }

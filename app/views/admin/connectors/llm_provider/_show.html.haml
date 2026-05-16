@@ -1,0 +1,29 @@
+.detail-grid
+  .detail-item
+    .detail-label Provider
+    .detail-value= connector.provider_label
+  - connector.all_provider_fields.each do |field|
+    - value = connector.send(field)
+    - next if value.blank?
+
+    - is_sensitive = Connectors::LlmProvider::SENSITIVE_FIELDS.include?(field)
+    - is_boolean = Connectors::LlmProvider::BOOLEAN_FIELDS.include?(field)
+    .detail-item
+      .detail-label= Connectors::LlmProvider.field_label(field)
+      .detail-value
+        - if is_sensitive
+          ••••••••#{value.to_s.last(4)}
+        - elsif is_boolean
+          = value ? "Yes" : "No"
+        - else
+          = value
+  .detail-item
+    .detail-label Timeout
+    .detail-value #{connector.request_timeout}s
+  .detail-item
+    .detail-label Max Retries
+    .detail-value= connector.max_retries
+  - if connector.http_proxy.present?
+    .detail-item
+      .detail-label HTTP Proxy
+      .detail-value= connector.http_proxy

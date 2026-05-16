@@ -1,0 +1,69 @@
+- content_for(:title, "Operations — #{APP_NAME}")
+= render_page_hero(title: "Scoped workspaces, separated by intent and ownership", description: "Organize your agents, missions, tools, and RAGs into operations.", variant: :dashboard, eyebrow: { label: "Operations", icon: "fa-solid fa-briefcase" }, actions: [{ label: "New Operation", url: new_admin_operation_path, icon: "fa-solid fa-plus", style: :primary }])
+
+- if @operations.any?
+  .card-grid.card-grid--entities
+    - @operations.each do |operation|
+      - can_edit_operation = policy_allows?(operation, :update?)
+      - edit_operation_title = policy_tooltip(operation, :update?)
+      - can_destroy_operation = policy_allows?(operation, :destroy?) && operation.destroyable?
+      - destroy_operation_title = policy_tooltip(operation, :destroy?)
+      .card.entity-card
+        .card-body.entity-card__body
+          .entity-card__header
+            .entity-card__identity
+              .entity-card__icon
+                %i{ class: operation.icon }
+              .entity-card__identity-copy
+                %h3.entity-card__title= operation.name
+            .entity-card__status
+              - if operation.system?
+                %span.badge.badge-sm.badge-info System
+              - if current_operation&.id == operation.id
+                %span.badge.badge-sm.badge-success Active
+
+          - if operation.description.present?
+            %p.entity-card__description.line-clamp-2= operation.description
+
+          .entity-card__metrics
+            .entity-card__metric
+              %i.fa-solid.fa-user-secret
+              = pluralize(operation.agent_count, "agent")
+            .entity-card__metric
+              %i.fa-solid.fa-diagram-project
+              = pluralize(operation.mission_count, "mission")
+            .entity-card__metric
+              %i.fa-solid.fa-wrench
+              = pluralize(operation.tool_count, "tool")
+            .entity-card__metric
+              %i.fa-solid.fa-arrow-right-to-bracket
+              = pluralize(operation.rag_flow_count, "RAG")
+
+          .entity-card__footer.justify-between
+            %span.entity-card__timestamp
+              %i.fa-solid.fa-clock
+              Updated #{time_ago_in_words(operation.updated_at)} ago
+            .flex.items-center.gap-2.flex-wrap.justify-end
+            - unless current_operation&.id == operation.id
+              = button_to switch_admin_operation_path(operation), method: :post, class: "btn btn-ghost btn-xs", title: "Switch to this operation" do
+                %i.fa-solid.fa-right-to-bracket
+                Switch
+            - if can_edit_operation
+              = link_to edit_admin_operation_path(operation), class: "btn btn-ghost btn-xs", title: "Edit" do
+                %i.fa-solid.fa-pen-to-square
+                Edit
+            - else
+              %button{ type: "button", class: disabled_action_classes("btn btn-ghost btn-xs", disabled: true), disabled: true, title: edit_operation_title }
+                %i.fa-solid.fa-pen-to-square
+                Edit
+            - if can_destroy_operation
+              = button_to admin_operation_path(operation), method: :delete, class: "btn btn-ghost btn-xs text-red-500 hover:text-red-600", title: "Delete Operation", data: { controller: "confirm", confirm_message_value: "Delete operation \"#{operation.name}\"? Resources will be unassigned, not deleted.", turbo_method: :delete } do
+                %i.fa-solid.fa-trash-can
+            - elsif policy_allows?(operation, :destroy?) || operation.headquarter?
+              %button{ type: "button", class: disabled_action_classes("btn btn-ghost btn-xs text-red-500 hover:text-red-600", disabled: true), disabled: true, title: destroy_operation_title }
+                %i.fa-solid.fa-trash-can
+- else
+  = render_page_empty_state(title: "No operations yet", body: "Create your first operation to organize your workspace.") do
+    = link_to new_admin_operation_path, class: "btn btn-primary" do
+      %i.fa-solid.fa-plus.mr-1
+      Create Operation

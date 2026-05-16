@@ -1,0 +1,12 @@
+.page-hero__custom-control{ data: { controller: "user-menu" } }
+  %button.btn.btn-primary{ type: "button", data: { action: "click->user-menu#toggle" }, aria: { haspopup: "menu" } }
+    %i.fa-solid.fa-plus
+    %span New Test
+    %i.fa-solid.fa-chevron-down
+  .inline-dropdown{ data: { "user-menu-target": "dropdown" }, role: "menu" }
+    = link_to new_admin_test_suite_path(suite_type: "agent"), class: "inline-dropdown-item", role: "menuitem" do
+      %i.fa-solid.fa-user-secret
+      %span New Agent Test
+    = link_to new_admin_test_suite_path(suite_type: "mission"), class: "inline-dropdown-item", role: "menuitem" do
+      %i.fa-solid.fa-diagram-project
+      %span New Mission Test

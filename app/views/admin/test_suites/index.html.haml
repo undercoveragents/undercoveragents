@@ -1,0 +1,12 @@
+- content_for(:title, "Test Suites — #{APP_NAME}")
+- new_test_menu = render("admin/test_suites/new_test_menu")
+= render_page_hero(title: "Repeatable checks for agent and mission behavior", description: "Create and run test suites to validate your agents and missions.", variant: :dashboard, eyebrow: { label: "Test Suites", icon: "fa-solid fa-vial-circle-check" }, meta: [new_test_menu])
+
+- if @test_suites.any?
+  .card-grid.card-grid--entities
+    - @test_suites.each do |suite|
+      = render "test_suites/suite_card", test_suite: suite
+
+- else
+  = render_page_empty_state(title: "No test suites yet", body: "Create your first test suite to start validating agent or mission behavior.") do
+    = render "admin/test_suites/new_test_menu"

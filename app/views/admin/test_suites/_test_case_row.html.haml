@@ -1,0 +1,19 @@
+%tr.test-case-row{ id: "test-case-#{test_case.id}" }
+  %td= test_case_match_type_badge(test_case)
+  - if test_suite.agent?
+    %td.text-sm.text-text-primary.truncate{ title: test_case.prompt }= test_case.prompt.truncate(120)
+    %td.text-sm.text-text-secondary.truncate{ title: test_case.expected_answer }= test_case.expected_answer.truncate(120)
+    %td.text-sm.text-text-secondary= test_case_behavior_summary(test_case)
+  - else
+    %td.text-sm.text-text-primary.truncate{ title: test_case.name }= test_case.name.truncate(80)
+    %td.text-sm.text-text-secondary
+      = test_case_expected_status_badge(test_case)
+    %td.text-xs.text-text-muted
+      - if test_case.expected_variables.present?
+        #{test_case.expected_variables.size} #{"var".pluralize(test_case.expected_variables.size)}
+      - else
+        &mdash;
+  - if policy(test_suite).update?
+    %td.text-center
+      = button_to admin_test_suite_test_case_path(test_suite, test_case), method: :delete, class: "btn btn-ghost btn-xs text-danger-500", data: { controller: "confirm", confirm_title_value: "Delete Test Case", confirm_message_value: "Are you sure you want to delete this test case?" } do
+        %i.fa-solid.fa-trash

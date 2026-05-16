@@ -1,0 +1,51 @@
+- can_update_agent = policy_allows?(agent, :update?)
+- update_agent_title = policy_tooltip(agent, :update?)
+
+.card.h-full
+  .card-header
+    .flex.items-center.justify-between
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-sliders.mr-2.text-accent
+        Configuration
+      - if can_update_agent
+        = link_to edit_admin_agent_path(agent), class: "btn btn-secondary btn-xs shrink-0" do
+          %i.fa-solid.fa-pen.mr-1
+          Edit
+      - else
+        %button{ type: "button", class: disabled_action_classes("btn btn-secondary btn-xs shrink-0", disabled: true), disabled: true, title: update_agent_title }
+          %i.fa-solid.fa-pen.mr-1
+          Edit
+  .card-body.space-y-4
+    .space-y-3
+      %div{ class: "text-xs font-semibold uppercase tracking-[0.2em] text-text-muted" } Runtime
+      .detail-grid
+        .detail-item
+          .detail-label Type
+          .detail-value= agent.agent_type.to_s.humanize
+        .detail-item
+          .detail-label Status
+          .detail-value= agent_status_badge(agent)
+        .detail-item
+          .detail-label LLM Source
+          .detail-value= agent_llm_source_label(agent)
+        .detail-item
+          .detail-label LLM Connection
+          .detail-value= agent_llm_connector_display(agent)
+    .border-t.border-border-default.pt-4.space-y-3
+      %div{ class: "text-xs font-semibold uppercase tracking-[0.2em] text-text-muted" } Model Behavior
+      .detail-grid
+        .detail-item
+          .detail-label Model
+          .detail-value= agent_model_display(agent)
+        .detail-item
+          .detail-label Temperature
+          .detail-value
+            %span{ class: agent_temperature_color(agent.temperature) }
+              = agent.temperature
+              %span.text-xs.ml-1 (#{agent_temperature_label(agent.temperature)})
+        .detail-item
+          .detail-label Reasoning
+          .detail-value= agent_thinking_effort_label(agent.thinking_effort)
+        .detail-item
+          .detail-label Thinking Budget
+          .detail-value= agent_thinking_budget_label(agent.thinking_budget)

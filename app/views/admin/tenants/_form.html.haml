@@ -1,0 +1,43 @@
+- url = tenant.persisted? ? admin_tenant_path(tenant) : admin_tenants_path
+- method = tenant.persisted? ? :patch : :post
+- form_id = local_assigns.fetch(:form_id, "tenant-form")
+
+= form_with model: tenant, url:, method:, class: "space-y-6", id: form_id do |f|
+  = render "shared/forms/validation_errors", record: tenant, resource_name: "tenant"
+
+  .card
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-building.mr-2.text-accent
+        Tenant Details
+    .card-body
+      .form-grid
+        .form-group
+          = f.label :name, class: "form-label" do
+            Name
+            %span.text-red-500.ml-0.5 *
+          = f.text_field :name, class: "form-input", placeholder: "e.g. Acme Europe", required: true, autofocus: true
+          .form-hint A unique tenant name for isolation, routing, and tenant-specific sign-in.
+
+        .form-group
+          = f.label :description, class: "form-label"
+          = f.text_area :description, class: "form-input", placeholder: "Describe the tenant, owner, or scope…", rows: 3
+          .form-hint Optional context for system administrators.
+
+        - unless tenant.persisted?
+          .form-group
+            = f.label :admin_email, class: "form-label" do
+              Admin Email
+              %span.text-red-500.ml-0.5 *
+            = f.email_field :admin_email, class: "form-input", placeholder: "admin@example.com", required: true, autocomplete: "email"
+            .form-hint The tenant admin password will be generated and shown once after creation.
+
+  - if tenant.persisted?
+    .card
+      .card-header
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-right-to-bracket.mr-2.text-accent
+          Tenant Login URL
+      .card-body
+        %p.text-sm.text-text-secondary.mb-3 Share this sign-in page with local admins and users who belong to #{tenant.name}.
+        = link_to tenant_login_url(tenant), tenant_login_path(tenant), class: "block break-all text-sm font-medium text-accent hover:underline", target: "_blank", rel: "noopener"

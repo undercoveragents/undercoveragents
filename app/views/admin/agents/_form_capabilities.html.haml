@@ -1,0 +1,64 @@
+/ ── Agent Capabilities ──
+/ Renders configuration panels for all available agent capabilities.
+/
+/ Locals:
+/   agent                    — Agent record
+/   available_llm_connectors — Array of LLM Provider Connector records
+
+- title_gen = agent.capability(:chat_title_generator)
+- title_gen_enabled = agent.capability_enabled?(:chat_title_generator)
+
+/ ── Title Generator ──
+- tg_connector = title_gen.use_custom_llm_config? ? title_gen.resolve_connector(agent) : nil
+- tg_provider = tg_connector.provider if tg_connector&.connector_type == "llm_provider"
+- tg_models = tg_provider.present? ? Model.where(provider: tg_provider).order(:name).select(:model_id, :name, :provider) : Model.none
+
+.capability-card{ data: { controller: "capability-config", capability_config_model_options_url_value: model_options_admin_agents_path, capability_config_frame_id_value: "title_generator_model_select", capability_config_field_prefix_value: "agent[capabilities][chat_title_generator]" } }
+  .capability-header
+    .flex.items-center.gap-3.flex-1
+      .capability-icon
+        %i.fa-solid.fa-heading
+      .flex-1
+        .capability-title Title Generator
+        .capability-description Automatically generates a short descriptive title for chats based on conversation content.
+    .form-check
+      = check_box_tag "agent[capabilities][chat_title_generator][enabled]", "true", title_gen_enabled, class: "form-check-input", id: "capability_title_generator_enabled", data: { capability_config_target: "toggle", action: "change->capability-config#toggleCapability" }
+      = label_tag "capability_title_generator_enabled", "Enable", class: "form-check-label"
+
+  .capability-body{ data: { capability_config_target: "body" }, class: ("hidden" unless title_gen_enabled) }
+    .form-grid
+      .form-group
+        = label_tag "agent_capabilities_title_generator_max_length", class: "form-label" do
+          Max Title Length
+          %span.text-sm.font-normal.text-text-muted.ml-1 (characters)
+        = number_field_tag "agent[capabilities][chat_title_generator][max_length]", title_gen.max_length, min: 5, max: 200, step: 1, class: "form-input", id: "agent_capabilities_title_generator_max_length"
+        .form-hint Maximum number of characters for the generated title. Default: #{Capabilities::TitleGenerator::DEFAULT_MAX_LENGTH}.
+
+      .form-group
+        = label_tag "agent_capabilities_title_generator_max_turns", class: "form-label" do
+          Max Turns
+        = number_field_tag "agent[capabilities][chat_title_generator][max_turns]", title_gen.max_turns, min: 1, max: 50, step: 1, class: "form-input", id: "agent_capabilities_title_generator_max_turns"
+        .form-hint
+          Number of conversation turns to consider for title generation. The title will be
+          generated or updated on each turn up to this limit. Default: #{Capabilities::TitleGenerator::DEFAULT_MAX_TURNS}.
+
+    / ── LLM Configuration ──
+    .mt-4
+      .form-group.mb-4
+        %label.form-label LLM Configuration
+        .flex.flex-col.gap-3
+          %label.flex.items-start.gap-3.cursor-pointer
+            = radio_button_tag "agent[capabilities][chat_title_generator][llm_config_source]", "inherit", title_gen.inherit_llm_config?, class: "form-radio mt-0.5", data: { action: "change->capability-config#onSourceChange" }
+            .flex-1
+              .text-sm.font-medium.text-text-primary Inherit from agent
+              .text-xs.text-text-muted.mt-0.5
+                Use the same LLM connection, model, and temperature as the parent agent.
+          %label.flex.items-start.gap-3.cursor-pointer
+            = radio_button_tag "agent[capabilities][chat_title_generator][llm_config_source]", "custom", title_gen.use_custom_llm_config?, class: "form-radio mt-0.5", data: { action: "change->capability-config#onSourceChange" }
+            .flex-1
+              .text-sm.font-medium.text-text-primary Custom LLM configuration
+              .text-xs.text-text-muted.mt-0.5
+                Use a dedicated LLM connection for title generation (e.g. a smaller, faster model).
+
+      .mt-4{ data: { capability_config_target: "customConfig" }, class: ("hidden" unless title_gen.use_custom_llm_config?) }
+        = render "shared/model_config", field_prefix: "agent[capabilities][chat_title_generator]", frame_id: "title_generator_model_select", connector_change_action: "change->capability-config#onConnectorChange", available_llm_connectors:, available_models: tg_models, selected_connector_id: title_gen.llm_connector_id, selected_model_id: title_gen.model_id, temperature_value: title_gen.temperature || Capabilities::TitleGenerator::DEFAULT_TEMPERATURE, required: false

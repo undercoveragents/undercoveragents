@@ -1,0 +1,75 @@
+/ ── RAG Query Show Section ──
+/ Locals: tool
+- toolable = tool.toolable
+
+/ ── Configuration ──
+.card.mb-6
+  .card-header
+    %h3.text-sm.font-semibold.text-text-primary
+      %i.fa-solid.fa-gear.mr-2.text-accent
+      Configuration
+  .card-body
+    .detail-grid
+      .detail-item
+        .detail-label Connector
+        .detail-value
+          - if toolable.connector.present?
+            = link_to toolable.connector.name, admin_connector_path(toolable.connector), class: "text-accent no-underline"
+          - else
+            %span.text-text-muted Not configured
+      .detail-item
+        .detail-label Chunks Table
+        .detail-value= toolable.chunks_table
+      .detail-item
+        .detail-label Documents Table
+        .detail-value= toolable.documents_table
+      .detail-item
+        .detail-label Embedding Field
+        .detail-value
+          %code.text-sm= toolable.embedding_field
+      .detail-item
+        .detail-label Chunk Content Field
+        .detail-value
+          %code.text-sm= toolable.chunk_content_field
+      .detail-item
+        .detail-label Document Reference Field
+        .detail-value
+          %code.text-sm= toolable.document_reference_field
+      .detail-item
+        .detail-label Document Metadata Fields
+        .detail-value
+          - if toolable.selected_document_fields.any?
+            .flex.flex-wrap.gap-1
+              - toolable.selected_document_fields.each do |field|
+                %span.badge.badge-secondary= field
+          - else
+            %span.text-text-muted None configured
+      .detail-item
+        .detail-label Distance Method
+        .detail-value
+          %span.badge.badge-info= toolable.distance_method.titleize
+      .detail-item
+        .detail-label Max Distance
+        .detail-value= toolable.max_distance.presence || "No limit"
+      .detail-item
+        .detail-label Results Limit
+        .detail-value= toolable.results_limit
+      .detail-item
+        .detail-label Embedding Connection
+        .detail-value
+          - if toolable.llm_connector.present?
+            = link_to toolable.llm_connector.name, admin_connector_path(toolable.llm_connector), class: "text-accent no-underline"
+          - else
+            %span.text-text-muted Not configured
+      .detail-item
+        .detail-label Embedding Model
+        .detail-value= toolable.embedding_model_id.presence || "Not configured"
+
+- if toolable.custom_instructions.present?
+  .card.mb-6
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-scroll.mr-2.text-accent
+        Instructions
+    .card-body
+      .markdown-body.bg-surface-secondary.p-4.rounded-lg{ data: { controller: "markdown-render", markdown_render_content_value: toolable.custom_instructions } }

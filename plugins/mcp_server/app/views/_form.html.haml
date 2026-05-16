@@ -1,0 +1,55 @@
+- action = connector.persisted? ? admin_connector_path(connector) : admin_connectors_path
+- method = connector.persisted? ? :patch : :post
+- form_id = local_assigns.fetch(:form_id, "connector-form")
+
+.connector-form-container{ data: { controller: "mcp-server-connector-form", mcp_server_connector_form_test_url_value: admin_test_connection_mcp_server_connectors_path } }
+  = form_with url: action, method:, local: true, html: { class: "connector-form", id: form_id } do |f|
+    = hidden_field_tag :connector_type, "mcp_server"
+
+    = render "shared/forms/validation_errors", record: connector, resource_name: "connector"
+
+    / ── Basic Information (shared) ──
+    = render "connectors/forms/shared/basic_info", f:, connector:
+
+    / ── Transport Configuration ──
+    .card.mb-6
+      .card-header
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-network-wired.mr-2.text-accent
+          Transport Configuration
+      .card-body
+        .form-grid
+          .form-group.col-span-full{ data: { controller: "choices", choices_search_value: "false" } }
+            = f.label "mcp_server[transport_type]", class: "form-label" do
+              Transport Type
+              %span.text-danger-500.ml-0.5 *
+            = f.select "mcp_server[transport_type]", options_for_select(Connectors::McpServer::TRANSPORT_TYPES.map { |t| [transport_type_label(t), t] }, connector.transport_type), {}, class: "form-input form-select", data: { choices_target: "select", action: "change->mcp-server-connector-form#onTransportChange" }, required: true
+            .form-hint Choose how to connect to the MCP server.
+
+    / ── Transport-specific fields (Turbo Frame) ──
+    = turbo_frame_tag "mcp_transport_fields" do
+      = render "mcp_server_transport_fields", connector:
+
+    / ── Connection Settings ──
+    .card.mb-6
+      .card-header.cursor-pointer{ data: { action: "click->mcp-server-connector-form#toggleAdvanced" } }
+        .flex.items-center.justify-between
+          %h3.text-sm.font-semibold.text-text-primary
+            %i.fa-solid.fa-sliders.mr-2.text-accent
+            Advanced Settings
+            %i.fa-solid.fa-chevron-down.text-xs.transition-transform.duration-200.text-text-muted{ data: { mcp_server_connector_form_target: "advancedChevron" } }
+          .card-body.hidden{ data: { mcp_server_connector_form_target: "advancedPanel" } }
+        .form-grid
+          .form-group
+            = f.label "mcp_server[request_timeout]", "Request Timeout (ms)", class: "form-label"
+            = f.number_field "mcp_server[request_timeout]", value: connector.request_timeout, class: "form-input", min: 1000, max: 120_000
+            .form-hint Default: 8000ms. Maximum time to wait for server responses.
+
+    / ── Test Connection ──
+    .card.mb-6
+      .card-body
+        .flex.items-center.gap-3
+          %button.btn.btn-secondary{ type: "button", data: { action: "click->mcp-server-connector-form#testConnection", mcp_server_connector_form_target: "testBtn" } }
+            %i.fa-solid.fa-plug-circle-check.mr-1
+            Test Connection
+          .test-connection-result{ data: { mcp_server_connector_form_target: "testResult" } }

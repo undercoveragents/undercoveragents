@@ -1,0 +1,30 @@
+/ ── Generate Image Node Configuration ──
+/ Prompt
+= render "shared/prompt_editor", system_value: presenter.data("prompt"), compact: true, show_variables: true, show_user_messages: false, variables: presenter.upstream_variables.map { |v| { name: v[:name], description: v[:description] || "" } }, user_messages: []
+/ LLM Connection
+.ms-prop-field
+  %label.ms-prop-label
+    LLM Connection
+    %span.ms-prop-required *
+  %select.ms-prop-select{ data: { action: "change->mission#updateLlmConnector", "prop-key": "connector_id", "name-key": "connector_name" } }
+    %option{ value: "" } Select a connection…
+    - llm_connectors.each do |c|
+      %option{ value: c.id, selected: c.id.to_s == presenter.data("connector_id").to_s }= c.name
+/ Model — pre-populated server-side, reloaded via Turbo Frame on connector change
+.ms-prop-field
+  %label.ms-prop-label
+    Model
+    %span.ms-prop-required *
+  = turbo_frame_tag "node-model-select", data: { "node-model-options-url": node_image_model_options_admin_mission_path(presenter.mission) } do
+    %select.ms-prop-select{ data: { action: "change->mission#updateNodePropSelect", "prop-key": "model", "name-key": "model_name" } }
+      %option{ value: "" } Select a model…
+      - presenter.available_image_models.each do |m|
+        %option{ value: m.model_id, selected: m.model_id == presenter.data("model") }= m.name.presence || m.model_id
+/ Size
+.ms-prop-field
+  %label.ms-prop-label Size
+  %select.ms-prop-select{ data: { action: "change->mission#updateNodePropSelect", "prop-key": "size" } }
+    %option{ value: "", selected: presenter.data("size").blank? } Default
+    %option{ value: "1024x1024", selected: presenter.data("size") == "1024x1024" } 1024×1024 (Square)
+    %option{ value: "1792x1024", selected: presenter.data("size") == "1792x1024" } 1792×1024 (Landscape)
+    %option{ value: "1024x1792", selected: presenter.data("size") == "1024x1792" } 1024×1792 (Portrait)

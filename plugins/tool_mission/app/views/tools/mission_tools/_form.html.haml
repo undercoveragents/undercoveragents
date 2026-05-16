@@ -1,0 +1,44 @@
+- action = tool.persisted? ? admin_tool_path(tool) : admin_tools_path
+- method = tool.persisted? ? :patch : :post
+- available_missions = Mission.where(operation: current_operation).order(:name)
+- form_id = local_assigns.fetch(:form_id, "tool-form")
+
+= form_with url: action, method:, local: true, html: { class: "connector-form", id: form_id } do |f|
+  = hidden_field_tag :tool_type, "mission_tool"
+
+  = render "tools/shared/basic_info", f:, tool:
+
+  / ── Mission Selection ──
+  .card.mb-6
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-diagram-project.mr-2.text-accent
+        Mission
+    .card-body
+      - if available_missions.any?
+        .form-group{ data: { controller: "choices", choices_search_value: "true", choices_placeholder_value: "Select a mission…" } }
+          = f.label "mission_tool[mission_id]", class: "form-label" do
+            Mission
+            %span.text-danger-500.ml-0.5 *
+          = f.select "mission_tool[mission_id]", options_for_select(available_missions.map { |m| [m.name, m.id] }, toolable.mission_id), { include_blank: "Select a mission…" }, class: "form-input form-select", required: true, data: { choices_target: "select" }
+          .form-hint Select the mission to execute when this tool is called by an agent.
+      - else
+        .text-center.py-8
+          %i.fa-solid.fa-diagram-project.text-2xl.text-text-muted.mb-3
+          %p.text-sm.text-text-secondary.mb-2 No missions available.
+          = link_to admin_missions_path, class: "btn btn-secondary btn-sm" do
+            %i.fa-solid.fa-plus.mr-1
+            Create a Mission
+
+  / ── Instructions ──
+  .card.mb-6
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-scroll.mr-2.text-accent
+        Instructions
+    .card-body
+      .form-group
+        .form-hint.mb-3
+          Instructions sent to the LLM when this tool is invoked. Supports Markdown.
+          Leave blank to use the default.
+        = render "shared/prompt_editor", system_value: toolable.instructions || "", field_name: "mission_tool[instructions]", compact: true, show_variables: false, show_user_messages: false

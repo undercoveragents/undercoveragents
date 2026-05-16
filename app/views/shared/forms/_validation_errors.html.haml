@@ -1,0 +1,20 @@
+- record = local_assigns[:record]
+- errors = Array(local_assigns[:errors] || record&.errors&.full_messages)
+- count = local_assigns[:count] || errors.count
+- record_class = record&.class
+- default_resource_name = record_class.respond_to?(:model_name) ? record_class.model_name.human.downcase : "record"
+- resource_name = local_assigns[:resource_name] || default_resource_name
+- count_label = pluralize(count, "error")
+- message = local_assigns[:message] || "#{count_label} prevented this #{resource_name} from being saved:"
+
+- if errors.any?
+  .card.mb-6.border-danger-500
+    .card-body
+      .flex.items-start.gap-3
+        .flex.items-center.justify-center.w-8.h-8.rounded-full.shrink-0{ class: "bg-danger-500/10 text-danger-500" }
+          %i.fa-solid.fa-circle-exclamation
+        .flex-1
+          %h3.text-sm.font-semibold.text-danger-500.mb-1= message
+          %ul.list-disc.list-inside.text-sm.text-text-secondary.space-y-1
+            - errors.each do |error_message|
+              %li= error_message

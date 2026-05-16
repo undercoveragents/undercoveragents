@@ -1,0 +1,39 @@
+/ ── RAG Flow Show Section ──
+/ Locals: tool
+- toolable = tool.toolable
+- flow = toolable.rag_flow
+
+/ ── Configuration ──
+.card.mb-6
+  .card-header
+    %h3.text-sm.font-semibold.text-text-primary
+      %i.fa-solid.fa-gear.mr-2.text-accent
+      Configuration
+  .card-body
+    .detail-grid
+      .detail-item
+        .detail-label Rag Flow
+        .detail-value
+          - if flow.present?
+            = link_to flow.name, admin_rag_flow_path(flow), class: "text-accent no-underline"
+          - else
+            %span.text-text-muted Not configured
+      .detail-item
+        .detail-label Distance Method
+        .detail-value
+          %span.badge.badge-info= toolable.distance_method.titleize
+      .detail-item
+        .detail-label Max Distance
+        .detail-value= toolable.max_distance.presence || "No limit"
+      .detail-item
+        .detail-label Results Limit
+        .detail-value= toolable.results_limit
+
+- if toolable.custom_instructions.present?
+  .card.mb-6
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-scroll.mr-2.text-accent
+        Instructions
+    .card-body
+      .markdown-body.bg-surface-secondary.p-4.rounded-lg{ data: { controller: "markdown-render", markdown_render_content_value: toolable.custom_instructions } }

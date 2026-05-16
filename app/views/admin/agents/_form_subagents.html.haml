@@ -1,0 +1,21 @@
+= f.hidden_field :subagent_ids, value: "", multiple: true, id: nil
+- if available_agents.any?
+  %p.text-sm.text-text-secondary.mb-4
+    Select sub-agents this agent can delegate questions to. Only enabled agents are shown.
+  .space-y-2
+    - available_agents.each do |sub|
+      - checked = agent.subagent_ids.include?(sub.id)
+      .flex.items-center.gap-3.p-3.rounded-lg.border.transition-colors.cursor-pointer{ class: checked ? "border-accent bg-accent/5" : "border-border-default hover:border-accent" }
+        = f.check_box :subagent_ids, { multiple: true, checked:, id: "subagent_#{sub.id}", class: "form-check-input" }, sub.id, nil
+        = label_tag "subagent_#{sub.id}", class: "flex items-center gap-3 flex-1 cursor-pointer" do
+          .entity-card__icon
+            %i.fa-solid.fa-user-secret
+          .flex-1.min-w-0
+            .text-sm.font-medium.text-text-primary.truncate= sub.name
+            .text-xs.text-text-secondary= agent_model_display(sub.model_id)
+            - if sub.description.present?
+              .text-xs.text-text-muted.mt-1.line-clamp-1= sub.description
+- else
+  .text-center.py-8
+    %i.fa-solid.fa-user-secret.text-2xl.text-text-muted.mb-3
+    %p.text-sm.text-text-secondary.mb-2 No other enabled agents available as sub-agents.

@@ -1,0 +1,61 @@
+.sql-connector-wizard .card {
+  margin: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.sql-connector-wizard .card-header {
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.sql-connector-wizard .card-body {
+  padding: 0;
+}
+
+.sql-connector-wizard .test-connection-result {
+  margin: 0;
+}
+
+.sql-connector-wizard__field-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.sql-connector-wizard__field-label-row .form-label {
+  margin-bottom: 0;
+}
+
+.sql-connector-wizard__database-field {
+  display: block;
+}
+
+.sql-connector-wizard__database-control {
+  width: 100%;
+}
+
+.sql-connector-wizard__database-action {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.sql-connector-wizard__verify-action {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+@media (max-width: 767px) {
+  .sql-connector-wizard__field-label-row {
+    align-items: stretch;
+  }
+
+  .sql-connector-wizard__database-action {
+    margin-left: 0;
+  }
+}

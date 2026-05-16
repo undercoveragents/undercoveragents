@@ -1,0 +1,68 @@
+- telegram_channels = user.tenant.channels.enabled.by_type(Channels::Telegram.key).includes(:connector, :channel_identities).ordered
+- if telegram_channels.any?
+  - pending_requests = Channels::TelegramLinkRequest.pending_for(user:, channels: telegram_channels)
+  - pending_tokens = flash[:telegram_link_tokens].is_a?(Hash) ? flash[:telegram_link_tokens] : {}
+
+  .card
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-brands.fa-telegram.mr-2.text-accent
+        Telegram Channels
+    .card-body
+      .space-y-4
+        - telegram_channels.each do |channel|
+          - linked_identity = channel.channel_identities.find { |identity| identity.user_id == user.id }
+          - pending_request = pending_requests[channel.id]
+          - raw_token = pending_tokens[channel.id.to_s]
+          .rounded-xl.border.border-border-default.bg-surface-secondary.p-4.space-y-4
+            .flex.items-start.justify-between.gap-4
+              .min-w-0
+                .text-sm.font-semibold.text-text-primary= channel.name
+                .text-xs.text-text-secondary.mt-1
+                  - if channel.connector&.bot_username.present?
+                    Telegram @#{channel.connector.bot_username}
+                  - else
+                    Telegram connector configured
+              - if linked_identity.present?
+                %span.badge.badge-success Linked
+              - elsif pending_request.present?
+                %span.badge.badge-warning Pending
+              - else
+                %span.badge.badge-neutral Not Linked
+
+            - if linked_identity.present?
+              .detail-grid
+                .detail-item
+                  .detail-label Telegram User ID
+                  .detail-value= linked_identity.external_user_id
+                - if linked_identity.external_username.present?
+                  .detail-item
+                    .detail-label Username
+                    .detail-value
+                      = link_to "@#{linked_identity.external_username}", "https://t.me/#{linked_identity.external_username}", target: "_blank", rel: "noopener", class: "text-accent no-underline"
+
+              = button_to unlink_telegram_channel_profile_path(channel), method: :delete, class: "btn btn-danger-outline btn-sm", data: { controller: "confirm", confirm_title_value: "Unlink Telegram", confirm_message_value: "Are you sure you want to unlink your Telegram account from #{channel.name}?" } do
+                %i.fa-solid.fa-link-slash.mr-1
+                Unlink Telegram
+            - elsif raw_token.present?
+              .space-y-3
+                %p.text-xs.text-text-secondary Send this command to the bot to complete linking:
+                .flex.items-center.gap-2.p-3.rounded-lg.bg-surface-primary.border.border-border-default
+                  %code.text-sm.font-mono.text-accent.select-all /link #{raw_token}
+                  %button.btn.btn-ghost.btn-xs{ type: "button", data: { controller: "clipboard", action: "click->clipboard#copy", clipboard_text_value: "/link #{raw_token}" }, title: "Copy to clipboard" }
+                    %i.fa-solid.fa-copy
+                = button_to generate_telegram_channel_link_token_profile_path(channel), method: :post, class: "btn btn-secondary btn-sm" do
+                  %i.fa-solid.fa-rotate.mr-1
+                  Regenerate Link Token
+            - elsif pending_request.present?
+              .space-y-3
+                %p.text-sm.text-text-secondary A Telegram link token is pending for this channel, but it is no longer visible. Generate a new one if you need to re-copy it.
+                = button_to generate_telegram_channel_link_token_profile_path(channel), method: :post, class: "btn btn-secondary btn-sm" do
+                  %i.fa-solid.fa-rotate.mr-1
+                  Generate New Token
+            - else
+              .space-y-3
+                %p.text-sm.text-text-secondary Link your Telegram account to chat with #{channel.name} directly from Telegram.
+                = button_to generate_telegram_channel_link_token_profile_path(channel), method: :post, class: "btn btn-primary btn-sm" do
+                  %i.fa-brands.fa-telegram.mr-1
+                  Link Telegram Account

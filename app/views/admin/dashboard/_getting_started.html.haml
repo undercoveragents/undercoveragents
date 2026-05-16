@@ -1,0 +1,45 @@
+-# haml-lint:disable InlineStyles
+/ ── Getting Started Banner ──
+- progress = getting_started_progress(steps)
+
+.dashboard-getting-started.mb-8{ data: { controller: "dashboard" } }
+  .card
+    .card-header
+      .flex.items-center.justify-between
+        .flex.items-center.gap-3
+          .flex.items-center.justify-center.w-10.h-10.rounded-xl.bg-accent-subtle
+            %i.fa-solid.fa-rocket.text-accent
+          .flex.flex-col
+            %h3.text-lg.font-semibold.text-text-primary Get Started with #{APP_NAME}
+            %p.text-sm.text-text-secondary Complete these steps to set up your AI Platform.
+        .flex.items-center.gap-3
+          %span.text-sm.font-medium.text-text-secondary
+            #{progress[:done]} of #{progress[:total]} completed
+          = render "shared/progress_ring", percentage: progress[:percentage]
+          %button.btn.btn-ghost.btn-sm.text-text-muted{ type: "button", title: "Dismiss", data: { action: "click->dashboard#dismissGettingStarted" } }
+            %i.fa-solid.fa-xmark
+    .card-body.p-0
+      .dashboard-steps-grid
+        - steps.each do |step|
+          .dashboard-step{ class: getting_started_step_css(step) }
+            .dashboard-step-icon
+              - if step[:done]
+                %i.fa-solid.fa-circle-check
+              - else
+                %i{ class: step[:icon] }
+            .dashboard-step-content
+              %h4.dashboard-step-title= step[:title]
+              %p.dashboard-step-desc= step[:description]
+            .dashboard-step-action
+              - if step[:done]
+                %span.badge.badge-success
+                  %i.fa-solid.fa-check.mr-1
+                  Done
+              - elsif step[:action].present?
+                %button.btn.btn-primary.btn-sm{ type: "button", data: { action: step[:action] } }
+                  = step[:link_text]
+                  %i.fa-solid.fa-arrow-right.ml-1
+              - else
+                %a.btn.btn-primary.btn-sm{ href: step[:link_path] }
+                  = step[:link_text]
+                  %i.fa-solid.fa-arrow-right.ml-1

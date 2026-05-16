@@ -1,0 +1,85 @@
+- content_for(:title, "Tenants — #{APP_NAME}")
+= render_page_hero(title: "Isolated customer spaces with their own operators and resources", description: "Manage tenant boundaries, tenant-specific login entrypoints, and top-level ownership.", variant: :dashboard, eyebrow: { label: "Tenants", icon: "fa-solid fa-building" }, actions: [{ label: "New Tenant", url: new_admin_tenant_path, icon: "fa-solid fa-plus", style: :primary }])
+
+- if @tenant_admin_credentials.present?
+  .card.mb-6
+    .card-body
+      .flex.flex-col.gap-4.lg:flex-row.lg:items-start.lg:justify-between
+        .space-y-2
+          %span.badge.badge-sm.badge-info
+            %i.fa-solid.fa-key
+            Initial Tenant Admin
+          %div
+            %h3.text-base.font-semibold.text-text-primary #{@tenant_admin_credentials[:tenant_name]} is ready
+            %p.text-sm.text-text-secondary The generated local admin password is shown only once on this page.
+        %p.text-sm.text-text-secondary Share these local credentials with the tenant administrator.
+      .grid.grid-cols-1.md:grid-cols-2.gap-3.mt-4
+        .rounded-xl.border.border-border-default.bg-surface-subtle.p-3
+          %p.text-xs.font-semibold.uppercase.tracking-wide.text-text-muted Admin Email
+          %p.mt-2.break-all.font-mono.text-sm.text-text-primary= @tenant_admin_credentials[:email]
+        .rounded-xl.border.border-border-default.bg-surface-subtle.p-3
+          %p.text-xs.font-semibold.uppercase.tracking-wide.text-text-muted Temporary Password
+          %p.mt-2.break-all.font-mono.text-sm.text-text-primary= @tenant_admin_credentials[:password]
+
+- if @tenants.any?
+  .card-grid.card-grid--entities
+    - @tenants.each do |tenant|
+      - login_url = tenant_login_url(tenant)
+      - user_count = @tenant_user_counts.fetch(tenant.id, 0)
+      - operation_count = @tenant_operation_counts.fetch(tenant.id, 0)
+      - connector_count = @tenant_connector_counts.fetch(tenant.id, 0)
+      - client_count = @tenant_client_counts.fetch(tenant.id, 0)
+      .card.entity-card
+        .card-body.entity-card__body
+          .entity-card__header
+            .entity-card__identity
+              .entity-card__icon
+                %i.fa-solid.fa-building
+              .entity-card__identity-copy
+                %h3.entity-card__title= tenant.name
+            .entity-card__status
+              - if tenant.default_tenant?
+                %span.badge.badge-sm.badge-neutral Default
+
+          - if tenant.description.present?
+            %p.entity-card__description.line-clamp-2= tenant.description
+
+          .entity-card__metrics
+            .entity-card__metric
+              %i.fa-solid.fa-users
+              = pluralize(user_count, "user")
+            .entity-card__metric
+              %i.fa-solid.fa-briefcase
+              = pluralize(operation_count, "operation")
+            .entity-card__metric
+              %i.fa-solid.fa-plug
+              = pluralize(connector_count, "connector")
+            .entity-card__metric
+              %i.fa-solid.fa-palette
+              = pluralize(client_count, "client")
+
+          .rounded-xl.border.border-border-default.bg-surface-subtle.p-3
+            .flex.items-center.justify-between.gap-3
+              %span.text-xs.font-semibold.uppercase.tracking-wide.text-text-muted Login URL
+              = link_to tenant_login_path(tenant), class: "btn btn-ghost btn-xs", target: "_blank", rel: "noopener" do
+                %i.fa-solid.fa-arrow-up-right-from-square
+                Open
+            = link_to login_url, tenant_login_path(tenant), class: "mt-2 block break-all text-sm font-medium text-accent hover:underline", target: "_blank", rel: "noopener"
+            %p.mt-2.text-xs.text-text-muted Use this tenant-specific sign-in page for local admins and users who belong to #{tenant.name}.
+
+          .entity-card__footer.justify-between
+            %span.entity-card__timestamp
+              %i.fa-solid.fa-clock
+              Updated #{time_ago_in_words(tenant.updated_at)} ago
+            .flex.items-center.gap-2.flex-wrap.justify-end
+              = link_to edit_admin_tenant_path(tenant), class: "btn btn-ghost btn-xs", title: "Edit" do
+                %i.fa-solid.fa-pen-to-square
+                Edit
+              - unless tenant.default_tenant?
+                = button_to admin_tenant_path(tenant), method: :delete, class: "btn btn-ghost btn-xs text-red-500 hover:text-red-600", title: "Delete Tenant", data: { turbo_confirm: "Are you sure you want to delete this tenant? This action cannot be undone." } do
+                  %i.fa-solid.fa-trash-can
+- else
+  = render_page_empty_state(title: "No tenants yet", body: "Create your first tenant to isolate operators and resources.") do
+    = link_to new_admin_tenant_path, class: "btn btn-primary" do
+      %i.fa-solid.fa-plus.mr-1
+      Create Tenant

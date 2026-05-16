@@ -1,0 +1,32 @@
+-# Catch-up response — re-renders full execution state for runs that completed before the Turbo Stream subscription was established.
+- debug_state = @debug_state
+
+= turbo_stream.replace "mission-timeline-content" do
+  #mission-timeline-content
+    .ms-debug-timeline#mission-timeline-entries
+      - debug_state.execution_log.each do |entry|
+        -# haml-lint workaround for consecutive renders
+        = render "admin/missions/debug/timeline_entry", entry:
+
+= turbo_stream.replace "mission-variables-content" do
+  = render "admin/missions/debug/variables", variables: debug_state.variables, node_outputs: debug_state.node_outputs
+
+= turbo_stream.replace "mission-run-controls" do
+  = render "admin/missions/debug/run_controls", run_status: @run.status
+
+= turbo_stream.replace "mission-run-status" do
+  = render "admin/missions/debug/run_status", run_status: @run.status, run_error: @run.error, run_duration: debug_state.duration_ms
+
+-# Emit node state events so React canvas updates too
+- debug_state.node_event_payloads.each do |data|
+  = turbo_stream.append "mission-node-events" do
+    %div{ data: }
+
+- debug_state.persisted_node_state_payloads.each do |data|
+  = turbo_stream.append "mission-node-events" do
+    %div{ data: }
+
+-# Emit edge state events so React canvas restores exact edge status from the runner
+- debug_state.edge_event_payloads.each do |data|
+  = turbo_stream.append "mission-node-events" do
+    %div{ data: }

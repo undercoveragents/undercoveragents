@@ -1,0 +1,14 @@
+.ui-wizard__hero
+  .ui-wizard__hero-main
+    - if wizard.eyebrow.present?
+      %p.ui-wizard__eyebrow= wizard.eyebrow
+    %h3.ui-wizard__title= wizard.title
+    - if wizard.subtitle.present?
+      %p.ui-wizard__subtitle= wizard.subtitle
+  - if wizard.steps.any?
+    %ol.ui-wizard__progress
+      - wizard.steps.each do |step|
+        %li.ui-wizard__progress-pill
+          %a.ui-wizard__progress-link{ href: "##{step.target_id}" }
+            %span.ui-wizard__progress-number= step.number
+            %span.ui-wizard__progress-label= step.label

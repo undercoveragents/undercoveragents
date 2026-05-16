@@ -1,0 +1,147 @@
+key = "agent-alpha-channel"
+name = "Agent Alpha Channel Designer Scenarios"
+description = "Delegation coverage for channel design work."
+suite_type = "agent"
+target_builtin_agent_key = "agent_alpha"
+evaluation_temperature = 0.2
+fixture_key = "agent_alpha_benchmark"
+
+[[test_cases]]
+key = "channel-01"
+name = "Channel 01"
+category = "channel"
+complexity = "medium"
+position = 0
+match_type = "semantic"
+prompt = "Create a client channel named %{new_channel_name} for %{benchmark_agent_name} with a welcome title."
+expected_answer = "Channel Designer should create or clearly report the outcome for %{new_channel_name}."
+expected_child_builtin_key = "channel_designer"
+expected_tool_names = ["ask_agent_channel_designer"]
+disallow_child_chats = false
+required_keywords = ["%{new_channel_name}"]
+
+[[test_cases]]
+key = "channel-02"
+name = "Channel 02"
+category = "channel"
+complexity = "medium"
+position = 1
+match_type = "semantic"
+prompt = "Update %{benchmark_channel_name} welcome message so it mentions self-service help."
+expected_answer = "Channel Designer should update the welcome message for %{benchmark_channel_name}."
+expected_child_builtin_key = "channel_designer"
+expected_tool_names = ["ask_agent_channel_designer"]
+disallow_child_chats = false
+required_keywords = ["%{benchmark_channel_name}"]
+
+[[test_cases]]
+key = "channel-03"
+name = "Channel 03"
+category = "channel"
+complexity = "medium"
+position = 2
+match_type = "semantic"
+prompt = "Update %{benchmark_channel_name} footer so it says responses may be AI-generated."
+expected_answer = "Channel Designer should update the footer for %{benchmark_channel_name}."
+expected_child_builtin_key = "channel_designer"
+expected_tool_names = ["ask_agent_channel_designer"]
+disallow_child_chats = false
+required_keywords = ["AI-generated"]
+
+[[test_cases]]
+key = "channel-04"
+name = "Channel 04"
+category = "channel"
+complexity = "medium"
+position = 3
+match_type = "semantic"
+prompt = "Make %{benchmark_channel_name} the default client channel."
+expected_answer = "Channel Designer should make %{benchmark_channel_name} the default client channel."
+expected_child_builtin_key = "channel_designer"
+expected_tool_names = ["ask_agent_channel_designer"]
+disallow_child_chats = false
+required_keywords = ["%{benchmark_channel_name}"]
+
+[[test_cases]]
+key = "channel-05"
+name = "Channel 05"
+category = "channel"
+complexity = "medium"
+position = 4
+match_type = "semantic"
+prompt = "Create an API channel named %{new_api_channel_name} for %{benchmark_agent_name}."
+expected_answer = "Channel Designer should create or clearly report the outcome for %{new_api_channel_name}."
+expected_child_builtin_key = "channel_designer"
+expected_tool_names = ["ask_agent_channel_designer"]
+disallow_child_chats = false
+required_keywords = ["%{new_api_channel_name}"]
+
+[[test_cases]]
+key = "channel-06"
+name = "Channel 06"
+category = "channel"
+complexity = "high"
+position = 5
+match_type = "semantic"
+prompt = "Rotate the API token for %{benchmark_api_channel_name}."
+expected_answer = "Rotate the API token for %{benchmark_api_channel_name} and report the rotation outcome or the new token details."
+expected_child_builtin_key = "channel_designer"
+expected_tool_names = ["ask_agent_channel_designer"]
+disallow_child_chats = false
+required_keywords = ["%{benchmark_api_channel_name}"]
+
+[[test_cases]]
+key = "channel-07"
+name = "Channel 07"
+category = "channel"
+complexity = "medium"
+position = 6
+match_type = "semantic"
+prompt = "Rename %{benchmark_channel_name} to %{renamed_channel_name}."
+expected_answer = "Channel Designer should rename the channel to %{renamed_channel_name}."
+expected_child_builtin_key = "channel_designer"
+expected_tool_names = ["ask_agent_channel_designer"]
+disallow_child_chats = false
+required_keywords = ["%{renamed_channel_name}"]
+
+[[test_cases]]
+key = "channel-08"
+name = "Channel 08"
+category = "channel"
+complexity = "high"
+position = 7
+match_type = "semantic"
+prompt = "Update %{benchmark_api_channel_name} so it points at %{benchmark_agent_name}."
+expected_answer = "Channel Designer should update %{benchmark_api_channel_name} to point at %{benchmark_agent_name}."
+expected_child_builtin_key = "channel_designer"
+expected_tool_names = ["ask_agent_channel_designer"]
+disallow_child_chats = false
+required_keywords = ["%{benchmark_api_channel_name}", "%{benchmark_agent_name}"]
+
+[[test_cases]]
+key = "channel-09"
+name = "Channel 09"
+category = "channel"
+complexity = "medium"
+position = 8
+match_type = "semantic"
+prompt = "Create a client channel named %{new_channel_name} with a short FAQ-focused welcome message."
+expected_answer = "Channel Designer should create or clearly report the outcome for %{new_channel_name}."
+expected_child_builtin_key = "channel_designer"
+expected_tool_names = ["ask_agent_channel_designer"]
+disallow_child_chats = false
+required_keywords = ["%{new_channel_name}"]
+
+[[test_cases]]
+key = "channel-10"
+name = "Channel 10"
+category = "channel"
+complexity = "high"
+position = 9
+match_type = "semantic"
+prompt = "Open the preview for %{benchmark_channel_name} after updating its title to Support Copilot."
+expected_answer = "Channel Designer should update %{benchmark_channel_name} and hand the UI off to its preview."
+expected_child_builtin_key = "channel_designer"
+expected_tool_names = ["ask_agent_channel_designer"]
+disallow_child_chats = false
+required_keywords = ["Support Copilot"]

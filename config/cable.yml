@@ -1,0 +1,10 @@
+# Use PostgreSQL LISTEN/NOTIFY for cross-process ActionCable broadcasts.
+# Works natively with Falcon and Solid Queue without extra dependencies.
+development:
+  adapter: postgresql
+
+test:
+  adapter: test
+
+production:
+  adapter: postgresql

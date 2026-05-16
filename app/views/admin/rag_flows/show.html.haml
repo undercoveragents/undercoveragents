@@ -1,0 +1,83 @@
+- content_for(:title, "#{@rag_flow.name} — #{APP_NAME}")
+- all_configured = @rag_flow.fully_configured?
+- can_execute_rag_flow = policy_allows?(@rag_flow, :execute?)
+- run_title = all_configured ? policy_tooltip(@rag_flow, :execute?) : "Configure all 4 stages before running"
+- actions = []
+- actions << { label: "Run", url: execute_admin_rag_flow_path(@rag_flow), icon: "fa-solid fa-play", style: :primary, method: :post, title: run_title, disabled: !all_configured || !can_execute_rag_flow }
+- actions << policy_page_hero_action(@rag_flow, :update?, label: "Edit", url: edit_admin_rag_flow_path(@rag_flow), icon: "fa-solid fa-pen", style: :secondary)
+- actions << policy_page_hero_action(@rag_flow, :toggle?, label: (@rag_flow.enabled? ? "Disable" : "Enable"), url: toggle_admin_rag_flow_path(@rag_flow), icon: (@rag_flow.enabled? ? "fa-solid fa-toggle-on" : "fa-solid fa-toggle-off"), style: :secondary, method: :patch)
+- actions << policy_page_hero_action(@rag_flow, :destroy?, label: "Delete", url: admin_rag_flow_path(@rag_flow), icon: "fa-solid fa-trash", style: :danger_outline, method: :delete, data: { controller: "confirm", confirm_title_value: "Delete RAG", confirm_message_value: "Are you sure you want to delete this RAG? This action cannot be undone.", confirm_confirm_text_value: "Delete" })
+= render_page_hero(title: "RAG", variant: :compact, title_icon: "fa-solid fa-arrow-right-to-bracket", record_title: @rag_flow.name, back_link: { label: "Back to RAG", url: admin_rag_flows_path }, meta: [rag_flow_status_badge(@rag_flow), tag.span("4-stage pipeline", class: "badge badge-neutral")], actions:)
+
+- can_update_rag_flow = policy_allows?(@rag_flow, :update?)
+- update_rag_flow_title = policy_tooltip(@rag_flow, :update?)
+
+/ ── RAG ──
+.rag-flow
+  - RagFlow::STAGES.each_with_index do |stage_config, index|
+    - if index.positive?
+      .rag-flow-connector
+        %i.fa-solid.fa-chevron-right.rag-flow-arrow
+    - step_record = @rag_flow.step_for(stage_config[:key])
+    - configured = step_record.present?
+    - edit_path = edit_admin_rag_flow_step_path(@rag_flow, stage_config[:key])
+    - card_classes = "rag-step-card rag-step-card--#{stage_config[:key]} #{configured ? "rag-step-card--configured" : "rag-step-card--unconfigured"}"
+    - if can_update_rag_flow
+      = link_to edit_path, class: card_classes do
+        %span.rag-step-number= index + 1
+        - if configured
+          %span.rag-step-status-dot.rag-step-status-dot--configured
+        - else
+          %span.rag-step-status-dot.rag-step-status-dot--unconfigured
+        .rag-step-icon{ class: "rag-step-icon--#{stage_config[:key]}" }
+          %i{ class: stage_config[:icon] }
+        .rag-step-body
+          %span.rag-step-stage= stage_config[:label]
+          - if configured
+            %span.rag-step-module= step_record.type_label
+            %span.rag-step-summary= step_record.summary
+          - else
+            %span.rag-step-cta Click to configure
+    - else
+      .rag-step-card{ class: card_classes, title: update_rag_flow_title }
+        %span.rag-step-number= index + 1
+        - if configured
+          %span.rag-step-status-dot.rag-step-status-dot--configured
+        - else
+          %span.rag-step-status-dot.rag-step-status-dot--unconfigured
+        .rag-step-icon{ class: "rag-step-icon--#{stage_config[:key]}" }
+          %i{ class: stage_config[:icon] }
+        .rag-step-body
+          %span.rag-step-stage= stage_config[:label]
+          - if configured
+            %span.rag-step-module= step_record.type_label
+            %span.rag-step-summary= step_record.summary
+          - else
+            %span.rag-step-cta Click to configure
+
+/ ── Recent Runs ──
+.card
+  .card-header
+    .flex.items-center.justify-between
+      %h3.text-base.font-semibold.text-text-primary Recent Runs
+      = link_to admin_rag_flow_runs_path(@rag_flow), class: "btn btn-ghost btn-sm" do
+        View All
+        %i.fa-solid.fa-arrow-right.ml-1
+  .card-body
+    - runs = @rag_flow.rag_runs.recent.limit(5)
+    - if runs.any?
+      .space-y-3
+        - runs.each do |run|
+          = link_to admin_rag_flow_run_path(@rag_flow, run), class: "flex items-center justify-between p-3 rounded-lg hover:bg-surface-hover transition-colors no-underline" do
+            .flex.items-center.gap-3
+              = run_status_badge(run)
+              .text-sm.text-text-primary
+                Run ##{run.id}
+              .text-xs.text-text-muted
+                = run.started_at ? "#{time_ago_in_words(run.started_at)} ago" : "Pending"
+            .flex.items-center.gap-4
+              .text-xs.text-text-secondary= run_stats_summary(run)
+              .text-xs.text-text-muted= run_duration(run)
+    - else
+      .text-center.py-6
+        %p.text-sm.text-text-muted This RAG flow has not been run yet.

@@ -1,0 +1,44 @@
+#test-run-status-bar
+  .test-run-status-bar-section
+    .flex.items-center.justify-between.mb-2
+      .flex.items-center.gap-4
+        .text-sm.font-semibold.text-text-primary
+          - if run.in_progress?
+            %i.fa-solid.fa-spinner.fa-spin.mr-1.text-accent
+            Running tests...
+          - elsif run.completed?
+            %i.fa-solid.fa-circle-check.mr-1.text-green-500
+            All tests completed
+          - elsif run.failed?
+            %i.fa-solid.fa-circle-xmark.mr-1.text-red-500
+            Run failed
+          - elsif run.cancelled?
+            %i.fa-solid.fa-ban.mr-1.text-red-500
+            Run cancelled
+          - else
+            %i.fa-solid.fa-clock.mr-1
+            Waiting to start...
+        .flex.items-center.gap-3.text-xs
+          %span.inline-flex.items-center.gap-1.text-green-500
+            %i.fa-solid.fa-circle-check
+            = run.test_case_results.where(status: :passed).count
+          %span.inline-flex.items-center.gap-1.text-red-500
+            %i.fa-solid.fa-circle-xmark
+            = run.test_case_results.where(status: :failed).count
+          %span.inline-flex.items-center.gap-1.text-orange-500
+            %i.fa-solid.fa-triangle-exclamation
+            = run.test_case_results.where(status: :error).count
+
+      .flex.items-center.gap-3
+        - if run.completed? && run.total_count.positive?
+          .text-sm.font-semibold
+            Pass rate:
+            = test_run_pass_rate_display(run)
+        .text-sm.font-semibold.text-text-secondary
+          #{run.progress_percentage}%
+
+    .test-progress-bar-track
+      -# haml-lint:disable InlineStyles
+      .test-progress-bar-fill{ style: "width: #{run.progress_percentage}%", class: ("test-progress-animated" if run.in_progress?) }
+        - if run.in_progress?
+          .test-progress-shimmer

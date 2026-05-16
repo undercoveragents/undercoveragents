@@ -1,0 +1,2 @@
+.shared-chat__messages{ id: "chat-#{chat.id}-messages", data: { chat_target: "messages" } }
+  = render partial: "shared/chat/messages_content", locals: { messages:, component:, chat: }

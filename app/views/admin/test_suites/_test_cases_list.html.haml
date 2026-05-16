@@ -1,0 +1,28 @@
+#test-cases-list
+  - if test_cases.any?
+    %table.test-cases-table
+      %thead
+        %tr
+          %th.w-24 Type
+          - if test_suite.agent?
+            %th Prompt
+            %th Expected Answer
+            %th Behavior
+          - else
+            %th Name
+            %th Expected Status
+            %th Vars
+          - if policy(test_suite).update?
+            %th.w-16
+      %tbody
+        - test_cases.each do |test_case|
+          = render "test_suites/test_case_row", test_case:, test_suite:
+  - else
+    #test-cases-empty
+      .text-center.py-8
+        %i.fa-solid.fa-list-check.text-2xl.text-text-muted.mb-2
+        %p.text-sm.text-text-secondary
+          - if test_suite.agent?
+            No test cases yet. Add some manually or use AI generation.
+          - else
+            No test cases yet. Add some to start testing your mission.

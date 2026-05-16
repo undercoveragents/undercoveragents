@@ -1,0 +1,45 @@
+/ ── Output Node Configuration ──
+/ Status
+.ms-prop-field{ data: { "prop-for": "output" } }
+  %label.ms-prop-label Status
+  %select.ms-prop-select{ data: { action: "change->mission#updateNodeProp", "prop-key": "status" } }
+    - ["success", "error"].each do |s|
+      %option{ value: s, selected: presenter.data("status", "success") == s }= s.capitalize
+/ Status Code
+.ms-prop-field{ data: { "prop-for": "output" } }
+  %label.ms-prop-label Status Code
+  %input.ms-prop-input{ type: "number", min: "100", max: "599", placeholder: "200", value: presenter.data("status_code", "200"), data: { action: "blur->mission#updateNodeProp", "prop-key": "status_code" } }
+  .ms-prop-hint
+    %i.fa-solid.fa-circle-info
+    Numeric return code (e.g. 200, 400, 500). Used as convention when the mission is called via API.
+/ Response Body
+.ms-prop-field{ data: { "prop-for": "output" } }
+  %label.ms-prop-label Response Body
+  = render "shared/expression_editor", value: presenter.data("response_body"), variables: presenter.selectable_upstream_variables, prop_key: "response_body", placeholder: '{"result": "{{output}}"}', rows: 5
+  .ms-prop-hint.ms-prop-hint-vars
+    %i.fa-solid.fa-circle-info
+    Optional custom response body template. Supports
+    %code {{variable}}
+    interpolation. Type
+    %code @
+    to insert a variable.
+  -# expression guide trigger
+  = render "shared/expression_guide_link"
+/ Output Variables
+.ms-prop-field{ data: { "prop-for": "output" } }
+  %label.ms-prop-label Output Variables
+  .ms-prop-var-checklist{ data: { "mission-target": "propOutputVariables" } }
+    - selectable = presenter.selectable_upstream_variables
+    - if selectable.any?
+      - selected_set = presenter.selected_variables.to_set
+      - selectable.each do |var|
+        %label.ms-prop-var-check-row{ for: "output-var-#{var[:name]}" }
+          %input{ type: "checkbox", id: "output-var-#{var[:name]}", value: var[:name], checked: selected_set.include?(var[:name]), data: { action: "change->mission#toggleOutputVariable" } }
+          %span.ms-prop-var-check-name= var[:name]
+    - else
+      .ms-prop-var-empty
+        %i.fa-solid.fa-circle-info
+        No upstream variables available. Connect nodes upstream to see variables here.
+  .ms-prop-hint.ms-prop-hint-vars
+    %i.fa-solid.fa-circle-info
+    Select which upstream variables to include in the mission output. Leave empty to output all upstream variables.

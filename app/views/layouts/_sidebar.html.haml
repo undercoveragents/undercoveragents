@@ -1,0 +1,108 @@
+%aside.sidebar
+  .sidebar-brand
+    = link_to admin_root_path,
+              class: "sidebar-brand-link",
+              title: APP_NAME,
+              data: { turbo_frame: "app-content-frame" } do
+      = image_tag "logo.png", alt: APP_NAME, class: "sidebar-brand-logo"
+      %span.sidebar-brand-name
+        %strong Undercover Agents
+
+  %nav.sidebar-nav
+
+    .sidebar-section
+      .sidebar-section-label Operation
+      .sidebar-operation{ data: { controller: "operation-switcher" } }
+        %button.sidebar-operation-btn{ type: "button", aria: { expanded: "false", haspopup: "menu" }, data: { action: "click->operation-switcher#toggle", "operation-switcher-target": "button" } }
+          %i.sidebar-operation-icon{ class: current_operation&.icon || "fa-solid fa-briefcase", data: { "operation-switcher-target": "selectedIcon", "operation-switcher-base-class": "sidebar-operation-icon" } }
+          %span.sidebar-operation-name{ data: { "operation-switcher-target": "selectedName" } }= current_operation&.name || "Select Operation"
+          %i.fa-solid.fa-chevron-down.sidebar-operation-chevron{ data: { "operation-switcher-target": "icon" } }
+        .sidebar-operation-dropdown{ data: { "operation-switcher-target": "dropdown" } }
+          - scoped_operations.headquarter_first.each do |op|
+            - active = current_operation&.id == op.id
+            - operation_switch_data = { action: "click->operation-switcher#select", "operation-switcher-id-param": op.id, "operation-switcher-name-param": op.name, "operation-switcher-icon-param": op.icon, "operation-switcher-check-class-param": "fa-solid fa-check sidebar-operation-check" }
+            = button_to switch_admin_operation_path(op, redirect_to: admin_root_path(operation: op.slug)),
+                        method: :post,
+                        class: "sidebar-operation-item#{" active" if active}",
+                        data: operation_switch_data,
+                        form: { data: { turbo_frame: "app-content-frame" } } do
+              %i{ class: op.icon }
+              %span= op.name
+              - if active
+                %i.fa-solid.fa-check.sidebar-operation-check
+          .sidebar-operation-divider
+          = link_to admin_operations_path,
+                    class: "sidebar-operation-item sidebar-operation-manage",
+                    data: { turbo_frame: "app-content-frame", action: "click->operation-switcher#closeAfterSelection" } do
+            %i.fa-solid.fa-gear
+            %span Manage
+
+    .sidebar-section
+      .sidebar-section-label Main
+      = render "layouts/sidebar_link", path: admin_root_path, label: "Dashboard", icon: "fa-solid fa-gauge-high", active: current_page?(admin_root_path)
+
+    .sidebar-section
+      .sidebar-section-label Build
+      = render "layouts/sidebar_link", path: admin_agents_path, label: "Agents", icon: "fa-solid fa-user-secret", active: controller_name == "agents"
+      = render "layouts/sidebar_link", path: admin_channels_path, label: "Channels", icon: "fa-solid fa-tower-broadcast", active: controller_name == "channels"
+      = render "layouts/sidebar_link", path: admin_missions_path, label: "Missions", icon: "fa-solid fa-diagram-project", active: request.path.start_with?("/admin/missions")
+      = render "layouts/sidebar_link", path: admin_rag_flows_path, label: "RAG", icon: "fa-solid fa-arrow-right-to-bracket", active: request.path.start_with?("/admin/rag")
+      = render "layouts/sidebar_link", path: admin_skill_catalogs_path, label: "Skills", icon: "fa-solid fa-book-open", active: ["skill_catalogs", "skills"].include?(controller_name)
+      = render "layouts/sidebar_link", path: admin_tools_path, label: "Tools", icon: "fa-solid fa-wrench", active: controller_name == "tools"
+
+    .sidebar-section
+      .sidebar-section-label Test & Evaluate
+      = render "layouts/sidebar_link", path: admin_inspector_chats_path, label: "Agents inspector", icon: "fa-solid fa-microscope", active: request.path.start_with?("/admin/inspector")
+      = render "layouts/sidebar_link", path: admin_mission_control_runs_path, label: "Mission control", icon: "fa-solid fa-satellite-dish", active: request.path.start_with?("/admin/mission_control")
+      = render "layouts/sidebar_link", path: admin_playground_chats_path, label: "Playground", icon: "fa-solid fa-flask", active: request.path.start_with?("/admin/playground")
+      = render "layouts/sidebar_link", path: admin_test_suites_path, label: "Test Suites", icon: "fa-solid fa-vial-circle-check", active: ["test_suites", "test_cases", "test_suite_runs"].include?(controller_name)
+
+    .sidebar-section
+      .sidebar-section-label Settings
+      = render "layouts/sidebar_link", path: admin_connectors_path, label: "Connectors", icon: "fa-solid fa-plug", active: controller_name == "connectors"
+      = render "layouts/sidebar_link", path: admin_models_path, label: "Models", icon: "fa-solid fa-microchip", active: controller_name == "models"
+      -# spacer
+      = render("layouts/sidebar_link", path: admin_operations_path, label: "Operations", icon: "fa-solid fa-briefcase", active: controller_name == "operations")
+      -# spacer
+      = render("layouts/sidebar_link", path: admin_plugins_path, label: "Plugins", icon: "fa-solid fa-puzzle-piece", active: request.path.start_with?("/admin/plugins"))
+      = render "layouts/sidebar_link", path: admin_preferences_path, label: "Preferences", icon: "fa-solid fa-sliders", active: controller_name == "preferences"
+      = render("layouts/sidebar_link", path: admin_tenants_path, label: "Tenants", icon: "fa-solid fa-building", active: request.path.start_with?("/admin/tenants")) if current_user&.system_admin?
+      = render("layouts/sidebar_link", path: admin_users_path, label: "Users", icon: "fa-solid fa-users", active: request.path.start_with?("/admin/users"))
+
+  .sidebar-toggle
+    %button.sidebar-toggle-btn{ type: "button", data: { action: "click->admin-sidebar#toggle" } }
+      - chevron_class = sidebar_collapsed? ? "fa-chevron-right" : "fa-chevron-left"
+      %i.fa-solid{ class: chevron_class, data: { "admin-sidebar-target": "icon" } }
+      %span.sidebar-toggle-text Collapse
+
+  .sidebar-footer{ data: { controller: "user-menu dialog" } }
+    %button.sidebar-user-btn{ type: "button", data: { action: "click->user-menu#toggle" }, title: current_user&.display_name }
+      .sidebar-user-avatar
+        = current_user&.initials || "?"
+      .sidebar-user-info
+        .sidebar-user-name= current_user&.display_name || "Guest"
+        .sidebar-user-email= current_user&.email
+      %i.fa-solid.fa-ellipsis-vertical.sidebar-user-chevron
+    .sidebar-user-dropdown{ data: { "user-menu-target": "dropdown" } }
+      = link_to profile_path, class: "sidebar-user-menu-item" do
+        %i.fa-solid.fa-gear
+        %span Profile & Settings
+      - if current_user&.local?
+        %button.sidebar-user-menu-item{ type: "button", data: { action: "click->dialog#open click->user-menu#close" } }
+          %i.fa-solid.fa-key
+          %span Change Password
+      %button.sidebar-user-menu-item{ data: { action: "click->theme#toggle click->user-menu#close" }, type: "button" }
+        %i.fa-solid.fa-circle-half-stroke
+        %span Theme
+      = link_to session_path, data: { turbo_method: :delete }, class: "sidebar-user-menu-item sidebar-user-menu-item--danger" do
+        %i.fa-solid.fa-right-from-bracket
+        %span Sign Out
+    - if current_user&.local?
+      %dialog.dialog{ data: { dialog_target: "dialog", action: "click->dialog#backdropClick" } }
+        .dialog-content
+          .dialog-header
+            %h3.dialog-title Change Password
+            %button.dialog-close{ type: "button", data: { action: "dialog#close" } }
+              %i.fa-solid.fa-times
+          .dialog-body
+            = turbo_frame_tag :password_change_dialog, src: edit_password_change_path, loading: :lazy

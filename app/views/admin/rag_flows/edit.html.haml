@@ -1,0 +1,9 @@
+- content_for(:title, "Edit #{@rag_flow.name} — #{APP_NAME}")
+- form_id = "rag-flow-form"
+- back_link = { label: "Back to #{@rag_flow.name}", url: admin_rag_flow_path(@rag_flow) }
+= render_page_hero(title: "Edit RAG", variant: :compact, title_icon: "fa-solid fa-arrow-right-to-bracket", record_title: @rag_flow.name, back_link:, meta: [rag_flow_status_badge(@rag_flow)], actions: [page_hero_form_action(label: "Update RAG", form_id:)])
+
+.card
+  .card-body
+    = form_with model: @rag_flow, url: admin_rag_flow_path(@rag_flow), method: :patch, class: "space-y-6", id: form_id do |f|
+      = render "rag_flows/form", f:, rag_flow: @rag_flow

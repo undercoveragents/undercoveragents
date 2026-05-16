@@ -1,0 +1,113 @@
+# frozen_string_literal: true
+
+module Channels
+  class Client
+    include UndercoverAgents::PluginSystem::Configurator
+    include ChannelPlugin
+
+    CONTENT_FIELDS = ClientConfiguration::CONTENT_FIELDS
+    LABEL_FIELDS = ClientConfiguration::LABEL_FIELDS
+    LABEL_LENGTH_LIMIT = ClientConfiguration::LABEL_LENGTH_LIMIT
+    ALLOWED_TAGS = [
+      "p", "br", "strong", "em", "b", "i", "u", "s", "a", "ul", "ol", "li",
+      "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "code", "pre", "span", "sub", "sup",
+    ].freeze
+    ALLOWED_ATTRIBUTES = ["href", "target", "rel", "class"].freeze
+
+    CONTENT_FIELDS.each do |field_name|
+      attribute field_name, :string
+    end
+
+    LABEL_FIELDS.each do |field_name|
+      attribute field_name, :string
+    end
+
+    validates :title, length: { maximum: 5000 }
+    validates :welcome_message, length: { maximum: 10_000 }
+    validates :footer, length: { maximum: 5000 }
+    validate :label_lengths
+    before_validation :sanitize_rich_fields
+
+    key "client"
+    label "Client"
+    icon "fa-solid fa-comments"
+    description "Publish a branded web chat experience backed by an agent."
+    target_kinds ["agent"]
+
+    def self.permitted_params(params)
+      params.fetch(:channel, ActionController::Parameters.new).permit(:title, :welcome_message, :footer, *LABEL_FIELDS)
+    end
+
+    def self.default_labels(channel_name: nil)
+      ClientConfiguration::STATIC_LABEL_DEFAULTS.merge(
+        "welcome_heading" => "Welcome to #{channel_name.presence || APP_NAME}",
+      )
+    end
+
+    def summary
+      "Web chat"
+    end
+
+    def form_partial_path
+      Rails.root.join("app/views/channels/client")
+    end
+
+    def show_partial_path
+      form_partial_path
+    end
+
+    def effective_label_settings(channel_name:)
+      self.class.default_labels(channel_name:).merge(label_overrides)
+    end
+
+    def settings_payload(channel:)
+      agent = channel.client_agent
+      logo_url = if channel.logo.attached?
+                   Rails.application.routes.url_helpers.rails_blob_path(channel.logo, only_path: true)
+                 end
+
+      {
+        id: channel.id,
+        name: channel.name,
+        title:,
+        welcome_message:,
+        footer:,
+        labels: effective_label_settings(channel_name: channel.name),
+        agent_id: agent&.id,
+        agent_name: agent&.name,
+        logo_url:,
+      }
+    end
+
+    private
+
+    def label_lengths
+      label_overrides.each do |key, value|
+        next if value.blank? || value.to_s.length <= LABEL_LENGTH_LIMIT
+
+        errors.add("labels.#{key}", "is too long (maximum is #{LABEL_LENGTH_LIMIT} characters)")
+      end
+    end
+
+    def label_overrides
+      LABEL_FIELDS.each_with_object({}) do |field_name, overrides|
+        value = public_send(field_name)
+        overrides[field_name.to_s] = value if value.present?
+      end
+    end
+
+    def sanitize_rich_fields
+      sanitizer = Rails::HTML5::SafeListSanitizer.new
+
+      CONTENT_FIELDS.each do |field_name|
+        value = public_send(field_name)
+        next if value.blank?
+
+        public_send(
+          "#{field_name}=",
+          sanitizer.sanitize(value, tags: ALLOWED_TAGS, attributes: ALLOWED_ATTRIBUTES),
+        )
+      end
+    end
+  end
+end

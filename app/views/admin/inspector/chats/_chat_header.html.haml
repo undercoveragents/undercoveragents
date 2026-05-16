@@ -1,0 +1,3 @@
+- actions = []
+- actions << { label: "Open in playground", url: admin_playground_chat_path(chat), icon: "fa-solid fa-flask", style: :secondary } if chat.user?
+= render_page_hero(title: "Chat", variant: :compact, title_icon: "fa-solid fa-comments", record_title: chat.display_title, actions:)

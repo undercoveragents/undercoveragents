@@ -1,0 +1,21 @@
+/ ── Agent Node Configuration ──
+/ Prompt
+= render "shared/prompt_editor", system_value: presenter.data("prompt"), compact: true, show_variables: true, show_user_messages: true, variables: presenter.upstream_variables.map { |v| { name: v[:name], description: v[:description] || "" } }, user_messages: presenter.data_raw("user_messages") || []
+/ Agent
+.ms-prop-field
+  %label.ms-prop-label
+    Agent
+    %span.ms-prop-required *
+  %select.ms-prop-select{ data: { action: "change->mission#updateNodePropSelect", "prop-key": "agent_id", "name-key": "agent_name" } }
+    %option{ value: "" } Select an agent...
+    - Agent.enabled.selectable.where(operation: presenter.mission.operation).order(:name).each do |agent|
+      %option{ value: agent.id, selected: agent.id.to_s == presenter.data("agent_id").to_s }= agent.name
+/ Temperature
+.ms-prop-field
+  %label.ms-prop-label
+    Temperature
+    %span.ms-prop-range-value{ data: { "mission-target": "propTemperatureValue" } }= presenter.temperature
+  %input.ms-prop-range{ type: "range", min: "0", max: "2", step: "0.1", value: presenter.temperature, data: { "mission-target": "propTemperature", action: "input->mission#updateTemperatureDisplay change->mission#updateNodeProp", "prop-key": "temperature" } }
+  .ms-prop-range-labels
+    %span Precise (0)
+    %span Creative (2)

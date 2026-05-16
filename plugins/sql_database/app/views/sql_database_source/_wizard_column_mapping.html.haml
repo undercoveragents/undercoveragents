@@ -1,0 +1,38 @@
+.ui-wizard__panel#sql-source-step-columns
+  = render "shared/wizard/section_head",
+           step:,
+           copy: "Choose the body column first, then add optional incremental and metadata fields."
+  - preview_action = source_mode == "table" ? "change->wizard-preview#preview" : nil
+  - select_disabled = state.column_options.empty?
+  .grid.grid-cols-1.md:grid-cols-2.gap-4
+    .form-group{ data: { controller: "choices" } }
+      = f.label :content_column, class: "form-label" do
+        Content Column
+        %span.text-danger-500.ml-0.5 *
+      = f.select :content_column,
+                 options_for_select(state.column_options, steppable.content_column),
+                 { include_blank: "Select the content column..." },
+                 class: "form-input form-select",
+                 required: true,
+                 disabled: select_disabled,
+                 data: { action: preview_action, choices_target: "select" }.compact
+      .form-hint The column whose text becomes the document body.
+    .form-group{ data: { controller: "choices" } }
+      = f.label :incremental_column, "Incremental Column", class: "form-label"
+      = f.select :incremental_column,
+                 options_for_select(state.column_options, steppable.incremental_column),
+                 { include_blank: "Optional incremental column..." },
+                 class: "form-input form-select",
+                 disabled: select_disabled,
+                 data: { action: preview_action, choices_target: "select" }.compact
+      .form-hint Optional. Used to resume from the latest changed row.
+  .form-group.mt-4{ data: { controller: "choices", choices_remove_items_value: "true" } }
+    = f.label :metadata_columns, "Metadata Columns", class: "form-label"
+    = f.select :metadata_columns,
+               options_for_select(state.column_options, Array(steppable.metadata_columns)),
+               {},
+               class: "form-input form-select",
+               multiple: true,
+               disabled: select_disabled,
+               data: { action: preview_action, choices_target: "select" }.compact
+    .form-hint Select zero or more columns to copy into each document's metadata.

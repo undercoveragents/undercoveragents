@@ -1,0 +1,129 @@
+/ ── LLM Node Configuration ──
+- available_tools = presenter.available_tools
+- selected_tool_ids = presenter.selected_tool_ids
+- selected_tool_count = selected_tool_ids.size
+- file_vars = presenter.upstream_file_variables
+- selected_files = Array(presenter.data("file_variables"))
+/ Prompt
+= render "shared/prompt_editor", system_value: presenter.data("prompt"), compact: true, show_variables: true, show_user_messages: true, variables: presenter.upstream_variables.map { |v| { name: v[:name], description: v[:description] || "" } }, user_messages: presenter.data_raw("user_messages") || []
+
+.ms-llm-settings{ data: { controller: "llm-settings" } }
+  .ms-prop-field.ms-prop-field--top-gap
+    %label.ms-prop-label{ for: "mission-node-llm-config-source" } LLM Source
+    %select.ms-prop-select#mission-node-llm-config-source{ data: { action: "change->mission#updateNodeProp change->llm-settings#syncCapabilities", "prop-key": "llm_config_source", llm_settings_target: "sourceInput" } }
+      - presenter.llm_config_source_options.each do |label, value|
+        %option{ value:, selected: value == presenter.llm_config_source }= label
+    .ms-prop-hint{ data: { llm_settings_target: "nodeSourceNotice" }, hidden: !presenter.llm_config_source_node? }
+      Customize the connection, model, temperature, reasoning, and provider params for this node.
+    .ms-prop-hint{ data: { llm_settings_target: "systemPreferenceNotice" }, hidden: presenter.llm_config_source != Missions::LlmNodeRuntimeConfig::SYSTEM_SOURCE }
+      Uses the tenant default model and model options from Admin Preferences.
+    .ms-prop-hint{ data: { llm_settings_target: "runtimeNotice" }, hidden: presenter.llm_config_source != Missions::LlmNodeRuntimeConfig::RUNTIME_SOURCE }
+      Uses caller-supplied _llm_config values and falls back to Admin Preferences.
+
+  .llm-settings-node-config{ data: { llm_settings_target: "nodeConfigFields" } }
+    / LLM Connection
+    .ms-prop-field
+      %label.ms-prop-label
+        LLM Connection
+        %span.ms-prop-required *
+      %select.ms-prop-select{ data: { action: "change->mission#updateLlmConnector", "prop-key": "connector_id", "name-key": "connector_name" } }
+        %option{ value: "" } Select a connection…
+        - llm_connectors.each do |c|
+          %option{ value: c.id, selected: c.id.to_s == presenter.data("connector_id").to_s }= c.name
+
+    / Model — pre-populated server-side, reloaded via Turbo Frame on connector change
+    .ms-prop-field
+      %label.ms-prop-label
+        Model
+        %span.ms-prop-required *
+      = turbo_frame_tag "node-model-select", data: { llm_settings_target: "modelFrame", action: "turbo:frame-load->llm-settings#syncCapabilities", "node-model-options-url": node_model_options_admin_mission_path(presenter.mission) } do
+        %select.ms-prop-select{ data: { action: "change->mission#updateNodePropSelect change->llm-settings#syncCapabilities", "prop-key": "model", "name-key": "model_name" } }
+          %option{ value: "" } Select a model…
+          - presenter.available_models.each do |m|
+            %option{ value: m.model_id, selected: m.model_id == presenter.data("model"), data: { custom_properties: llm_model_option_properties(m).to_json } }= m.name.presence || m.model_id
+
+    / Temperature
+    .ms-prop-field.ms-prop-field--temperature{ data: { llm_settings_target: "temperatureField", llm_settings_unsupported_message: "Selected model does not expose temperature control." } }
+      %label.ms-prop-label.ms-prop-label--spread{ for: "mission-node-temperature" }
+        %span.ms-prop-label__text Temperature
+        %span.ms-prop-label__meta
+          %span.ms-prop-range-value{ data: { "mission-target": "propTemperatureValue" } }= presenter.temperature
+      .llm-settings-temperature
+        %input.ms-prop-range#mission-node-temperature{ type: "range", min: "0", max: "2", step: "0.1", value: presenter.temperature, data: { "mission-target": "propTemperature", action: "input->mission#updateTemperatureDisplay change->mission#updateNodeProp", "prop-key": "temperature", llm_settings_target: "temperatureInput" } }
+        .llm-settings-temperature__scale
+          %span Precise
+          %span Creative
+
+    .ms-prop-field
+      %label.ms-prop-label Advanced Model Options
+      %details.llm-settings-inline-accordion
+        %summary.llm-settings-inline-accordion__summary
+          %span.llm-settings-inline-accordion__summary-text Reasoning, budget, and JSON overrides
+          %i.fa-solid.fa-chevron-down.llm-settings-inline-accordion__chevron
+        .llm-settings-inline-accordion__body
+          .llm-settings-inline-accordion__grid
+            .ms-prop-field.ms-prop-field--dense{ data: { llm_settings_target: "thinkingField" } }
+              %label.ms-prop-label{ for: "mission-node-thinking-effort" } Reasoning
+              %select.ms-prop-select#mission-node-thinking-effort{ data: { action: "change->mission#updateNodeProp change->llm-settings#syncThinkingBudget", "prop-key": "thinking_effort", llm_settings_target: "thinkingEffortInput" } }
+                - thinking_effort_options_for_select.each do |label, value|
+                  %option{ value:, selected: value.to_s == presenter.data_raw("thinking_effort").to_s }= label
+              .ms-prop-hint{ data: { llm_settings_target: "thinkingHint", llm_settings_supported_message: "", llm_settings_unsupported_message: "Unavailable for this model.", llm_settings_unselected_message: "Select a model first." } }
+
+            .ms-prop-field.ms-prop-field--dense{ data: { llm_settings_target: "thinkingBudgetField" } }
+              %label.ms-prop-label{ for: "mission-node-thinking-budget" } Thinking Budget
+              %input.ms-prop-input#mission-node-thinking-budget{ type: "number", min: "1", step: "1", value: presenter.data_raw("thinking_budget"), data: { action: "change->mission#updateNodeProp", "prop-key": "thinking_budget", llm_settings_target: "thinkingBudgetInput" } }
+
+          .ms-prop-field.ms-prop-field--dense
+            %label.ms-prop-label{ for: "mission-node-custom-llm-params" } Custom Params JSON
+            %textarea.ms-prop-textarea.llm-settings-json-input#mission-node-custom-llm-params{ rows: "4", data: { action: "change->mission#updateNodeProp", "prop-key": "custom_llm_params" }, placeholder: '{"top_p": 0.9}' }= presenter.data_raw("custom_llm_params").to_s
+
+  / Tools
+  .ms-prop-field
+    %label.ms-prop-label
+      Tools
+    %details.llm-settings-dropdown
+      %summary.llm-settings-dropdown__summary
+        %span.llm-settings-dropdown__value
+          - if available_tools.empty?
+            No enabled tools available
+          - elsif selected_tool_count.positive?
+            #{selected_tool_count} selected of #{available_tools.size} enabled tools
+          - else
+            Select tools for this node
+        %i.fa-solid.fa-chevron-down.llm-settings-dropdown__chevron
+      .llm-settings-dropdown__menu
+        - if available_tools.any?
+          .llm-settings-dropdown__list{ data: { "mission-target": "propToolIds" } }
+            - available_tools.each do |tool|
+              - checked = selected_tool_ids.include?(tool.id)
+              %label.ms-tool-check-row.ms-tool-check-row--dropdown{ for: "llm-node-tool-#{tool.id}" }
+                %input{ type: "checkbox", id: "llm-node-tool-#{tool.id}", value: tool.id, checked:, data: { action: "change->mission#toggleToolSelection" } }
+                .ms-tool-check-row__icon
+                  %i{ class: tool_type_icon(tool) }
+                .ms-tool-check-row__body
+                  .ms-tool-check-row__header
+                    %span.ms-tool-check-row__name= tool.name
+                    %span.ms-tool-check-row__meta= tool_type_label(tool)
+                  - if tool.description.present?
+                    %span.ms-tool-check-row__description= tool.description
+        - else
+          .ms-prop-var-empty
+            %i.fa-solid.fa-wrench
+            No enabled tools available.
+
+  / File Attachments (multimodal input)
+  - unless file_vars.empty?
+    .ms-prop-field
+      %label.ms-prop-label
+        %i.fa-solid.fa-paperclip
+        File Attachments
+      .ms-prop-var-checklist{ data: { "mission-target": "propFileVariables" } }
+        - file_vars.each do |var|
+          %label.ms-prop-var-check-row{ for: "file-var-#{var[:name]}" }
+            %input{ type: "checkbox", id: "file-var-#{var[:name]}", value: var[:name], checked: selected_files.include?(var[:name]), data: { action: "change->mission#toggleFileVariable" } }
+            %span.ms-prop-var-check-name= var[:name]
+            - if var[:description].present?
+              %span.ms-prop-var-check-desc= var[:description]
+      .ms-prop-hint
+        %i.fa-solid.fa-circle-info
+        Select file variables to attach as multimodal input (images, PDFs, audio, etc.). Files from the previous node output are also auto-detected.

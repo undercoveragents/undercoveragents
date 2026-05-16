@@ -1,0 +1,54 @@
+- schema = local_assigns.fetch(:schema, [])
+
+= hidden_field_tag field_name, schema.to_json, id: nil, data: { "schema-fields-target": "hiddenInput" }
+.ms-api-fields-list{ data: { "schema-fields-target": "fieldList" } }
+  = render "agents/input_parameter_items", schema:, editable:
+
+%dialog.ms-api-field-dialog{ data: { "schema-fields-target": "dialog" } }
+  .ms-api-field-dialog-content
+    .ms-api-field-dialog-header
+      %h4.ms-api-field-dialog-title{ data: { "schema-fields-target": "dialogTitle" } } Add
+      %button.ms-api-field-dialog-close{ type: "button", data: { action: "click->schema-fields#closeDialog" } }
+        %i.fa-solid.fa-xmark
+    .ms-api-field-dialog-body
+      .ms-prop-field
+        %label.ms-prop-label
+          Variable Name
+          %span.ms-prop-required *
+        %input.ms-prop-input{ type: "text", placeholder: "e.g. user_name", pattern: "[a-z][a-z0-9_]*", data: { "schema-fields-target": "fieldName" } }
+        .ms-prop-hint Use lowercase letters, numbers, and underscores.
+      .ms-prop-field
+        %label.ms-prop-label
+          Label
+          %span.ms-prop-required *
+        %input.ms-prop-input{ type: "text", placeholder: "e.g. User Name", data: { "schema-fields-target": "fieldLabel" } }
+      .ms-prop-field
+        %label.ms-prop-label
+          %input{ type: "checkbox", data: { "schema-fields-target": "fieldRequired" } }
+          Required
+      .ms-prop-field
+        %label.ms-prop-label Type
+        %select.ms-prop-select{ data: { "schema-fields-target": "fieldType", action: "change->schema-fields#onTypeChange" } }
+          %optgroup{ label: "Text" }
+            %option{ value: "string" } String
+            %option{ value: "string_array" } String[]
+          %optgroup{ label: "Numeric" }
+            %option{ value: "number" } Number
+            %option{ value: "number_array" } Number[]
+          %optgroup{ label: "Boolean" }
+            %option{ value: "boolean" } Boolean
+            %option{ value: "boolean_array" } Boolean[]
+          %optgroup{ label: "File" }
+            %option{ value: "file" } File
+            %option{ value: "file_array" } File[]
+          %optgroup{ label: "Structured" }
+            %option{ value: "json" } JSON
+          %optgroup{ label: "Date & Time" }
+            %option{ value: "date" } Date
+            %option{ value: "date_array" } Date[]
+            %option{ value: "datetime" } DateTime
+            %option{ value: "datetime_array" } DateTime[]
+      = render "admin/agents/schema_field_config"
+    .ms-api-field-dialog-footer
+      %button.ms-btn.ms-btn-secondary{ type: "button", data: { action: "click->schema-fields#closeDialog" } } Cancel
+      %button.ms-btn.ms-btn-primary{ type: "button", data: { action: "click->schema-fields#saveField" } } Save Parameter

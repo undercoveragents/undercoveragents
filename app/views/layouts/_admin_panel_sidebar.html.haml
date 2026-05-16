@@ -1,0 +1,24 @@
+- sidebar_actions = "ms:activate-sidebar-tab@document->panel-sidebar#activateTabFromEvent ms:sidebar-frame-state@document->panel-sidebar#syncFrameState turbo:frame-load@document->panel-sidebar#handleFrameLoad"
+- sidebar_data = { controller: "panel-sidebar", action: sidebar_actions, "panel-sidebar-storage-key-value" => "admin-panel-sidebar" }
+- if content_for?(:admin_panel_sidebar_default_tab)
+  - default_tab = content_for(:admin_panel_sidebar_default_tab).to_s.strip
+  - sidebar_data["panel-sidebar-active-tab-value"] = default_tab if default_tab.present?
+
+%aside.admin-panel-sidebar.ms-sidebar{ data: sidebar_data }
+  .ms-sidebar-content.ms-sidebar-content-collapsed{ data: { "panel-sidebar-target": "content" } }
+    .ms-sidebar-resizer{ data: { action: "mousedown->panel-sidebar#startResize" } }
+    .admin-panel-sidebar__page-panels{ data: { admin_sidebar_slot: "panels" } }
+      = content_for(:admin_panel_sidebar_panels)
+    = render "layouts/agent_alpha"
+
+  .ms-sidebar-activity-bar{ data: { "panel-sidebar-target": "activityBar" } }
+    %button.ms-sidebar-tab-btn{ type: "button", title: agent_alpha_display_name, data: { action: "click->panel-sidebar#switchTab", "sidebar-tab": "assistant", "panel-sidebar-target": "tabButton" } }
+      %i{ class: agent_alpha_icon }
+    .ms-sidebar-activity-sep{ class: ("hidden" unless content_for?(:admin_panel_sidebar_tabs_before_chat) || content_for?(:admin_panel_sidebar_tabs_after_chat)), data: { admin_sidebar_slot_separator: "page-tabs" } }
+    .admin-panel-sidebar__tabs-before-chat{ data: { admin_sidebar_slot: "tabs-before-chat" } }
+      = content_for(:admin_panel_sidebar_tabs_before_chat)
+    .admin-panel-sidebar__tabs-after-chat{ data: { admin_sidebar_slot: "tabs-after-chat" } }
+      = content_for(:admin_panel_sidebar_tabs_after_chat)
+    .ms-sidebar-activity-sep
+    %button.ms-sidebar-tab-btn.ms-sidebar-collapse-btn{ type: "button", title: "Toggle sidebar", data: { action: "click->panel-sidebar#toggleContent", "panel-sidebar-target": "collapseButton" } }
+      %i.fa-solid.fa-angles-right

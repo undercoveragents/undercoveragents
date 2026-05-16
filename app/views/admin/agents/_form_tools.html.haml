@@ -1,0 +1,24 @@
+= f.hidden_field :assigned_tool_ids, value: "", multiple: true, id: nil
+- if available_tools.any?
+  %p.text-sm.text-text-secondary.mb-4
+    Select the tools this agent can use to interact with data. Only enabled tools are shown.
+  .space-y-2
+    - available_tools.each do |tool|
+      - checked = agent.tool_ids.include?(tool.id)
+      .flex.items-center.gap-3.p-3.rounded-lg.border.transition-colors.cursor-pointer{ class: checked ? "border-accent bg-accent/5" : "border-border-default hover:border-accent" }
+        = f.check_box :assigned_tool_ids, { multiple: true, checked:, id: "tool_#{tool.id}", class: "form-check-input" }, tool.id, nil
+        = label_tag "tool_#{tool.id}", class: "flex items-center gap-3 flex-1 cursor-pointer" do
+          .entity-card__icon
+            %i{ class: tool_type_icon(tool) }
+          .flex-1.min-w-0
+            .text-sm.font-medium.text-text-primary.truncate= tool.name
+            .text-xs.text-text-secondary= tool_type_label(tool)
+            - if tool.description.present?
+              .text-xs.text-text-muted.mt-1.line-clamp-1= tool.description
+- else
+  .text-center.py-8
+    %i.fa-solid.fa-wrench.text-2xl.text-text-muted.mb-3
+    %p.text-sm.text-text-secondary.mb-2 No enabled tools available.
+    = link_to new_admin_tool_path, class: "btn btn-secondary btn-sm" do
+      %i.fa-solid.fa-plus.mr-1
+      Create a Tool

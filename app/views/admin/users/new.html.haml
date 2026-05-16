@@ -1,0 +1,8 @@
+- content_for(:title, "New User — #{APP_NAME}")
+- form_id = "user-form"
+- back_link = { label: "Back to Users", url: admin_users_path }
+= render_page_hero(title: "New User", variant: :compact, title_icon: "fa-solid fa-users", back_link:, actions: [page_hero_form_action(label: "Create User", form_id:)])
+
+.card
+  .card-body
+    = render "form", user: @user, url: admin_users_path, form_id:, available_roles: @available_roles

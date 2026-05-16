@@ -1,0 +1,46 @@
+/ ── Dashboard Stat Cards ──
+.grid.grid-cols-1.sm:grid-cols-2.lg:grid-cols-3.xl:grid-cols-5.gap-5.mb-8
+  .stat-card
+    .flex.items-center.justify-between
+      .stat-label Connectors
+      .stat-icon-box
+        %i.fa-solid.fa-plug.stat-icon
+    .stat-value= connectors_count
+    .stat-change
+      - if active_connectors.positive?
+        %span.text-green-500
+          %i.fa-solid.fa-signal.mr-1
+          #{active_connectors} active
+      - else
+        %span.text-text-muted None active
+
+  .stat-card
+    .flex.items-center.justify-between
+      .stat-label Agents
+      .stat-icon-box
+        %i.fa-solid.fa-user-secret.stat-icon
+    .stat-value= agents_count
+
+  .stat-card
+    .flex.items-center.justify-between
+      .stat-label Conversations
+      .stat-icon-box
+        %i.fa-solid.fa-comments.stat-icon
+    .stat-value= chats_count
+    .stat-change
+      %span.text-text-muted
+        #{messages_count} messages total
+
+  .stat-card
+    .flex.items-center.justify-between
+      .stat-label Token Usage
+      .stat-icon-box
+        %i.fa-solid.fa-coins.stat-icon
+    .stat-value= format_token_count(total_tokens)
+    .stat-change
+      - if total_tool_calls.positive?
+        %span.text-text-muted
+          %i.fa-solid.fa-wrench.mr-1
+          #{total_tool_calls} tool calls
+      - else
+        %span.text-text-muted No usage yet

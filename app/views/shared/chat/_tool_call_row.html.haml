@@ -1,0 +1,16 @@
+- row = local_assigns
+- section = row.fetch(:section, false)
+%div{ class: chat_tool_call_row_classes(section:) }
+  .shared-chat__tool-call-main
+    .shared-chat__tool-call-icon-wrap
+      %i.shared-chat__tool-call-icon.fa-fw{ class: row[:icon_class] }
+    .shared-chat__tool-call-copy
+      %span{ class: chat_tool_call_label_classes(section:) }
+        %span{ class: chat_tool_call_name_classes(section:) }= row[:label]
+        - if row[:collapsible]
+          %i.fa-solid.fa-chevron-right.fa-fw.shared-chat__tree-chevron{ aria: { hidden: true } }
+      - if row[:phrase].present?
+        %span.shared-chat__tool-call-phrase{ data: { tool_widget_target: "phrase" } }= row[:phrase]
+  - if row[:duration_label].present?
+    .shared-chat__tool-call-meta
+      %span.shared-chat__tool-call-duration= row[:duration_label]

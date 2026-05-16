@@ -1,0 +1,85 @@
+.models-table-wrapper
+  %table.models-table
+    %thead
+      %tr
+        - table_columns.each do |column, label|
+          %th.models-th
+            = link_to admin_models_path(models_query_params(sort: column, direction: models_next_sort_direction(column, current_sort: sort_column, current_direction: sort_direction), page: nil)), class: ["models-sort-link", ("is-active" if sort_column == column)] do
+              %span= label
+              %i{ class: models_sort_icon(column, current_sort: sort_column, current_direction: sort_direction) }
+        %th.models-th
+          %span.models-header-label In $/1M
+        %th.models-th
+          %span.models-header-label Out $/1M
+        %th.models-th
+          %span.models-header-label Cached $/1M
+        %th.models-th.models-th--badges
+          %span.models-header-label Input
+        %th.models-th.models-th--badges
+          %span.models-header-label Output
+        %th.models-th.models-th--capabilities
+          %span.models-header-label Capabilities
+        %th.models-th
+          = link_to admin_models_path(models_query_params(sort: "max_output_tokens", direction: models_next_sort_direction("max_output_tokens", current_sort: sort_column, current_direction: sort_direction), page: nil)), class: ["models-sort-link", ("is-active" if sort_column == "max_output_tokens")] do
+            %span Max Output
+            %i{ class: models_sort_icon("max_output_tokens", current_sort: sort_column, current_direction: sort_direction) }
+        %th.models-th
+          = link_to admin_models_path(models_query_params(sort: "knowledge_cutoff", direction: models_next_sort_direction("knowledge_cutoff", current_sort: sort_column, current_direction: sort_direction), page: nil)), class: ["models-sort-link", ("is-active" if sort_column == "knowledge_cutoff")] do
+            %span Knowledge Cutoff
+            %i{ class: models_sort_icon("knowledge_cutoff", current_sort: sort_column, current_direction: sort_direction) }
+        %th.models-th
+          = link_to admin_models_path(models_query_params(sort: "model_created_at", direction: models_next_sort_direction("model_created_at", current_sort: sort_column, current_direction: sort_direction), page: nil)), class: ["models-sort-link", ("is-active" if sort_column == "model_created_at")] do
+            %span Created
+            %i{ class: models_sort_icon("model_created_at", current_sort: sort_column, current_direction: sort_direction) }
+        %th.models-th
+          = link_to admin_models_path(models_query_params(sort: "model_id", direction: models_next_sort_direction("model_id", current_sort: sort_column, current_direction: sort_direction), page: nil)), class: ["models-sort-link", ("is-active" if sort_column == "model_id")] do
+            %span Model ID
+            %i{ class: models_sort_icon("model_id", current_sort: sort_column, current_direction: sort_direction) }
+        %th.models-th
+          = link_to admin_models_path(models_query_params(sort: "family", direction: models_next_sort_direction("family", current_sort: sort_column, current_direction: sort_direction), page: nil)), class: ["models-sort-link", ("is-active" if sort_column == "family")] do
+            %span Family
+            %i{ class: models_sort_icon("family", current_sort: sort_column, current_direction: sort_direction) }
+    %tbody
+      - models.each do |model_record|
+        - input_modalities = model_modalities(model_record, "input")
+        - output_modalities = model_modalities(model_record, "output")
+        - capability_values = model_capabilities(model_record)
+        %tr.models-tr
+          %td.models-td
+            %span.badge.badge-neutral= model_record.provider
+          %td.models-td.font-medium= model_record.name
+          %td.models-td= model_record.context_window.present? ? number_with_delimiter(model_record.context_window) : "—"
+          %td.models-td.font-mono= model_price_value(model_record, :input_per_million)
+          %td.models-td.font-mono= model_price_value(model_record, :output_per_million)
+          %td.models-td.font-mono= model_price_value(model_record, :cached_input_per_million)
+          %td.models-td.models-badge-cell.models-badge-cell--metadata{ title: model_inline_values(input_modalities) }
+            .models-badge-row
+              - if input_modalities.any?
+                - input_modalities.each do |value|
+                  %span.badge{ class: models_badge_class(:input, value) }= value
+              - else
+                %span.text-text-muted —
+          %td.models-td.models-badge-cell.models-badge-cell--metadata{ title: model_inline_values(output_modalities) }
+            .models-badge-row
+              - if output_modalities.any?
+                - output_modalities.each do |value|
+                  %span.badge{ class: models_badge_class(:output, value) }= value
+              - else
+                %span.text-text-muted —
+          %td.models-td.models-badge-cell.models-badge-cell--capabilities{ title: model_inline_values(capability_values) }
+            .models-badge-row
+              - if capability_values.any?
+                - capability_values.each do |value|
+                  %span.badge{ class: models_badge_class(:capability, value) }= value
+              - else
+                %span.text-text-muted —
+          %td.models-td= model_record.max_output_tokens.present? ? number_with_delimiter(model_record.max_output_tokens) : "—"
+          %td.models-td= model_record.knowledge_cutoff&.iso8601 || "—"
+          %td.models-td= model_record.model_created_at&.to_date&.iso8601 || "—"
+          %td.models-td.font-mono= model_record.model_id
+          %td.models-td= models_table_value(model_record.family)
+.models-table-footer
+  .text-xs.text-text-muted
+    != pagy.info_tag
+  .models-pagy-nav
+    != pagy.series_nav(aria_label: "Model pages")

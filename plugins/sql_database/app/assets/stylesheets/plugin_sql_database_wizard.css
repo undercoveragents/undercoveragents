@@ -1,0 +1,16 @@
+.ui-wizard.sql-connector-wizard,
+.ui-wizard.sql-source-wizard,
+.ui-wizard.sql-storage-wizard {
+  --ui-wizard-hero-start: color-mix(in srgb, var(--accent) 8%, var(--color-surface-card));
+  --ui-wizard-hero-end: color-mix(in srgb, var(--accent) 4%, var(--color-surface-card));
+  --ui-wizard-progress-line: color-mix(in srgb, var(--accent) 16%, var(--color-border-default));
+  --ui-wizard-divider-color: color-mix(in srgb, var(--accent) 12%, var(--color-border-default));
+  --ui-wizard-divider-highlight: color-mix(in srgb, var(--color-text-primary) 6%, transparent);
+  --ui-wizard-option-bg: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 6%, var(--color-surface-card)),
+    color-mix(in srgb, var(--color-surface-card) 88%, var(--color-surface-secondary))
+  );
+  --ui-wizard-chip-bg: color-mix(in srgb, var(--accent) 12%, var(--color-surface-card));
+  --ui-wizard-chip-remove-color: var(--color-text-secondary);
+}

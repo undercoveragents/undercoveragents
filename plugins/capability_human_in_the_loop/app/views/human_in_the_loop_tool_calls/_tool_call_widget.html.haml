@@ -1,0 +1,72 @@
+- responses ||= state.answers
+- errors ||= {}.with_indifferent_access
+- answerable = current_user.present? && tool_call.message&.chat&.user_id == current_user.id && state.pending?
+
+.hitl-widget{ id: "hitl-tool-call-widget-#{tool_call.id}", data: { controller: "human-in-the-loop-tool-call", human_in_the_loop_tool_call_stylesheet_url_value: asset_path("human_in_the_loop.css") } }
+  .hitl-widget__card
+    .hitl-widget__header
+      .hitl-widget__header-copy
+        %h4.hitl-widget__title= state.pending? ? "Need Your Input" : "Answers Submitted"
+        - if state.prompt_text.present?
+          %p.hitl-widget__intro= state.prompt_text
+      - if state.pending?
+        %span.hitl-widget__status.hitl-widget__status--pending Awaiting reply
+      - else
+        %span.hitl-widget__status.hitl-widget__status--answered Answered
+
+    - if errors[:base].present?
+      .hitl-widget__error-banner= errors[:base]
+
+    - if answerable
+      = form_with url: submit_human_in_the_loop_tool_call_path(tool_call), method: :post, local: true, html: { class: "hitl-widget__form" }, data: { turbo: false, action: "submit->human-in-the-loop-tool-call#submit" } do
+        .hitl-widget__questions
+          - state.questions.each_with_index do |question, index|
+            - question_id = question["id"]
+            - response = responses.fetch(question_id, {})
+            - custom_input_id = "hitl-tool-call-#{tool_call.id}-#{question_id}-custom"
+            - custom_open = response["custom_answer"].present? || errors[question_id].present?
+            %section.hitl-widget__question{ id: "hitl-tool-call-#{tool_call.id}-#{question_id}", data: { question_anchor: question_id }, tabindex: "-1" }
+              .hitl-widget__question-line
+                %span.hitl-widget__question-number= index + 1
+                .hitl-widget__question-copy
+                  %p.hitl-widget__question-prompt= question["prompt"]
+                  - if question["helper_text"].present?
+                    %p.hitl-widget__question-helper= question["helper_text"]
+              .hitl-widget__choices
+                - Array(question["options"]).each do |option|
+                  %label.hitl-widget__choice
+                    = radio_button_tag "responses[#{question_id}][selected_option]", option, response["selected_option"] == option, class: "hitl-widget__choice-input", data: { action: "change->human-in-the-loop-tool-call#syncSelection" }
+                    %span.hitl-widget__choice-pill= option
+              %details.hitl-widget__custom{ open: custom_open }
+                %summary.hitl-widget__custom-summary
+                  %span.hitl-widget__custom-summary-text Your own answer
+                .hitl-widget__custom-body
+                  = text_area_tag "responses[#{question_id}][custom_answer]", response["custom_answer"], rows: 2, id: custom_input_id, class: "form-input hitl-widget__custom-textarea", placeholder: "Add anything the options miss…", data: { action: "input->human-in-the-loop-tool-call#customInput" }
+              - if errors[question_id].present?
+                %p.hitl-widget__error= errors[question_id]
+        .hitl-widget__footer
+          %p.hitl-widget__footer-note Choose an option or add your own answer if needed.
+          %button.hitl-widget__submit{ type: "submit" }
+            %i.fa-solid.fa-paper-plane-top
+            %span Send
+    - elsif state.pending?
+      .hitl-widget__summary
+        %p.hitl-widget__footer-note Awaiting an answer from the chat owner before the agent continues.
+        - state.questions.each_with_index do |question, index|
+          .hitl-widget__answer
+            .hitl-widget__question-line
+              %span.hitl-widget__question-number= index + 1
+              .hitl-widget__question-copy
+                %p.hitl-widget__question-prompt= question["prompt"]
+                %p.hitl-widget__answer-value No answer recorded yet.
+    - else
+      .hitl-widget__summary
+        %p.hitl-widget__footer-note Thanks. Your answers were sent back to the agent and the chat can continue.
+        - state.questions.each_with_index do |question, index|
+          - answer = state.answer_for(question["id"])
+          .hitl-widget__answer
+            .hitl-widget__question-line
+              %span.hitl-widget__question-number= index + 1
+              .hitl-widget__question-copy
+                %p.hitl-widget__question-prompt= question["prompt"]
+                %p.hitl-widget__answer-value= answer["answer"].presence || "No answer recorded"

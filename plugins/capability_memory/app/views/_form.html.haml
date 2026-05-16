@@ -1,0 +1,51 @@
+/ ── Memory Capability — Settings Form ──
+/ Locals:
+/   capability_config          — Capabilities::Memory configurator
+/   capability_record          — Capability AR record
+/   available_llm_connectors   — Array of enabled LLM Provider connector records
+
+- mem = capability_config
+- llm_connector = mem.embedding_connector
+- connector_provider = llm_connector&.connector_type == "llm_provider" ? llm_connector.provider : nil
+- available_embedding_models = connector_provider.present? ? Model.where(provider: connector_provider).where("modalities -> 'output' @> '\"embeddings\"'").order(:name).select(:model_id, :name, :provider) : Model.none
+
+/ ── Embedding Model ──
+%div{ data: { controller: "rag-embedding-config", rag_embedding_config_model_options_url_value: embedding_model_options_admin_agents_path(frame_id: "capability_memory_model_select", field_prefix: "capability"), rag_embedding_config_frame_id_value: "capability_memory_model_select" } }
+  .form-group.mb-4
+    %label.form-label{ for: "capability_llm_connector_id" }
+      LLM Connection
+      %span.text-danger-500.ml-0.5 *
+    - if available_llm_connectors.any?
+      %div{ data: { controller: "choices", choices_search_value: "true", choices_placeholder_value: "Select an LLM provider…" } }
+        = select_tag "capability[llm_connector_id]", options_for_select([["Select an LLM provider…", ""]] + llm_connectors_for_select(available_llm_connectors), mem.llm_connector_id), id: "capability_llm_connector_id", class: "form-input form-select", data: { choices_target: "select", action: "change->rag-embedding-config#onConnectorChange" }
+      .form-hint The LLM provider used for generating embeddings for archival memory.
+    - else
+      .text-center.py-4
+        %i.fa-solid.fa-plug.text-xl.text-text-muted.mb-2
+        %p.text-sm.text-text-secondary.mb-2 No enabled LLM providers available.
+        = link_to new_admin_connector_path(type: "llm_provider"), class: "btn btn-secondary btn-sm" do
+          %i.fa-solid.fa-plus.mr-1
+          Create LLM Provider
+
+  = render "shared/model_select", frame_id: "capability_memory_model_select", field_prefix: "capability", available_models: available_embedding_models, selected_model_id: mem.model_id, required: true
+
+  .form-group.mt-4
+    %label.form-label{ for: "capability_embedding_dimensions" }
+      Embedding Dimensions
+    = number_field_tag "capability[embedding_dimensions]", mem.embedding_dimensions, min: 1, max: 8192, step: 1, class: "form-input", id: "capability_embedding_dimensions"
+    .form-hint
+      Optional. Override the default vector dimensions for the embedding model.
+      Leave blank to use the model's default (e.g. 1536 for text-embedding-3-small).
+
+/ ── Bootstrap ──
+.form-group.mt-4
+  .form-check
+    = check_box_tag "capability[auto_bootstrap]", "true", mem.auto_bootstrap, class: "form-check-input", id: "capability_auto_bootstrap"
+    = label_tag "capability_auto_bootstrap", class: "form-check-label" do
+      Auto-bootstrap default memory blocks
+  .form-hint.ml-6
+    When enabled, automatically creates and attaches
+    %strong persona
+    and
+    %strong human
+    memory blocks when this capability is first activated on an agent.

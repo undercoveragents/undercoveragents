@@ -1,0 +1,29 @@
+/ ── Table Visibility Summary ──
+- if toolable.schema_discovered?
+  .card
+    .card-header
+      .flex.items-center.justify-between
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-filter.mr-2.text-accent
+          Table Visibility
+        .flex.items-center.gap-3
+          - total = toolable.all_discovered_object_names.size
+          - if toolable.all_objects_selected?
+            %span.badge.badge-brand
+              All #{total} objects visible
+          - else
+            %span.badge.bg-surface-secondary.text-text-secondary
+              #{toolable.selected_object_names.size} of #{total} objects visible
+          - if policy(tool).edit_visibility?
+            = link_to edit_visibility_admin_tool_path(tool), class: "btn btn-secondary btn-xs" do
+              %i.fa-solid.fa-pen.mr-1
+              Edit Visibility
+    .card-body
+      - if toolable.all_objects_selected?
+        %p.text-sm.text-text-muted
+          The LLM can query all discovered tables, views, and materialized views.
+      - else
+        .flex.flex-wrap.gap-2.mb-3
+          - toolable.selected_object_names.each do |name|
+            %span.badge.badge-brand= name
+        %p.text-sm.text-text-muted Only the objects listed above are visible to the LLM.

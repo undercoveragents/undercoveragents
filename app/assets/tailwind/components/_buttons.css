@@ -1,0 +1,73 @@
+/* ==========================================================================
+   Buttons
+   ========================================================================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.4375rem 0.875rem;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+  line-height: 1.125rem;
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+.btn-primary {
+  background-color: var(--accent);
+  color: white;
+
+  &:hover {
+    background-color: var(--accent-hover);
+  }
+}
+
+.btn-secondary {
+  background-color: var(--surface-secondary);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+
+  &:hover {
+    background-color: var(--surface-hover);
+  }
+}
+
+.btn-ghost {
+  background-color: transparent;
+  color: var(--text-secondary);
+
+  &:hover {
+    background-color: var(--surface-hover);
+    color: var(--text-primary);
+  }
+}
+
+.btn-sm {
+  padding: 0.21875rem 0.625rem;
+  font-size: var(--font-size-xs);
+}
+
+.btn-xs {
+  padding: 0.125rem 0.4375rem;
+  font-size: var(--font-size-xs);
+}
+
+.btn-danger-outline {
+  background-color: transparent;
+  color: var(--color-danger-500);
+  border-color: var(--color-danger-500);
+
+  &:hover {
+    background-color: var(--color-danger-500);
+    color: white;
+  }
+}

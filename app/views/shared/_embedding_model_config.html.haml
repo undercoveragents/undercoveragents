@@ -1,0 +1,21 @@
+/ ── Embedding Model Configuration Fields ──
+/ Reusable embedding model configuration: LLM Connection + Model.
+/ The caller is responsible for the wrapping card/container and Stimulus controller.
+/
+/ Locals:
+/   field_prefix             — form field name prefix (e.g. "system_preference")
+/   frame_id                 — Turbo Frame id for model select
+/   connector_change_action  — Stimulus action for connector change
+/   available_llm_connectors — Array of LLM Provider Connector records
+/   available_models         — Array of Model records for the currently selected connector
+/   selected_connector_id    — Integer or nil
+/   selected_model_id        — String or nil
+
+.form-grid
+  .form-group.col-span-full{ data: { controller: "choices", choices_search_value: "true", choices_placeholder_value: "Select an LLM connection\u2026" } }
+    %label.form-label{ for: "#{field_prefix}_embedding_connector_id" }
+      LLM Connection
+    = select_tag "#{field_prefix}[embedding_connector_id]", options_for_select([["Select an LLM connection\u2026", ""]] + llm_connectors_for_select(available_llm_connectors), selected_connector_id), id: "#{field_prefix}_embedding_connector_id", class: "form-input form-select", data: { choices_target: "select", action: connector_change_action }
+    .form-hint Select which LLM provider connection to use for embeddings.
+
+  = render "shared/model_select", frame_id:, field_prefix:, available_models:, selected_model_id:, required: false, field_name: "embedding_model_id"

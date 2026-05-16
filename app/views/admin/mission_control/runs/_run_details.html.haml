@@ -1,0 +1,97 @@
+.mc-details-grid.card-grid
+  / ── Identity Card ──
+  .mc-detail-card.card
+    .mc-detail-card-header
+      %i.fa-solid.fa-fingerprint.mr-1
+      Identity
+    .mc-detail-card-body
+      .mc-detail-row
+        .mc-detail-label Run ID
+        .mc-detail-value= run.id
+      .mc-detail-row
+        .mc-detail-label Mission
+        .mc-detail-value
+          = link_to run.mission.name, admin_mission_path(run.mission), class: "text-accent no-underline hover:underline"
+      .mc-detail-row
+        .mc-detail-label Mission ID
+        .mc-detail-value.font-mono= run.mission_id
+      .mc-detail-row
+        .mc-detail-label Status
+        .mc-detail-value
+          .mc-status-pill.mc-status-pill-sm{ class: mc_status_badge(run.status) }
+            %i{ class: mc_status_icon(run.status) }
+            = run.status
+      - if run.api_client
+        .mc-detail-row
+          .mc-detail-label API Client
+          .mc-detail-value
+            = link_to run.api_client.name, admin_api_client_path(run.api_client), class: "text-accent no-underline hover:underline"
+      - if run.current_node_id.present?
+        .mc-detail-row
+          .mc-detail-label Current Node
+          .mc-detail-value.font-mono= run.current_node_id
+
+  / ── Timing Card ──
+  .mc-detail-card.card
+    .mc-detail-card-header
+      %i.fa-solid.fa-clock.mr-1
+      Timing
+    .mc-detail-card-body
+      .mc-detail-row
+        .mc-detail-label Created
+        .mc-detail-value{ title: run.created_at.iso8601 }
+          = run.created_at.strftime("%b %d, %Y at %I:%M:%S %p")
+      .mc-detail-row
+        .mc-detail-label Started
+        .mc-detail-value
+          - if run.started_at
+            %span{ title: run.started_at.iso8601 }= run.started_at.strftime("%b %d, %Y at %I:%M:%S %p")
+          - else
+            .text-text-muted —
+      .mc-detail-row
+        .mc-detail-label Completed
+        .mc-detail-value
+          - if run.completed_at
+            %span{ title: run.completed_at.iso8601 }= run.completed_at.strftime("%b %d, %Y at %I:%M:%S %p")
+          - else
+            .text-text-muted —
+      .mc-detail-row
+        .mc-detail-label Duration
+        .mc-detail-value.font-semibold= mc_format_run_duration(run)
+
+  / ── Execution Stats Card ──
+  .mc-detail-card.card
+    .mc-detail-card-header
+      %i.fa-solid.fa-chart-pie.mr-1
+      Execution Stats
+    .mc-detail-card-body
+      .mc-detail-row
+        .mc-detail-label Total Steps
+        .mc-detail-value.font-semibold= execution_stats[:total_nodes]
+      .mc-detail-row
+        .mc-detail-label Successful
+        .mc-detail-value
+          %span.text-green-600= execution_stats[:successful]
+      .mc-detail-row
+        .mc-detail-label Failed
+        .mc-detail-value
+          - if execution_stats[:failed].positive?
+            %span.text-red-500.font-semibold= execution_stats[:failed]
+          - else
+            = execution_stats[:failed]
+      .mc-detail-row
+        .mc-detail-label Skipped
+        .mc-detail-value= execution_stats[:skipped]
+      .mc-detail-row
+        .mc-detail-label Total Exec Time
+        .mc-detail-value= mc_format_duration(execution_stats[:total_duration_ms])
+
+  / ── Error Card (if any) ──
+  - if run.error.present?
+    .mc-detail-card.card.mc-detail-card-error
+      .mc-detail-card-header.mc-detail-card-header-error
+        %i.fa-solid.fa-triangle-exclamation.mr-1
+        Error
+      .mc-detail-card-body
+        .mc-error-content
+          %pre.mc-code-block= run.error

@@ -1,0 +1,97 @@
+- credential ||= channel.channel_credentials.ordered.first
+- mission_targets = channel.channel_targets.select { |target| target.target_type == "Mission" }
+- agent_targets = channel.channel_targets.select { |target| target.target_type == "Agent" }
+
+.grid.grid-cols-1.lg:grid-cols-2.gap-6.mb-6
+  .card.h-full
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-sliders.mr-2.text-accent
+        Configuration
+    .card-body
+      .detail-grid
+        .detail-item
+          .detail-label Access Scope
+          .detail-value
+            - if channel.scope_all?
+              %span.badge.badge-accent All Tenant Missions
+            - else
+              %span.badge.badge-info= pluralize(mission_targets.size, "mission")
+        .detail-item
+          .detail-label Status
+          .detail-value= channel.enabled? ? tag.span("Active", class: "badge badge-success") : tag.span("Disabled", class: "badge badge-danger")
+        .detail-item
+          .detail-label Response Mode
+          .detail-value= channel.response_mode.titleize
+        .detail-item
+          .detail-label Last Used
+          .detail-value= credential&.last_used_at.present? ? "#{time_ago_in_words(credential.last_used_at)} ago" : "Never"
+        .detail-item
+          .detail-label Created
+          .detail-value= channel.created_at.strftime("%B %d, %Y at %H:%M")
+
+  .card.h-full
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-shield-halved.mr-2.text-accent
+        API Token
+    .card-body
+      - if credential
+        .form-group
+          .detail-label Token (masked)
+          %code.text-sm.font-mono.bg-surface-secondary.border.border-border-default.rounded.px-3.py-2.block.mt-1.text-text-secondary= credential.masked_token
+        .form-hint.mt-2 The full token is only visible at creation time or when regenerated.
+      - else
+        %p.text-sm.text-text-secondary No token has been generated for this channel yet.
+
+- if agent_targets.any?
+  .card.mb-6
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-robot.mr-2.text-accent
+        Published Agents
+    .card-body
+      .space-y-3
+        - agent_targets.each do |target|
+          = link_to admin_agent_path(target.target), class: "flex items-center gap-3 p-3 rounded-lg bg-surface-secondary no-underline hover:bg-surface-hover transition-colors", data: { turbo_frame: "app-content-frame" } do
+            .entity-card__icon
+              %i.fa-solid.fa-robot
+            .flex-1.min-w-0
+              .text-sm.font-medium.text-text-primary.truncate= target.name
+              - if target.target.description.present?
+                .text-xs.text-text-secondary.truncate= target.target.description
+
+.card.mb-6
+  .card-header
+    %h3.text-sm.font-semibold.text-text-primary
+      %i.fa-solid.fa-diagram-project.mr-2.text-accent
+      Accessible Missions
+  .card-body
+    - if channel.scope_all?
+      .text-sm.text-text-secondary.mb-4 Every mission in this tenant is published on this API channel.
+    - if mission_targets.any?
+      .space-y-3
+        - mission_targets.each do |target|
+          = link_to admin_mission_path(target.target), class: "flex items-center gap-3 p-3 rounded-lg bg-surface-secondary no-underline hover:bg-surface-hover transition-colors", data: { turbo_frame: "app-content-frame" } do
+            .entity-card__icon
+              %i.fa-solid.fa-diagram-project
+            .flex-1.min-w-0
+              .text-sm.font-medium.text-text-primary.truncate= target.name
+              - if target.target.description.present?
+                .text-xs.text-text-secondary.truncate= target.target.description
+    - else
+      .text-center.py-6
+        %i.fa-solid.fa-diagram-project.text-2xl.text-text-muted.mb-2
+        %p.text-sm.text-text-secondary No missions are published on this API channel.
+
+.card
+  .card-body.flex.items-center.justify-between
+    .flex.items-center.gap-3
+      .flex.items-center.justify-center.w-10.h-10.rounded-lg{ class: "bg-accent/10" }
+        %i.fa-solid.fa-book.text-accent
+      %div
+        %h3.text-sm.font-semibold.text-text-primary API Documentation
+        %p.text-xs.text-text-secondary Invoke published targets through the channel invocation endpoints documented in Swagger.
+    = link_to "/api-docs", class: "btn btn-secondary", target: "_blank", rel: "noopener" do
+      %i.fa-solid.fa-arrow-up-right-from-square.mr-1
+      Open Swagger UI

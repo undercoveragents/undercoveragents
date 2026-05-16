@@ -1,0 +1,35 @@
+- content_for(:title, "Reset Password — #{APP_NAME}")
+
+= form_tag password_reset_path(token: params[:token]), method: :patch, class: "auth-form" do
+  - if @user.errors.any?
+    .flash-alert.mb-4
+      %strong #{@user.errors.count} #{"error".pluralize(@user.errors.count)} prevented saving:
+      %ul.mt-2.list-disc.list-inside
+        - @user.errors.full_messages.each do |message|
+          %li= message
+
+  .form-group
+    %label.form-label{ for: "user-password" } New Password
+    %input.form-input#user-password{ type: "password", name: "user[password]", placeholder: "Minimum 8 characters", required: true, autofocus: true }
+
+  .form-group
+    %label.form-label{ for: "user-password-confirmation" } Confirm New Password
+    %input.form-input#user-password-confirmation{ type: "password", name: "user[password_confirmation]", placeholder: "Repeat your new password", required: true }
+
+  .auth-password-hint
+    %p Password must contain:
+    %ul
+      %li At least 8 characters
+      %li One uppercase letter
+      %li One lowercase letter
+      %li One digit
+      %li One special character
+
+  %button.btn.btn-primary.w-full{ type: "submit" }
+    %i.fa-solid.fa-lock.mr-2
+    Reset Password
+
+  .auth-links
+    = link_to new_session_path, class: "auth-link" do
+      %i.fa-solid.fa-arrow-left.mr-1
+      Back to Sign In

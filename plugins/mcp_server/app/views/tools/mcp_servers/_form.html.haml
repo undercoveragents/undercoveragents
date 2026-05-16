@@ -1,0 +1,32 @@
+- action = tool.persisted? ? admin_tool_path(tool) : admin_tools_path
+- method = tool.persisted? ? :patch : :post
+- available_connectors = current_tenant.connectors.mcp_servers.enabled.ordered
+- form_id = local_assigns.fetch(:form_id, "tool-form")
+
+= form_with url: action, method:, local: true, html: { class: "connector-form", id: form_id } do |f|
+  = hidden_field_tag :tool_type, "mcp_server"
+
+  / ── Basic Information ──
+  = render "tools/shared/basic_info", f:, tool:
+
+  / ── Connector Selection ──
+  .card.mb-6
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-plug.mr-2.text-accent
+        MCP Server Connector
+    .card-body
+      - if available_connectors.any?
+        .form-group{ data: { controller: "choices", choices_search_value: "false" } }
+          = f.label "mcp_server[connector_id]", class: "form-label" do
+            Connector
+            %span.text-danger-500.ml-0.5 *
+          = f.select "mcp_server[connector_id]", options_for_select(available_connectors.map { |c| [c.name, c.id] }, toolable.connector_id), { include_blank: "Select a connector…" }, class: "form-input form-select", required: true, data: { choices_target: "select" }
+          .form-hint Select the MCP Server connector whose tools will be exposed to agents.
+      - else
+        .text-center.py-8
+          %i.fa-solid.fa-server.text-2xl.text-text-muted.mb-3
+          %p.text-sm.text-text-secondary.mb-2 No enabled MCP Server connectors available.
+          = link_to new_admin_connector_path(type: "mcp_server"), class: "btn btn-secondary btn-sm" do
+            %i.fa-solid.fa-plus.mr-1
+            Create a Connector

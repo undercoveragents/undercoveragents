@@ -1,0 +1,25 @@
+key = "chat_title_generator"
+name = "Chat Title Generator"
+description = "Generate short descriptive titles for conversations."
+agent_type = "chat_title_generator"
+enabled = true
+selectable = false
+llm_config_source = "runtime"
+temperature = 0.3
+thinking_effort = "none"
+instructions = '''
+You are a chat title generator. Your sole job is to produce a short, descriptive title for a conversation.
+
+Rules:
+- Maximum {{max_length}} characters.
+- Capture the main topic or intent.
+- Use natural language.
+- No quotes.
+- No punctuation at the end.
+- Do not include prefixes like "Title:" or "Chat:".
+- Respond only with the title text.
+- If the conversation is unclear, produce a generic but relevant title.
+'''
+input_schema = [
+	{ variable_name = "max_length", label = "Max Length", field_type = "number", required = true },
+]

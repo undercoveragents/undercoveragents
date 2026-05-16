@@ -1,0 +1,30 @@
+- content_for :head do
+  = stylesheet_link_tag "plugin_sql_database_wizard", "data-turbo-track": "reload"
+  = stylesheet_link_tag "plugin_sql_database_connector_wizard", "data-turbo-track": "reload"
+
+- form_state = sql_database_connector_form_state(connector)
+
+.connector-form-container{ data: { controller: "sql-database-connector-form sql-database-wizard-styles", sql_database_connector_form_test_url_value: admin_test_connection_sql_database_connectors_path, sql_database_connector_form_database_options_url_value: admin_database_options_sql_database_connectors_path, sql_database_connector_form_auto_load_databases_value: form_state[:auto_load_databases], sql_database_wizard_styles_urls_value: form_state[:stylesheet_urls].to_json } }
+  = form_with url: form_state[:action], method: form_state[:method], local: true, html: { class: "connector-form ui-wizard-form space-y-6", id: local_assigns.fetch(:form_id, "connector-form") } do |f|
+    = hidden_field_tag :connector_type, "sql_database"
+
+    = render "shared/forms/validation_errors", record: connector, resource_name: "connector"
+
+    .ui-wizard.ui-wizard--flush-card.sql-connector-wizard
+      .ui-wizard__shell
+        = render "shared/wizard/header", wizard: form_state[:wizard]
+
+        .ui-wizard__panel#sql-connector-step-identity
+          = render "shared/wizard/section_head",
+                   step: form_state[:wizard].steps[0],
+                   copy: "Give the connector a clear name so teams can recognize which database environment it points to."
+          = render "connectors/forms/shared/basic_info", f:, connector:
+
+        = render partial: "wizard_connection_details",
+                 locals: { f:, connector:, adapter_options: form_state[:adapter_options], connection_mode: form_state[:connection_mode], database_options: form_state[:database_options], selected_database: form_state[:selected_database], step: form_state[:wizard].steps[1] }
+        -# haml-lint sibling render separator
+        = render partial: "wizard_defaults",
+                 locals: { f:, connector:, step: form_state[:wizard].steps[2] }
+        -# haml-lint sibling render separator
+        = render partial: "wizard_verification",
+                 locals: { step: form_state[:wizard].steps[3] }

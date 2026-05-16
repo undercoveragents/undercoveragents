@@ -1,0 +1,102 @@
+/ ── Activity Feed — Recent chats, mission runs, test runs ──
+.grid.grid-cols-1.lg:grid-cols-3.gap-5
+
+  / ── Recent Conversations ──
+  .dash-feed-card
+    .dash-feed-header
+      .flex.items-center.gap-2
+        .dash-feed-dot.dash-feed-dot--brand
+        %h3.dash-feed-title Recent Conversations
+      - if presenter.recent_chats.any?
+        %a.dash-feed-link{ href: admin_playground_chats_path }
+          View all
+          %i.fa-solid.fa-arrow-right.ml-1
+    .dash-feed-body
+      - if presenter.recent_chats.any?
+        - presenter.recent_chats.each do |chat|
+          .dash-feed-item
+            .dash-feed-item-icon.dash-feed-item-icon--brand
+              %i.fa-solid.fa-message
+            .dash-feed-item-content
+              .dash-feed-item-title= chat.display_title
+              .dash-feed-item-meta
+                - if chat.agent
+                  %span
+                    %i.fa-solid.fa-user-secret.mr-1
+                    = chat.agent.name
+                %span
+                  %i.fa-regular.fa-clock.mr-1
+                  = time_ago_short(chat.updated_at)
+            = content_tag(:span, chat.status.capitalize, class: "badge #{chat_status_badge_class(chat)}")
+      - else
+        .dash-feed-empty
+          %i.fa-solid.fa-comments.dash-feed-empty-icon
+          %p No conversations yet
+
+  / ── Recent Mission Runs ──
+  .dash-feed-card
+    .dash-feed-header
+      .flex.items-center.gap-2
+        .dash-feed-dot.dash-feed-dot--amber
+        %h3.dash-feed-title Recent Missions
+      - if presenter.recent_mission_runs.any?
+        %a.dash-feed-link{ href: admin_missions_path }
+          View all
+          %i.fa-solid.fa-arrow-right.ml-1
+    .dash-feed-body
+      - if presenter.recent_mission_runs.any?
+        - presenter.recent_mission_runs.each do |run|
+          .dash-feed-item
+            .dash-feed-item-icon.dash-feed-item-icon--amber
+              %i.fa-solid.fa-diagram-project
+            .dash-feed-item-content
+              .dash-feed-item-title= run.mission.name
+              .dash-feed-item-meta
+                %span
+                  %i.fa-regular.fa-clock.mr-1
+                  = time_ago_short(run.created_at)
+                - if run.completed_at && run.started_at
+                  %span
+                    %i.fa-solid.fa-stopwatch.mr-1
+                    #{((run.completed_at - run.started_at) * 1000).round}ms
+            = content_tag(:span, run.status.capitalize, class: "badge #{mission_run_badge_class(run)}")
+      - else
+        .dash-feed-empty
+          %i.fa-solid.fa-diagram-project.dash-feed-empty-icon
+          %p No mission runs yet
+
+  / ── Recent Test Runs ──
+  .dash-feed-card
+    .dash-feed-header
+      .flex.items-center.gap-2
+        .dash-feed-dot.dash-feed-dot--rose
+        %h3.dash-feed-title Recent Tests
+      - if presenter.recent_test_runs.any?
+        %a.dash-feed-link{ href: admin_test_suites_path }
+          View all
+          %i.fa-solid.fa-arrow-right.ml-1
+    .dash-feed-body
+      - if presenter.recent_test_runs.any?
+        - presenter.recent_test_runs.each do |run|
+          .dash-feed-item
+            .dash-feed-item-icon.dash-feed-item-icon--rose
+              %i.fa-solid.fa-vial
+            .dash-feed-item-content
+              .dash-feed-item-title= run.test_suite.name
+              .dash-feed-item-meta
+                - if run.total_count.positive?
+                  %span.text-green-500
+                    %i.fa-solid.fa-check.mr-1
+                    = run.passed_count
+                  - if run.failed_count.positive?
+                    %span.text-red-500
+                      %i.fa-solid.fa-xmark.mr-1
+                      = run.failed_count
+                %span
+                  %i.fa-regular.fa-clock.mr-1
+                  = time_ago_short(run.created_at)
+            = content_tag(:span, run.status.capitalize, class: "badge #{test_run_badge_class(run)}")
+      - else
+        .dash-feed-empty
+          %i.fa-solid.fa-vial.dash-feed-empty-icon
+          %p No test runs yet

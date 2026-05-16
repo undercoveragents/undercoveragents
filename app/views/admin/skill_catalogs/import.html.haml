@@ -1,0 +1,67 @@
+- content_for(:title, "Import Skill Collection — #{APP_NAME}")
+- target_mode = params[:target_mode].presence_in(["new", "existing"]) || "new"
+- form_id = "skill-catalog-import-form"
+= render_page_hero(title: "Import Skill Collection", variant: :compact, theme: :skills, title_icon: "fa-solid fa-box-open", actions: [page_hero_form_action(label: "Import Collection", form_id:)])
+
+= form_with url: import_admin_skill_catalogs_path, method: :post, local: true, multipart: true, id: form_id, data: { controller: "skill-import" } do
+  .skills-import-grid
+    .card.skills-import-card
+      .card-header
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-box-open.mr-2.text-accent
+          Import Target
+      .card-body.space-y-6
+        .skills-target-picker
+          %label.skills-target-option
+            = radio_button_tag :target_mode, "new", target_mode == "new", data: { action: "change->skill-import#toggle" }
+            .skills-target-option__body
+              .skills-target-option__title Create a new catalog
+              .skills-target-option__text Import the uploaded skills into a brand new catalog inside the current operation.
+          %label.skills-target-option
+            = radio_button_tag :target_mode, "existing", target_mode == "existing", data: { action: "change->skill-import#toggle" }
+            .skills-target-option__body
+              .skills-target-option__title Merge into an existing catalog
+              .skills-target-option__text Reuse an existing catalog and upsert incoming skills by name.
+
+        .skills-target-section{ data: { skill_import_target: "newFields" }, class: ("hidden" if target_mode == "existing") }
+          .form-grid
+            .form-group.col-span-full
+              = label_tag "skill_catalog_name", "Catalog name", class: "form-label"
+              = text_field_tag "skill_catalog[name]", @skill_catalog&.name, class: "form-input", placeholder: "e.g. Customer Operations Playbooks"
+            .form-group.col-span-full
+              = label_tag "skill_catalog_description", "Catalog description", class: "form-label"
+              = text_area_tag "skill_catalog[description]", @skill_catalog&.description, class: "form-input", rows: 4, placeholder: "What this library contains and which agents should use it."
+
+        .skills-target-section{ data: { skill_import_target: "existingFields" }, class: ("hidden" if target_mode == "new") }
+          .form-group{ data: { controller: "choices", choices_search_value: "true" } }
+            = label_tag :target_catalog_id, "Existing catalog", class: "form-label"
+            = select_tag :target_catalog_id,
+                         options_from_collection_for_select(@existing_catalogs, :slug, :name, params[:target_catalog_id]),
+                         include_blank: "Select a catalog…",
+                         class: "form-input form-select",
+                         data: { choices_target: "select" }
+
+        .form-group
+          = label_tag :archive, "Upload file", class: "form-label"
+          = file_field_tag :archive, accept: ".md,.zip,text/markdown,application/zip", class: "form-input"
+          .form-hint Supported inputs: a single SKILL.md file, a ZIP containing one skill directory, or a ZIP collection with multiple skill directories.
+
+
+    .card.skills-import-card
+      .card-header
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-list-check.mr-2.text-accent
+          Import Rules
+      .card-body.space-y-4
+        .skills-import-tip
+          %strong Directory discovery
+          %p.text-sm.text-text-secondary.mt-1 ZIP imports scan for directories containing a file named exactly SKILL.md.
+        .skills-import-tip
+          %strong Lenient parsing
+          %p.text-sm.text-text-secondary.mt-1 Descriptions are required. Common malformed YAML like unquoted colons is automatically retried before the import fails.
+        .skills-import-tip
+          %strong Bundled resources
+          %p.text-sm.text-text-secondary.mt-1 Files inside scripts, references, assets, or any other folder are preserved and become available through the read_skill_resource tool.
+        .skills-import-tip
+          %strong Upsert behavior
+          %p.text-sm.text-text-secondary.mt-1 When a skill with the same name already exists in the target catalog, its instructions and bundled files are replaced with the imported version.

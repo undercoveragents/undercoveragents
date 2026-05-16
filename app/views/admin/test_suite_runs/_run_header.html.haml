@@ -1,0 +1,33 @@
+#test-run-header
+  -# Hidden marker for Stimulus controller to detect run status changes
+  %span.hidden#test-run-current-status{ data: { status: run.status } }
+
+  - if run.in_progress?
+    - title_icon = "fa-solid fa-spinner"
+  - elsif run.completed?
+    - title_icon = "fa-solid fa-flag-checkered"
+  - elsif run.failed? || run.cancelled?
+    - title_icon = "fa-solid fa-circle-xmark"
+  - else
+    - title_icon = "fa-solid fa-clock"
+  - meta = [test_run_status_badge(run), tag.span(test_suite.name, class: "badge badge-neutral")]
+  - meta << tag.span("Started #{time_ago_in_words(run.started_at)} ago", class: "badge badge-secondary") if run.started_at
+  - meta << tag.span(test_run_duration_display(run), class: "badge badge-neutral") if run.completed? && run.duration_ms
+  - if run.completed? && test_suite.agent?
+    - meta << tag.span("Cost #{test_run_cost_display(run, cost: local_assigns[:total_cost])}", class: "badge badge-neutral")
+    - meta << tag.span("In #{test_run_input_tokens_display(run)}", class: "badge badge-neutral")
+    - meta << tag.span("Out #{test_run_output_tokens_display(run)}", class: "badge badge-neutral")
+  - actions = []
+  - actions << { label: "Cancel Run", url: cancel_admin_test_suite_test_suite_run_path(test_suite, run), icon: "fa-solid fa-stop", style: :danger_outline, method: :post } if run.in_progress?
+
+  = render_page_hero(title: "Run", variant: :compact, title_icon:, record_title: "##{run.id}", back_link: { label: "Back to Suite", url: admin_test_suite_path(test_suite) }, meta:, actions:)
+
+  - if run.completed? && test_suite.agent?
+    .text-xs.text-text-muted.mt-2
+      %span
+        %i.fa-solid.fa-user-secret.mr-1
+        Agent: #{test_run_agent_breakdown_display(run)}
+      %span.mx-2 •
+      %span
+        %i.fa-solid.fa-scale-balanced.mr-1
+        Evaluator: #{test_run_evaluator_breakdown_display(run)}

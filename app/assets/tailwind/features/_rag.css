@@ -1,0 +1,522 @@
+/* ==========================================================================
+   RAG — Feature styles
+   Horizontal pipeline flow visualization, step cards, run monitoring,
+   module selection wizard
+   ========================================================================== */
+
+/* ── Module Selection Wizard ─────────────────────────────────────────────── */
+
+.module-select-wizard {
+  padding: 0.5rem 0;
+}
+
+.module-type-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 12rem;
+  padding: 1.5rem;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-surface-card) 92%, white),
+    var(--color-surface-card)
+  );
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--accent) 42%, var(--color-border-default));
+    box-shadow: 0 12px 30px color-mix(in srgb, var(--accent) 12%, transparent);
+    transform: translateY(-3px);
+
+    .module-type-icon {
+      background: color-mix(in srgb, var(--accent) 18%, transparent);
+      transform: scale(1.05);
+    }
+  }
+}
+
+.module-type-card-content {
+  flex: 1;
+}
+
+.module-type-card-footer {
+  margin-top: 1rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid color-mix(in srgb, var(--color-border-default) 80%, transparent);
+}
+
+.module-type-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: 1rem;
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--accent);
+  transition: background 0.25s ease, transform 0.25s ease;
+}
+
+/* ── Horizontal Pipeline Flow ────────────────────────────────────────────── */
+
+.rag-flow {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  overflow-x: auto;
+  padding-bottom: 2rem;
+  background: var(--color-surface-default);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+.rag-flow-step {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.rag-flow-connector {
+  display: flex;
+  align-items: center;
+  padding: 0 0.5rem;
+  flex-shrink: 0;
+
+  &::before {
+    content: "";
+    display: block;
+    width: 1.5rem;
+    height: 2px;
+    background: linear-gradient(to right, var(--color-border-default), color-mix(in srgb, var(--color-text-muted) 40%, transparent));
+  }
+
+  .rag-flow-arrow {
+    color: var(--color-text-secondary);
+    font-size: 0.75rem;
+    opacity: 0.65;
+  }
+}
+
+.rag-step-card {
+  flex: 1;
+  min-width: 0;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-default);
+  background: var(--color-surface-card);
+  padding: 1.75rem 1.25rem 1.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.875rem;
+  min-height: 13rem;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: var(--color-border-default);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    transition: background 0.3s ease, opacity 0.3s ease;
+  }
+
+  &:hover {
+    transform: translateY(-4px);
+
+    &::before {
+      opacity: 1;
+    }
+  }
+
+  /* Stage-specific top bar colours */
+  &--source::before     { background: var(--color-brand-500); }
+  &--chunking::before   { background: var(--color-warning-500); }
+  &--embedding::before  { background: var(--color-info-500, var(--color-brand-400)); }
+  &--storage::before    { background: var(--color-success-500); }
+
+  /* Stage-specific hover borders */
+  &--source:hover     { border-color: color-mix(in srgb, var(--color-brand-500) 50%, transparent);     box-shadow: 0 8px 28px color-mix(in srgb, var(--color-brand-500) 16%, transparent); }
+  &--chunking:hover   { border-color: color-mix(in srgb, var(--color-warning-500) 50%, transparent);   box-shadow: 0 8px 28px color-mix(in srgb, var(--color-warning-500) 16%, transparent); }
+  &--embedding:hover  { border-color: color-mix(in srgb, var(--color-info-500, var(--color-brand-400)) 50%, transparent);  box-shadow: 0 8px 28px color-mix(in srgb, var(--color-info-500, var(--color-brand-400)) 16%, transparent); }
+  &--storage:hover    { border-color: color-mix(in srgb, var(--color-success-500) 50%, transparent);   box-shadow: 0 8px 28px color-mix(in srgb, var(--color-success-500) 16%, transparent); }
+
+  /* Legacy names kept for backward compat */
+  &--transformer::before { background: var(--color-neutral-400); }
+  &--destination::before { background: var(--color-success-500); }
+
+  /* Configured: stage-specific accent border + subtle tinted background */
+  &--configured {
+    border-width: 2px;
+
+    &.rag-step-card--source {
+      border-color: color-mix(in srgb, var(--color-brand-500) 35%, var(--color-border-default));
+      background: color-mix(in srgb, var(--color-brand-500) 4%, var(--color-surface-card));
+    }
+
+    &.rag-step-card--chunking {
+      border-color: color-mix(in srgb, var(--color-warning-500) 35%, var(--color-border-default));
+      background: color-mix(in srgb, var(--color-warning-500) 4%, var(--color-surface-card));
+    }
+
+    &.rag-step-card--embedding {
+      border-color: color-mix(in srgb, var(--color-info-500, var(--color-brand-400)) 35%, var(--color-border-default));
+      background: color-mix(in srgb, var(--color-info-500, var(--color-brand-400)) 4%, var(--color-surface-card));
+    }
+
+    &.rag-step-card--storage {
+      border-color: color-mix(in srgb, var(--color-success-500) 35%, var(--color-border-default));
+      background: color-mix(in srgb, var(--color-success-500) 4%, var(--color-surface-card));
+    }
+  }
+
+  &--unconfigured {
+    border-style: dashed;
+    border-color: var(--color-border-default);
+    opacity: 0.65;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+
+  &--running {
+    &::before { background: var(--color-brand-500); }
+    animation: rag-pulse 2s ease-in-out infinite;
+  }
+
+  &--completed {
+    &::before { background: var(--color-success-500); }
+  }
+
+  &--failed {
+    &::before { background: var(--color-danger-500); }
+  }
+}
+
+.rag-step-number {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.625rem;
+  height: 1.625rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  border: 1.5px solid transparent;
+
+  .rag-step-card--source &     { background: color-mix(in srgb, var(--color-brand-500) 14%, var(--color-surface-card)); color: var(--color-brand-600, var(--color-brand-500)); border-color: color-mix(in srgb, var(--color-brand-500) 30%, transparent); }
+  .rag-step-card--chunking &   { background: color-mix(in srgb, var(--color-warning-500) 14%, var(--color-surface-card)); color: var(--color-warning-600, var(--color-warning-500)); border-color: color-mix(in srgb, var(--color-warning-500) 30%, transparent); }
+  .rag-step-card--embedding &  { background: color-mix(in srgb, var(--color-info-500, var(--color-brand-400)) 14%, var(--color-surface-card)); color: var(--color-info-600, var(--color-info-500, var(--color-brand-400))); border-color: color-mix(in srgb, var(--color-info-500, var(--color-brand-400)) 30%, transparent); }
+  .rag-step-card--storage &    { background: color-mix(in srgb, var(--color-success-500) 14%, var(--color-surface-card)); color: var(--color-success-600, var(--color-success-500)); border-color: color-mix(in srgb, var(--color-success-500) 30%, transparent); }
+}
+
+.rag-step-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 5rem;
+  height: 5rem;
+  border-radius: var(--radius-lg);
+  font-size: 2rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  .rag-step-card:hover & {
+    transform: scale(1.1);
+  }
+
+  &--source {
+    background: color-mix(in srgb, var(--color-brand-500) 12%, transparent);
+    color: var(--color-brand-500);
+  }
+
+  &--chunking {
+    background: color-mix(in srgb, var(--color-warning-500) 12%, transparent);
+    color: var(--color-warning-500);
+  }
+
+  &--embedding {
+    background: color-mix(in srgb, var(--color-info-500, var(--color-brand-400)) 12%, transparent);
+    color: var(--color-info-500, var(--color-brand-400));
+  }
+
+  &--storage {
+    background: color-mix(in srgb, var(--color-success-500) 12%, transparent);
+    color: var(--color-success-500);
+  }
+
+  &--transformer {
+    background: color-mix(in srgb, var(--color-neutral-400) 12%, transparent);
+    color: var(--color-neutral-500);
+
+    .dark & {
+      color: var(--color-neutral-400);
+    }
+  }
+
+  &--destination {
+    background: color-mix(in srgb, var(--color-success-500) 12%, transparent);
+    color: var(--color-success-500);
+  }
+}
+
+.rag-step-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+}
+
+.rag-step-stage {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  line-height: 1.3;
+
+  .rag-step-card--source &     { color: var(--color-brand-500); }
+  .rag-step-card--chunking &   { color: var(--color-warning-600, var(--color-warning-500)); }
+  .rag-step-card--embedding &  { color: var(--color-info-500, var(--color-brand-400)); }
+  .rag-step-card--storage &    { color: var(--color-success-600, var(--color-success-500)); }
+  .rag-step-card--unconfigured & { color: var(--color-text-muted); }
+}
+
+.rag-step-module {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  line-height: 1.3;
+}
+
+.rag-step-cta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.rag-step-summary {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.rag-step-status-dot {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 9999px;
+  position: absolute;
+  top: 0.875rem;
+  right: 0.875rem;
+  box-shadow: 0 0 0 2px var(--color-surface-card);
+
+  &--configured {
+    background: var(--color-success-500);
+  }
+
+  &--unconfigured {
+    background: var(--color-text-muted);
+    opacity: 0.5;
+  }
+}
+
+/* ── Run Monitoring ──────────────────────────────────────────────────────── */
+
+/* Run-specific flow variant — no hover lift */
+.rag-flow--run .rag-step-card {
+  cursor: default;
+
+  &:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: inherit;
+  }
+}
+
+/* Status dot colours for run step cards */
+.rag-step-status-dot--pending {
+  background: var(--color-text-muted);
+  opacity: 0.5;
+}
+
+.rag-step-status-dot--running {
+  background: var(--color-brand-500);
+  animation: rag-pulse 1.5s ease-in-out infinite;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand-500) 30%, transparent);
+}
+
+.rag-step-status-dot--completed {
+  background: var(--color-success-500);
+}
+
+.rag-step-status-dot--failed {
+  background: var(--color-danger-500);
+}
+
+.rag-step-status-dot--skipped {
+  background: var(--color-text-muted);
+  opacity: 0.5;
+}
+
+/* Step Card — skipped state */
+.rag-step-card--skipped {
+  opacity: 0.55;
+
+  &::before {
+    background: var(--color-text-muted);
+  }
+}
+
+/* ── Step Run Stats ─────────────────────────────────────────────────────── */
+
+.rag-step-run-stats {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  margin-top: 0.25rem;
+}
+
+.rag-step-stat-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--color-text-primary);
+
+  .rag-step-card--running & {
+    color: var(--color-brand-500);
+  }
+
+  .rag-step-card--completed & {
+    color: var(--color-success-600, var(--color-success-500));
+  }
+
+  .rag-step-card--failed & {
+    color: var(--color-danger-500);
+  }
+}
+
+.rag-step-stat-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.rag-step-stat-secondary {
+  font-size: 0.7rem;
+  color: var(--color-warning-600, var(--color-warning-500));
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  margin-top: 0.15rem;
+}
+
+.rag-step-stat-error {
+  font-size: 0.7rem;
+  color: var(--color-danger-500);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  line-height: 1.3;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.rag-step-duration {
+  font-size: 0.65rem;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  margin-top: 0.35rem;
+}
+
+/* ── Legacy Run Monitoring (kept for backward compat) ────────────────── */
+
+.rag-run-progress {
+  width: 100%;
+  height: 0.5rem;
+  background: var(--color-surface-secondary);
+  border-radius: 9999px;
+  overflow: hidden;
+
+  &-bar {
+    height: 100%;
+    background: var(--color-brand-500);
+    border-radius: 9999px;
+    transition: width 0.5s ease;
+
+    &--completed {
+      background: var(--color-success-500);
+    }
+
+    &--failed {
+      background: var(--color-danger-500);
+    }
+  }
+}
+
+.rag-step-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  flex-shrink: 0;
+
+  &--pending {
+    background: var(--color-surface-secondary);
+    color: var(--color-text-muted);
+  }
+
+  &--running {
+    background: color-mix(in srgb, var(--color-brand-500) 15%, transparent);
+    color: var(--color-brand-500);
+    animation: rag-pulse 1.5s ease-in-out infinite;
+  }
+
+  &--completed {
+    background: color-mix(in srgb, var(--color-success-500) 15%, transparent);
+    color: var(--color-success-500);
+  }
+
+  &--failed {
+    background: color-mix(in srgb, var(--color-danger-500) 15%, transparent);
+    color: var(--color-danger-500);
+  }
+
+  &--skipped {
+    background: var(--color-surface-secondary);
+    color: var(--color-text-muted);
+  }
+}
+
+/* ── Animation ──────────────────────────────────────────────────────── */
+
+@keyframes rag-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}

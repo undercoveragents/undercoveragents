@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   Undercover Agents — Design System
+   A professional, reusable design token layer built on Tailwind CSS v4.
+   Supports light and dark themes via the `dark` class on <html>.
+
+   CSS is organized into modular files using native CSS nesting.
+   Files are split by concern:
+     base/       — Design tokens, color themes, typography
+     layout/     — Sidebar, topbar, page structure
+     components/ — Reusable UI primitives (cards, badges, buttons, forms…)
+     features/   — Feature-specific styles (playground, inspector, connectors…)
+   ========================================================================== */
+
+/* Base: tokens, themes, typography */
+@import "./base/_theme.css";
+
+/* Layout: sidebar, topbar, page structure */
+@import "./layout/_layout.css";
+
+/* Components: reusable UI primitives */
+@import "./components/_cards.css";
+@import "./components/_badges.css";
+@import "./components/_buttons.css";
+@import "./components/_forms.css";
+@import "./components/_flash.css";
+@import "./components/_toast.css";
+@import "./components/_choices.css";
+@import "./components/_wizard.css";
+@import "./components/_animations.css";
+@import "./components/_dialog.css";
+@import "./components/_capabilities.css";
+@import "./components/_prompt_editor.css";
+@import "./components/_code_editor.css";
+@import "./components/_shared_chat.css";
+@import "./components/_tool_widget_admin.css";
+@import "./components/_panel_sidebar.css";
+@import "./components/_page_hero.css";
+@import "./components/_page_empty_state.css";
+
+/* Features: domain-specific styles */
+@import "./features/_auth.css";
+@import "./features/_chat.css";
+@import "./features/_connectors.css";
+@import "./features/_dashboard.css";
+@import "./features/_version-tree.css";
+@import "./features/_playground.css";
+@import "./features/_inspector.css";
+@import "./features/_mission_control.css";
+@import "./features/_models.css";
+@import "./features/_test-suites.css";
+@import "./features/_rag.css";
+@import "./features/_skills.css";

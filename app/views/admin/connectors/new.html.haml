@@ -1,0 +1,24 @@
+- content_for(:title, "New Connector — #{APP_NAME}")
+- form_id = "connector-form"
+- back_link = { label: "Back to Connectors", url: admin_connectors_path }
+- actions = []
+- actions << page_hero_form_action(label: "Create Connector", form_id:) if @connector_type.present?
+= render_page_hero(title: "New Connector", variant: :compact, title_icon: "fa-solid fa-plug", back_link:, actions:)
+
+- if @connector_type.blank?
+  / ── Step 1: Choose connector type ──
+  .connector-wizard
+    %h2.text-lg.font-semibold.mb-6.text-text-primary Choose Connector Type
+
+    .grid.grid-cols-1.md:grid-cols-2.lg:grid-cols-4.gap-6
+      - ConnectorPlugin.all_types.each do |type_info|
+        = link_to new_admin_connector_path(type: type_info[:key]), class: "connector-type-card" do
+          .connector-type-icon
+            %i{ class: "#{type_info[:icon]} text-2xl" }
+          %h3.text-lg.font-semibold.mb-1.text-text-primary= type_info[:label]
+          - if type_info[:description].present?
+            %p.text-sm.text-text-secondary= type_info[:description]
+
+- else
+  - connector = @connector || Connector.new(connector_type: @connector_type)
+  = render_connector_form(connector, form_id:)

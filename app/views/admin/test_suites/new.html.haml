@@ -1,0 +1,10 @@
+- content_for(:title, "New Test Suite — #{APP_NAME}")
+- suite_title = @test_suite.mission? ? "New Mission Test Suite" : "New Agent Test Suite"
+- suite_icon = @test_suite.mission? ? "fa-solid fa-diagram-project" : "fa-solid fa-user-secret"
+- form_id = "test-suite-form"
+- back_link = { label: "Back to Test Suites", url: admin_test_suites_path }
+= render_page_hero(title: suite_title, variant: :compact, title_icon: suite_icon, back_link:, actions: [page_hero_form_action(label: "Create Test Suite", form_id:)])
+
+.card
+  .card-body
+    = render "test_suites/form", test_suite: @test_suite, form_id:, available_agents: @available_agents, available_missions: @available_missions, available_llm_connectors: @available_llm_connectors, evaluation_models: @evaluation_models

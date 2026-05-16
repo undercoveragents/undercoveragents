@@ -1,0 +1,56 @@
+- content_for(:title, "Users — #{APP_NAME}")
+= render_page_hero(title: "Controlled access, aligned to every operator", description: "Manage user accounts and access control.", variant: :dashboard, eyebrow: { label: "Users", icon: "fa-solid fa-users" }, actions: [{ label: "New User", url: new_admin_user_path, icon: "fa-solid fa-plus", style: :primary }])
+
+- if @users.any?
+  .card
+    %table.admin-table
+      %thead
+        %tr
+          %th Email
+          %th Role
+          %th Provider
+          %th Status
+          %th.text-right Actions
+      %tbody
+        - @users.each do |user|
+          %tr
+            %td
+              .flex.items-center.gap-3
+                .flex.items-center.justify-center.w-8.h-8.rounded-full.bg-brand-600.text-white.text-xs.font-semibold
+                  = user.initials
+                .flex-1.min-w-0
+                  .text-sm.font-medium.text-text-primary.truncate= user.email
+                  .text-xs.text-text-muted= user.display_name
+            %td
+              - if user.admin?
+                - if user.system_admin?
+                  %span.badge.badge-accent System Admin
+                - else
+                  %span.badge.badge-info Admin
+              - else
+                %span.badge.badge-default User
+            %td
+              - if user.oauth?
+                %span.badge.badge-info
+                  %i.fa-solid.fa-key.mr-1
+                  = user.provider.titleize
+              - else
+                %span.badge.badge-default Local
+            %td
+              - if user.active?
+                %span.badge.badge-success Active
+              - else
+                %span.badge.badge-danger Inactive
+            %td.text-right
+              .flex.items-center.justify-end.gap-2
+                = link_to edit_admin_user_path(user), class: "btn btn-ghost btn-xs", title: "Edit" do
+                  %i.fa-solid.fa-pen-to-square
+                - unless user == current_user
+                  = button_to admin_user_path(user), method: :delete, class: "btn btn-ghost btn-xs text-danger-500", title: "Delete", data: { turbo_confirm: "Are you sure you want to delete this user?" } do
+                    %i.fa-solid.fa-trash
+
+- else
+  = render_page_empty_state(title: "No users yet", body: "Create your first user account.") do
+    = link_to new_admin_user_path, class: "btn btn-primary" do
+      %i.fa-solid.fa-plus.mr-1
+      Create User

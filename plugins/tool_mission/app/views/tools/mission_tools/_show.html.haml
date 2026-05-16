@@ -1,0 +1,28 @@
+/ ── Mission Tool Show Section ──
+/ Locals: tool
+- toolable = tool.toolable
+
+/ ── Configuration ──
+.card.mb-6
+  .card-header
+    %h3.text-sm.font-semibold.text-text-primary
+      %i.fa-solid.fa-gear.mr-2.text-accent
+      Configuration
+  .card-body
+    .detail-grid
+      .detail-item
+        .detail-label Mission
+        .detail-value
+          - if toolable.mission.present?
+            = link_to toolable.mission.name, admin_mission_path(toolable.mission), class: "text-accent no-underline"
+          - else
+            %span.text-text-muted Not configured
+
+- if toolable.instructions.present?
+  .card.mb-6
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-scroll.mr-2.text-accent
+        Instructions
+    .card-body
+      .markdown-body.bg-surface-secondary.p-4.rounded-lg{ data: { controller: "markdown-render", markdown_render_content_value: toolable.instructions } }

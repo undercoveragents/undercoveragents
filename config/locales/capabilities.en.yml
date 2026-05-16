@@ -1,0 +1,4 @@
+en:
+  capabilities:
+    updated: "Capability settings were successfully updated."
+    removed: "Capability removed."

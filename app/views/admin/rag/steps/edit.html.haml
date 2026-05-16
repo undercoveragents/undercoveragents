@@ -1,0 +1,24 @@
+- content_for(:title, "#{@stage_config[:label]} — #{@rag_flow.name}")
+- existing_step = @rag_flow.rag_steps.find_by(stage: @stage)
+- form_id = "rag-step-form"
+- back_link = { label: "Back to #{@rag_flow.name}", url: admin_rag_flow_path(@rag_flow) }
+- actions = []
+- if existing_step
+  - actions << { label: "Remove Module", url: admin_rag_flow_step_path(@rag_flow, @stage), icon: "fa-solid fa-trash", style: :danger_outline, method: :delete, data: { controller: "confirm", confirm_title_value: "Remove Module", confirm_message_value: "Remove this module configuration? You can then choose a different module.", confirm_confirm_text_value: "Remove" } }
+- else
+  - actions << { label: "Change Module", url: edit_admin_rag_flow_step_path(@rag_flow, @stage), icon: "fa-solid fa-arrow-left", style: :secondary }
+- actions << page_hero_form_action(label: "Save Step", form_id:)
+= render_page_hero(title: @stage_config[:label], variant: :compact, title_icon: @stage_config[:icon], record_title: @rag_flow.name, back_link:, meta: [tag.span(@selected_module[:label], class: "badge badge-secondary")], actions:)
+
+.card
+  = turbo_frame_tag "rag-step-configurator" do
+    .card-body
+      / ── Module Configuration Form ──
+      = form_with url: admin_rag_flow_step_path(@rag_flow, @stage), method: :patch, scope: @selected_module_key, model: @steppable, class: "space-y-6 ui-wizard-form", id: form_id, data: { turbo_frame: "app-content-frame" } do |f|
+        = hidden_field_tag :module_type, @selected_module_key
+
+        / ── Validation Errors ──
+        = render "shared/forms/validation_errors", record: @steppable, resource_name: "step" if !request.get? && @steppable&.errors&.any?
+
+        / ── Module-specific Form ──
+        = render_rag_step_form(@steppable, f:, steppable: @steppable, rag_flow: @rag_flow)

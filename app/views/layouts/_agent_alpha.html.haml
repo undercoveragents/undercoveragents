@@ -1,0 +1,36 @@
+.ms-sidebar-panel.hidden{ data: { "panel-sidebar-target": "panel", "sidebar-tab": "assistant" } }
+  #chat-stream-source{ data: { turbo_permanent: true, controller: "chat-stream", action: "turbo:frame-load@document->chat-stream#frameLoaded turbo:load@document->chat-stream#syncContextToken", chat_stream_stream_token_value: Chat.signed_stream_name(Chat.user_stream_channel_name_for(current_user)), chat_stream_frame_id_value: "admin-agent-alpha-frame", chat_stream_frame_storage_key_value: "admin-agent-alpha-frame", chat_stream_context_token_selector_value: "#admin-agent-alpha-page-context", chat_stream_context_input_name_value: "message[ui_context_token]", chat_stream_header_title_selector_value: "#agent-alpha-panel-chat-title" } }
+  .ms-sidebar-panel-header
+    .ms-sidebar-panel-header-title
+      .ms-sidebar-panel-header-badge.ms-sidebar-panel-header-badge--assistant
+        %i{ class: agent_alpha_icon }
+        %span= agent_alpha_display_name
+      .ms-sidebar-panel-header-sep
+      %span.ms-sidebar-panel-header-context#agent-alpha-panel-chat-title
+        %span{ id: current_agent_alpha_chat_for_header&.title_dom_id || "agent-alpha-panel-title-value" }= agent_alpha_panel_title
+    .ms-sidebar-panel-header-actions
+      - if agent_alpha_configured?
+        = link_to admin_agent_alpha_path(history: 1), class: "btn btn-secondary btn-sm", title: "Chat history", data: { turbo_frame: "admin-agent-alpha-frame" } do
+          %i.fa-solid.fa-list.fa-fw
+          %span Chats
+        -# spacer between sibling renders
+        = link_to admin_agent_alpha_path(new: 1), class: "btn btn-secondary btn-sm", title: "New chat", data: { turbo_frame: "admin-agent-alpha-frame" } do
+          %i.fa-solid.fa-plus.fa-fw
+          %span New Chat
+  .ms-sidebar-panel-body.ms-sidebar-panel-body-flush
+    #admin-agent-alpha
+      - agent_alpha_frame_data = { controller: "persistent-lazy-frame", action: "turbo:frame-load->persistent-lazy-frame#stabilize" }
+      - if agent_alpha_configured?
+        = turbo_frame_tag "admin-agent-alpha-frame", src: admin_agent_alpha_path, loading: :lazy, data: agent_alpha_frame_data.merge(turbo_permanent: true) do
+          .ms-sidebar-empty-state
+            %span.shared-chat__loading-shimmer
+            %p Loading chat…
+      - else
+        = turbo_frame_tag "admin-agent-alpha-frame", data: agent_alpha_frame_data do
+          .ms-sidebar-empty-state
+            %i.fa-solid.fa-gear
+            %p
+              Agent Alpha is unavailable until the default LLM connector and model are configured.
+              = link_to "Set it up in Preferences.",
+                        admin_preferences_path,
+                        data: { turbo_frame: "app-content-frame" }

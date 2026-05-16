@@ -1,0 +1,20 @@
+.ui-wizard__panel#sql-source-step-tune
+  = render "shared/wizard/section_head",
+           step:,
+           copy: "Batch size applies to all modes. Record limit only affects table-based ingestion."
+  .grid.grid-cols-1.md:grid-cols-2.gap-4.mt-4
+    .form-group
+      = f.label :batch_size, class: "form-label"
+      = f.number_field :batch_size, value: steppable.batch_size || 1000, class: "form-input", min: 1, max: 50_000
+      .form-hint Number of rows to fetch per batch while streaming documents.
+    - if source_mode == "table"
+      .form-group
+        = f.label :record_limit, "Record Limit", class: "form-label"
+        = f.number_field :record_limit,
+                         value: steppable.record_limit,
+                         class: "form-input",
+                         min: 1,
+                         step: 1,
+                         placeholder: "Optional",
+                         data: { action: "change->wizard-preview#preview" }
+        .form-hint Optional LIMIT appended when the wizard builds a query from a table or view.
