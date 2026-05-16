@@ -247,9 +247,9 @@ onBeforeUnmount(clearGallerySideEffects);
           <span>Try in Cloud</span>
           <span class="ua-status-badge">{{ availabilityLabel }}</span>
         </button>
-        <button class="ua-link-button ua-link-button--muted ua-link-button--disabled" type="button" disabled :data-target-url="githubUrl">
+        <a class="ua-link-button ua-link-button--muted" :href="githubUrl" target="_blank" rel="noreferrer noopener">
           <span>Download on GitHub</span>
-        </button>
+        </a>
       </div>
     </section>
 
