@@ -74,7 +74,6 @@ module Tools
         [:connector_id, :instructions,
          :llm_config_source, :llm_connector_id, :model_id, :temperature,],
       )
-        .merge(schema_analysis_llm_connector_id: nil, schema_analysis_model_id: nil)
     end
 
     def build_from_params(params)

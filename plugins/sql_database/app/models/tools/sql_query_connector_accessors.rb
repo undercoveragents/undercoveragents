@@ -24,27 +24,10 @@ module Tools
       @llm_connector_instance = record
     end
 
-    def schema_analysis_llm_connector
-      return @schema_analysis_llm_connector_instance if cached_schema_analysis_llm_connector?
-
-      @schema_analysis_llm_connector_instance =
-        schema_analysis_llm_connector_id.present? ? find_connector(schema_analysis_llm_connector_id) : nil
-    end
-
-    def schema_analysis_llm_connector=(record)
-      self.schema_analysis_llm_connector_id = record&.id
-      @schema_analysis_llm_connector_instance = record
-    end
-
     private
 
     def cached_llm_connector?
       defined?(@llm_connector_instance) && @llm_connector_instance&.id == llm_connector_id
-    end
-
-    def cached_schema_analysis_llm_connector?
-      defined?(@schema_analysis_llm_connector_instance) &&
-        @schema_analysis_llm_connector_instance&.id == schema_analysis_llm_connector_id
     end
 
     def connector_must_be_sql_database

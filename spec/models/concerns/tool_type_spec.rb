@@ -49,24 +49,6 @@ RSpec.describe ToolType do
     # Use the RagQuery toolable for testing defaults since it overrides fewer methods
     # than SqlQuery. We test ToolType defaults directly where RagQuery does not override.
 
-    describe "#validate_and_enqueue_analysis (default)" do
-      it "returns a not-supported message" do
-        # RagQuery does not override validate_and_enqueue_analysis on the ToolType concern
-        # so the default implementation is called.
-        # However, Tools::SqlQuery DOES override it (via SchemaIntelligence).
-        # Use a fresh rag_query instance to exercise the default.
-        expect(rag_query.validate_and_enqueue_analysis)
-          .to eq(I18n.t("tools.schema_analysis_not_supported"))
-      end
-    end
-
-    describe "#validate_and_enqueue_instruction_generation (default)" do
-      it "returns a not-supported message" do
-        expect(rag_query.validate_and_enqueue_instruction_generation)
-          .to eq(I18n.t("tools.instruction_generation_not_supported"))
-      end
-    end
-
     describe "#visibility_available? (based on schema_discovered? for rag_query)" do
       it "returns false when schema is not discovered" do
         expect(rag_query.visibility_available?).to be(false)

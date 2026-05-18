@@ -106,7 +106,7 @@ Keep `ToolPlugin` registrations recoverable after test resets and development re
 **Each tool type implements:**
 - Class: `type_key`, `type_label`, `type_icon`, `permitted_params(params)`, `build_from_params(params)`
 - Class: `tool_designer_editable_attributes`, `tool_designer_notes`, `tool_designer_field_hints`, `tool_designer_resource_kinds`, `tool_designer_action_definitions`/`tool_designer_actions`, `tool_designer_state_attributes`
-- Instance: `perform_tool_designer_action!(action_key, arguments)`, `tool_designer_state`, `perform_discovery!`, `update_visibility!(raw_params)`, `visibility_available?`, `visibility_param_key`, `validate_and_enqueue_analysis`, `validate_and_enqueue_instruction_generation`, `form_partial_path`, `show_partial_path`, `edit_visibility_partial_path`
+- Instance: `perform_tool_designer_action!(action_key, arguments)`, `tool_designer_state`, `perform_discovery!`, `update_visibility!(raw_params)`, `visibility_available?`, `visibility_param_key`, `form_partial_path`, `show_partial_path`, `edit_visibility_partial_path`
 - Tool Designer runtime tools must stay plugin-isolated: `read_tool` renders only `tool_designer_state`, `get_tool_type_info` renders plugin-declared fields/actions/resources plus derived validators, and `manage_tool_action` authorizes via each action definition's policy query before calling `perform_tool_designer_action!`. Do not hardcode plugin state labels, action argument shapes, or resource lookup kinds in the main app.
 
 ### Shared Tool Widget Presentation
