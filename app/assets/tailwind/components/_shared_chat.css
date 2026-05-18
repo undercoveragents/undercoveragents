@@ -5,7 +5,7 @@
   --shared-chat-font-family: -apple-system, "system-ui", sans-serif;
   --shared-chat-font-size: 13px;
   --shared-chat-font-weight: 400;
-  --shared-chat-panel-text-primary: rgb(230 237 243);
+  --shared-chat-panel-text-primary: var(--shared-chat-text-primary, var(--text-primary, var(--color-text-primary)));
   display: flex;
   flex: 1;
   flex-direction: column;
