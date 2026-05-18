@@ -17,7 +17,7 @@ It is designed for teams that want more than a thin SDK. You can configure agent
 - AI agents with tools, subagents, skills, and optional capabilities
 - Visual workflows called Missions for multi-step LLM and automation pipelines
 - Retrieval and knowledge experiences backed by RAG flows and skill catalogs
-- Internal copilots, operator-facing assistants, and customer-facing chat experiences
+- Internal pilots, AI assistants, and customer-facing chat experiences
 - Published agent or mission endpoints through web, API, and external channels
 
 ## Highlights
@@ -170,6 +170,10 @@ bundle exec rake
 
 Undercover Agents is under active development. The core product is usable today, but some extension points and internal APIs may continue to evolve as the open-source release matures.
 
----
+## Acknowledgements
+
+Special mention to [ruby_llm](https://github.com/crmne/ruby_llm), whose beautiful and easy-to-use API made this project possible.
+
+## License
 
 Project by Mirko Mignini. Open sourced under the Apache 2.0 License. See [LICENSE.md](LICENSE.md).

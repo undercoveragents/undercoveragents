@@ -13,7 +13,7 @@ const mainFeatures = [
     image: `/images/dashboard.png?v=${screenshotVersion}`,
     alt: "Admin dashboard screenshot",
     description:
-      "Start from an operator dashboard with the fastest path into agents, tools, missions, runs, and the rest of the admin surface.",
+      "Starting from the dashboard is the fastest path into agents, tools, missions, runs, and the rest of the admin features.",
   },
   {
     key: "agents",
@@ -22,7 +22,7 @@ const mainFeatures = [
     image: `/images/agents.png?v=${screenshotVersion}`,
     alt: "Agents show page screenshot",
     description:
-      "Configure reusable AI operators with instructions, model settings, tools, skills, subagents, and capabilities. Agents power playground chats, internal automation, and published channels.",
+      "Configure reusable AI agents with instructions, model settings, tools, skills, subagents, and capabilities. Agents power playground chats, internal automation, and published channels.",
   },
   {
     key: "tools",
@@ -31,7 +31,7 @@ const mainFeatures = [
     image: `/images/tools.png?v=${screenshotVersion}`,
     alt: "Tools show page screenshot",
     description:
-      "Turn SQL, MCP, retrieval, and mission flows into callable runtime capabilities. Tools keep data access and external actions explicit, assignable, and reviewable from the admin surface.",
+      "Turn SQL, MCP, RAG, and mission flows into callable runtime capabilities. Tools keep data access and external actions explicit, assignable, and reviewable from the admin surface.",
   },
   {
     key: "missions",
@@ -186,8 +186,8 @@ onBeforeUnmount(clearGallerySideEffects);
     <section id="main-features" class="ua-product">
       <div class="ua-section-heading">
         <p class="ua-kicker">Main features</p>
-        <h2>Dashboard, agents, tools, and missions</h2>
-        <p>The operator entry point plus the core surfaces teams use to build, inspect, and operate AI systems.</p>
+        <h2>Agents, tools, and missions</h2>
+        <p>The entry point to build, inspect, and operate AI systems.</p>
       </div>
 
       <div class="ua-product-grid">
