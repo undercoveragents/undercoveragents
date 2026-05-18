@@ -9,7 +9,7 @@ Use this skill for questions about where things live in the admin area and how t
 
 ## Main ideas
 
-- The admin app is organized around the current operation. The selected operation decides which agents, missions, tools, skill catalogs, and RAG flows the user is working with.
+- The admin app is organized around the current operation. The selected operation decides which agents, missions, tools, skill catalogs, RAG flows, channels, and test suites the user is working with.
 - Every tenant also has a Headquarter operation for shipped builtins and shared internal setup, plus a Default operation for normal working content.
 - Most admin pages follow the same shape: primary actions in the page header, the main surface in the center, and a shared right-side panel for Agent Alpha and page-specific side panels.
 

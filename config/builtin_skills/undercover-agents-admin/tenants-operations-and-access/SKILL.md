@@ -9,8 +9,8 @@ Use this skill for access questions, workspace confusion, and any explanation of
 
 ## Core concepts
 
-- A tenant is the top-level account boundary. Users, operations, connectors, clients, and system preferences all belong to one tenant.
-- An operation is a workspace inside that tenant. Agents, missions, tools, skill catalogs, and RAG flows are scoped to the current operation.
+- A tenant is the top-level account boundary. Users, operations, connectors, and system preferences belong to one tenant.
+- An operation is a workspace inside that tenant. Agents, missions, tools, skill catalogs, RAG flows, channels, and test suites are scoped to the current operation.
 - Headquarter is the tenant's shipped system workspace. Default is the normal starting workspace for day-to-day work.
 
 ## Roles

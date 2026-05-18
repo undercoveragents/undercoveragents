@@ -11,8 +11,10 @@ RSpec.describe BuiltinSkills::DefinitionLoader do
       expect(definitions.keys).to include(
         "undercover-agents-admin",
         "undercover-agents-agents",
+        "undercover-agents-channels",
         "undercover-agents-missions",
         "undercover-agents-skills",
+        "undercover-agents-test-suites",
         "undercover-agents-tools",
         "undercover-agents-rag",
       )
