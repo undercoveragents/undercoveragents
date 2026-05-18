@@ -8,8 +8,10 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
     [
       "undercover-agents-admin",
       "undercover-agents-agents",
+      "undercover-agents-channels",
       "undercover-agents-missions",
       "undercover-agents-skills",
+      "undercover-agents-test-suites",
       "undercover-agents-tools",
       "undercover-agents-rag",
     ]
@@ -189,7 +191,7 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
         agent_type: "channel_designer",
         llm_config_source: "system_preference",
         subagent_keys: [],
-        skill_catalog_keys: ["undercover-agents-admin"],
+        skill_catalog_keys: ["undercover-agents-admin", "undercover-agents-channels"],
       )
       expect(definition.tool_keys).to include(
         "channel_designer.read_channel",
@@ -251,7 +253,12 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
         agent_type: "test_suite_designer",
         llm_config_source: "system_preference",
         subagent_keys: ["agent_designer", "mission_designer"],
-        skill_catalog_keys: ["undercover-agents-admin", "undercover-agents-agents", "undercover-agents-missions"],
+        skill_catalog_keys: [
+          "undercover-agents-admin",
+          "undercover-agents-agents",
+          "undercover-agents-missions",
+          "undercover-agents-test-suites",
+        ],
       )
       expect(definition.tool_keys).to include(
         "test_suite_designer.read_test_suite",

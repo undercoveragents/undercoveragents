@@ -28,8 +28,10 @@ RSpec.describe BuiltinAgents::Synchronizer do
       expect(agent_alpha.skill_catalogs.builtin.map(&:builtin_key)).to contain_exactly(
         "undercover-agents-admin",
         "undercover-agents-agents",
+        "undercover-agents-channels",
         "undercover-agents-missions",
         "undercover-agents-skills",
+        "undercover-agents-test-suites",
         "undercover-agents-tools",
         "undercover-agents-rag",
       )
@@ -108,7 +110,10 @@ RSpec.describe BuiltinAgents::Synchronizer do
         "records.manage_record",
         "navigation.navigate_to_page",
       )
-      expect(channel_designer.skill_catalogs.builtin.map(&:builtin_key)).to eq(["undercover-agents-admin"])
+      expect(channel_designer.skill_catalogs.builtin.map(&:builtin_key)).to contain_exactly(
+        "undercover-agents-admin",
+        "undercover-agents-channels",
+      )
     end
 
     it "creates skill_catalog_designer in Headquarter without configured subagents", :aggregate_failures do
@@ -150,6 +155,7 @@ RSpec.describe BuiltinAgents::Synchronizer do
         "undercover-agents-admin",
         "undercover-agents-agents",
         "undercover-agents-missions",
+        "undercover-agents-test-suites",
       )
     end
 

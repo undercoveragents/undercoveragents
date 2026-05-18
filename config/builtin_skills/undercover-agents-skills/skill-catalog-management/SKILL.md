@@ -15,7 +15,7 @@ Use this skill for questions about how skills are grouped and attached to agents
 
 ## Builtin versus custom catalogs
 
-- Builtin catalogs ship as product manuals and usually appear through Headquarter.
+- Builtin catalogs ship as product manuals and usually appear through Headquarter for areas such as admin, agents, missions, channels, test suites, skills, tools, and RAG.
 - Custom catalogs let teams capture their own workflows, playbooks, or domain guidance inside the current operation.
 - Both types can be attached to agents through the same assignment flow.
 

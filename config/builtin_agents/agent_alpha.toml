@@ -10,8 +10,10 @@ thinking_effort = "none"
 skill_catalogs = [
 	"undercover-agents-admin",
 	"undercover-agents-agents",
+	"undercover-agents-channels",
 	"undercover-agents-missions",
 	"undercover-agents-skills",
+	"undercover-agents-test-suites",
 	"undercover-agents-tools",
 	"undercover-agents-rag",
 ]

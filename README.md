@@ -25,6 +25,7 @@ It is designed for teams that want more than a thin SDK. You can configure agent
 - Multi-tenant by design, with workspace-style Operations inside each tenant
 - Visual mission designer for orchestrating prompts, APIs, tools, control flow, and outputs
 - Plugin-first architecture for connectors, tools, channels, capabilities, and RAG modules
+- Builtin product-manual skill catalogs for admin, agents, missions, channels, test suites, skills, tools, and RAG
 - Built-in admin assistant, playground, inspector, API docs, and job dashboard
 - Agent Alpha can now inspect agent chat history and run synchronous debug prompts against agents through the agent-designer runtime tools, using the same persisted chats/messages the inspector shows.
 - Rails-native stack with Hotwire, Haml, Tailwind, Solid Queue, and Falcon
@@ -33,8 +34,8 @@ It is designed for teams that want more than a thin SDK. You can configure agent
 
 | Concept | What it means |
 | --- | --- |
-| Tenant | The top-level isolation boundary for users, operations, connectors, channels, and preferences |
-| Operation | A workspace inside a tenant that scopes agents, missions, tools, skill catalogs, and RAG flows |
+| Tenant | The top-level isolation boundary for users, operations, connectors, and preferences |
+| Operation | A workspace inside a tenant that scopes agents, missions, tools, skill catalogs, RAG flows, and channels |
 | Agent | A configurable LLM-backed assistant with tools, skills, subagents, and capabilities |
 | Mission | A visual workflow for orchestrating multi-step AI or automation behavior |
 | Connector | A connection to an external provider or system |

@@ -7,7 +7,7 @@ selectable = false
 llm_config_source = "system_preference"
 temperature = 0.1
 thinking_effort = "none"
-skill_catalogs = ["undercover-agents-admin", "undercover-agents-agents", "undercover-agents-missions"]
+skill_catalogs = ["undercover-agents-admin", "undercover-agents-agents", "undercover-agents-missions", "undercover-agents-test-suites"]
 subagents = ["agent_designer", "mission_designer"]
 instructions = """
 You are a pragmatic AI assistant for the Undercover Agents test suite admin UI.

@@ -17,10 +17,11 @@ Use this skill for questions about the shared assistant that appears across the 
 
 - It uses shipped skill catalogs as product manuals, loading the relevant area before answering detailed questions.
 - It should stay practical, page-aware, and action-oriented.
-- When the current page is a mission and the user needs workflow authoring help, it can delegate to the mission designer subagent.
+- When the user needs record changes or troubleshooting, it should hand off to the matching designer subagent for missions, agents, tools, channels, skill catalogs, or test suites.
 
 ## Practical guidance
 
 - Explain Agent Alpha as a guide inside the application, not as a separate external chatbot.
 - When users ask broad product questions, anchor the answer in the area they are currently viewing whenever that context exists.
+- When the request is really a design or debugging task, explain the outcome briefly and let the specialist designer do the actual record work.
 - When Agent Alpha lacks current data, it should say so plainly instead of guessing.

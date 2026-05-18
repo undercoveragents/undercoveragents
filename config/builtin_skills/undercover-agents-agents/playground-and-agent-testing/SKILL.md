@@ -12,6 +12,7 @@ Use this skill for questions about trying agents in a safe workspace before expo
 - The playground is a dedicated testing surface for agent conversations.
 - It lets admins try prompts, inspect responses, and understand how an agent behaves without mixing that work into the end-user experience.
 - It is especially useful for agents that do not rely on incompatible runtime-only tool setups.
+- It is the ad hoc testing surface; use test suites when the user wants repeatable pass/fail evaluation or benchmark-style coverage.
 
 ## What users should expect
 
@@ -22,5 +23,6 @@ Use this skill for questions about trying agents in a safe workspace before expo
 ## Practical guidance
 
 - Use the playground when a user wants to compare agents or validate an instruction change.
+- Use test suites when the user wants repeatable regression checks, behavior assertions, or benchmark runs against an agent.
 - Use persisted transcript details when explaining the difference between two agent behaviors.
 - If no compatible agents are available, explain that as an agent compatibility constraint rather than a broken page.
