@@ -16,19 +16,19 @@
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null
 #  connector_id  :bigint
-#  operation_id  :bigint
+#  operation_id  :bigint           not null
 #  tenant_id     :bigint           not null
 #
 # Indexes
 #
-#  index_channels_on_channel_type        (channel_type)
-#  index_channels_on_connector_id        (connector_id)
-#  index_channels_on_default             (default)
-#  index_channels_on_enabled             (enabled)
-#  index_channels_on_operation_id        (operation_id)
+#  index_channels_on_channel_type           (channel_type)
+#  index_channels_on_connector_id           (connector_id)
+#  index_channels_on_default                (default)
+#  index_channels_on_enabled                (enabled)
+#  index_channels_on_operation_id           (operation_id)
 #  index_channels_on_operation_id_and_name  (operation_id,name) UNIQUE
-#  index_channels_on_slug                (slug) UNIQUE
-#  index_channels_on_tenant_id           (tenant_id)
+#  index_channels_on_slug                   (slug) UNIQUE
+#  index_channels_on_tenant_id              (tenant_id)
 #
 # Foreign Keys
 #
@@ -257,9 +257,5 @@ class Channel < ApplicationRecord
     return if operation.blank?
 
     self.tenant = operation.tenant
-  end
-
-  def invalidate_client_settings_cache
-    self.class.invalidate_client_settings_cache!(operation)
   end
 end
