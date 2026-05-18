@@ -1,4 +1,5 @@
-- telegram_channels = user.tenant.channels.enabled.by_type(Channels::Telegram.key).includes(:connector, :channel_identities).ordered
+- operation_channels = current_operation ? current_operation.channels : Channel.none
+- telegram_channels = operation_channels.enabled.by_type(Channels::Telegram.key).includes(:connector, :channel_identities).ordered
 - if telegram_channels.any?
   - pending_requests = Channels::TelegramLinkRequest.pending_for(user:, channels: telegram_channels)
   - pending_tokens = flash[:telegram_link_tokens].is_a?(Hash) ? flash[:telegram_link_tokens] : {}

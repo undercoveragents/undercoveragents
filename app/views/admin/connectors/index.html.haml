@@ -4,15 +4,14 @@
 - if @connectors.any?
   .card-grid.card-grid--entities
     - @connectors.each do |connector|
-      .card.entity-card
+      = link_to admin_connector_path(connector), class: "card entity-card entity-card--interactive no-underline" do
         .card-body.entity-card__body
           .entity-card__header
             .entity-card__identity
               .entity-card__icon
                 %i{ class: connector_type_icon(connector) }
               .entity-card__identity-copy
-                %h3.entity-card__title
-                  = link_to connector.name, admin_connector_path(connector), class: "text-text-primary no-underline hover:text-accent"
+                %h3.entity-card__title.text-text-primary= connector.name
                 %p.entity-card__subtitle= connector_type_label(connector)
             .entity-card__status
               = connector_status_badge(connector)
@@ -24,9 +23,6 @@
             %span.entity-card__timestamp
               %i.fa-solid.fa-clock
               Updated #{time_ago_in_words(connector.updated_at)} ago
-            .flex.items-center.gap-2
-              = button_to toggle_admin_connector_path(connector), method: :patch, class: "btn btn-ghost btn-xs", title: connector.enabled? ? "Disable" : "Enable" do
-                %i{ class: connector.enabled? ? "fa-solid fa-toggle-on text-green-500" : "fa-solid fa-toggle-off" }
 
 - else
   = render_page_empty_state(title: "No connectors yet", body: "Create your first connector to start connecting data sources.") do

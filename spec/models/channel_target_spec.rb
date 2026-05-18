@@ -58,20 +58,22 @@ RSpec.describe ChannelTarget do
 
     it "rejects target kinds not supported by the channel type" do
       mission = create(:mission)
-      channel = create(:channel, :client, tenant: mission.operation.tenant)
+      channel = create(:channel, :client, tenant: mission.operation.tenant, operation: mission.operation)
       target = build(:channel_target, channel:, target: mission)
 
       expect(target).not_to be_valid
       expect(target.errors[:target_type]).to include("is not allowed for this channel type")
     end
 
-    it "rejects targets from a different tenant" do
+    it "rejects targets from a different operation" do
       target = build(:channel_target, target: create(:agent))
+      foreign_operation = create(:operation, tenant: create(:tenant))
 
-      target.channel.tenant = create(:tenant)
+      target.channel.operation = foreign_operation
+      target.channel.tenant = foreign_operation.tenant
 
       expect(target).not_to be_valid
-      expect(target.errors[:target]).to include("must belong to the same tenant as the channel")
+      expect(target.errors[:target]).to include("must belong to the same operation as the channel")
     end
 
     it "normalizes invalid configuration payloads" do
@@ -93,12 +95,12 @@ RSpec.describe ChannelTarget do
       expect(target.slug).to eq("manual-name")
     end
 
-    it "returns nil for unknown target tenant ids" do
+    it "returns nil for unknown target operation ids" do
       target = build(:channel_target)
 
       allow(target).to receive(:target).and_return(Object.new)
 
-      expect(target.send(:target_tenant_id)).to be_nil
+      expect(target.send(:target_operation_id)).to be_nil
     end
 
     it "returns nil for derived names when the target has no name reader" do

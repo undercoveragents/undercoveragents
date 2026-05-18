@@ -40,7 +40,7 @@ RSpec.describe ChannelConversation do
   describe "validations" do
     let(:tenant) { create(:tenant) }
     let(:operation) { create(:operation, tenant:) }
-    let(:channel) { create(:channel, :api, tenant:) }
+    let(:channel) { create(:channel, :api, tenant:, operation:) }
     let(:agent) { create(:agent, operation:) }
     let(:mission) { create(:mission, operation:) }
 
@@ -73,7 +73,7 @@ RSpec.describe ChannelConversation do
 
     it "rejects associated records from a different channel" do
       channel.update!(name: "Primary Channel")
-      other_channel = create(:channel, :api, tenant:, name: "Other Channel")
+      other_channel = create(:channel, :api, tenant:, operation:, name: "Other Channel")
       other_target = create(:channel_target, channel: other_channel, target: agent, default: true)
       other_identity = create(:channel_identity, channel: other_channel)
       other_chat = create(:chat, :channel_context, agent:, channel: other_channel, channel_target: other_target)

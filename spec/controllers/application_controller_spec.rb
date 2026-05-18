@@ -116,9 +116,11 @@ RSpec.describe ApplicationController do
     it "returns tenant-owned relations when a tenant is selected" do
       tenant = create(:tenant)
       other_tenant = create(:tenant)
+      visible_operation = create(:operation, tenant:)
+      visible_agent = create(:agent, operation: visible_operation)
       other_operation = create(:operation, tenant: other_tenant)
       other_agent = create(:agent, operation: other_operation)
-      visible_client = create(:client, tenant:)
+      visible_client = create(:client, tenant:, agent: visible_agent)
       visible_api_client = create(:api_client, tenant:)
       create(:client, tenant: other_tenant, agent: other_agent)
       create(:api_client, tenant: other_tenant)

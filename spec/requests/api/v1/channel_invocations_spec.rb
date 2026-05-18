@@ -35,7 +35,7 @@ RSpec.describe "API V1 Channel Invocations", :unauthenticated do
   describe "POST /api/v1/channels/:channel_slug/targets/:target_slug/invocations" do
     context "with a mission target" do
       let(:mission) { create(:mission, operation:, name: "Mission Target") }
-      let(:channel) { create(:channel, :api, tenant:, name: "Mission API") }
+      let(:channel) { create(:channel, :api, tenant:, operation:, name: "Mission API") }
       let!(:target) { create(:channel_target, channel:, target: mission, default: true) }
       let(:credential) do
         create(:channel_credential, channel:, credential_type: :bearer_token)
@@ -92,7 +92,14 @@ RSpec.describe "API V1 Channel Invocations", :unauthenticated do
     context "with an agent target" do
       let(:agent) { create(:agent, operation:, name: "Agent Target") }
       let(:channel) do
-        create(:channel, :api, tenant:, name: "Agent API", configuration: { "response_mode" => response_mode })
+        create(
+          :channel,
+          :api,
+          tenant:,
+          operation:,
+          name: "Agent API",
+          configuration: { "response_mode" => response_mode },
+        )
       end
       let(:response_mode) { "async" }
       let!(:target) { create(:channel_target, channel:, target: agent, default: true) }
@@ -188,7 +195,7 @@ RSpec.describe "API V1 Channel Invocations", :unauthenticated do
     end
 
     it "rejects invalid or missing channel credentials" do
-      channel = create(:channel, :api, tenant:)
+      channel = create(:channel, :api, tenant:, operation:)
       agent = create(:agent, operation:)
       target = create(:channel_target, channel:, target: agent)
 
@@ -210,7 +217,7 @@ RSpec.describe "API V1 Channel Invocations", :unauthenticated do
     end
 
     it "returns not found when the target slug does not exist" do
-      channel = create(:channel, :api, tenant:)
+      channel = create(:channel, :api, tenant:, operation:)
       credential = create(:channel_credential, channel:, credential_type: :bearer_token)
 
       post api_v1_channel_target_invocations_path(channel_slug: channel.slug, target_slug: "missing"),
@@ -222,7 +229,7 @@ RSpec.describe "API V1 Channel Invocations", :unauthenticated do
     end
 
     it "returns not found when the invocation does not exist" do
-      channel = create(:channel, :api, tenant:)
+      channel = create(:channel, :api, tenant:, operation:)
       agent = create(:agent, operation:)
       target = create(:channel_target, channel:, target: agent, default: true)
       credential = create(:channel_credential, channel:, credential_type: :bearer_token)
@@ -236,7 +243,7 @@ RSpec.describe "API V1 Channel Invocations", :unauthenticated do
 
     it "returns failed mission invocation errors" do
       mission = create(:mission, operation:, name: "Failed Mission")
-      channel = create(:channel, :api, tenant:, name: "Failure API")
+      channel = create(:channel, :api, tenant:, operation:, name: "Failure API")
       target = create(:channel_target, :mission, channel:, target: mission, default: true)
       credential = create(:channel_credential, channel:, credential_type: :bearer_token)
       run = create(:mission_run, mission:, channel:, channel_target: target, status: :failed, error: "boom")
@@ -255,7 +262,7 @@ RSpec.describe "API V1 Channel Invocations", :unauthenticated do
         name: "Upload Mission",
         flow_data: mission_flow_with_file_input(field_name: "attachment", field_type: "file"),
       )
-      channel = create(:channel, :api, tenant:, name: "Upload API")
+      channel = create(:channel, :api, tenant:, operation:, name: "Upload API")
       target = create(:channel_target, :mission, channel:, target: mission, default: true)
       credential = create(:channel_credential, channel:, credential_type: :bearer_token)
 
@@ -272,7 +279,7 @@ RSpec.describe "API V1 Channel Invocations", :unauthenticated do
 
     it "treats malformed JSON payloads as empty hashes" do
       mission = create(:mission, operation:, name: "Malformed Mission")
-      channel = create(:channel, :api, tenant:, name: "Malformed API")
+      channel = create(:channel, :api, tenant:, operation:, name: "Malformed API")
       target = create(:channel_target, :mission, channel:, target: mission, default: true)
       credential = create(:channel_credential, channel:, credential_type: :bearer_token)
 
@@ -291,7 +298,7 @@ RSpec.describe "API V1 Channel Invocations", :unauthenticated do
         name: "Single Upload Mission",
         flow_data: mission_flow_with_file_input(field_name: "attachment", field_type: "file"),
       )
-      channel = create(:channel, :api, tenant:, name: "Single Upload API")
+      channel = create(:channel, :api, tenant:, operation:, name: "Single Upload API")
       target = create(:channel_target, :mission, channel:, target: mission, default: true)
       credential = create(:channel_credential, channel:, credential_type: :bearer_token)
 
@@ -309,7 +316,7 @@ RSpec.describe "API V1 Channel Invocations", :unauthenticated do
         name: "Array Upload Mission",
         flow_data: mission_flow_with_file_input(field_name: "attachments", field_type: "file_array"),
       )
-      channel = create(:channel, :api, tenant:, name: "Array Upload API")
+      channel = create(:channel, :api, tenant:, operation:, name: "Array Upload API")
       target = create(:channel_target, :mission, channel:, target: mission, default: true)
       credential = create(:channel_credential, channel:, credential_type: :bearer_token)
 

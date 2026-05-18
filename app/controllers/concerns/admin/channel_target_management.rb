@@ -9,9 +9,9 @@ module Admin
     def ensure_single_default_channel
       return unless @channel.default?
 
-      current_tenant.channels.where(channel_type: @channel.channel_type, default: true)
-                    .where.not(id: @channel.id)
-                    .find_each { |channel| channel.update!(default: false) }
+      scoped_channels.where(channel_type: @channel.channel_type, default: true)
+                     .where.not(id: @channel.id)
+                     .find_each { |channel| channel.update!(default: false) }
     end
 
     def sync_targets!
@@ -66,8 +66,8 @@ module Admin
 
     def load_form_data
       @connectors = scoped_connectors.enabled.ordered
-      @available_agents = current_tenant.agents.enabled.selectable.ordered
-      @available_missions = current_tenant.missions.ordered
+      @available_agents = scoped_agents.enabled.selectable.ordered
+      @available_missions = scoped_missions.ordered
       load_selected_target
     end
 
@@ -126,11 +126,11 @@ module Admin
       ids = Array(target_params[:agent_ids]).compact_blank
       return [] if ids.empty?
 
-      current_tenant.agents.enabled.selectable.where(id: ids).order(:name).to_a
+      scoped_agents.enabled.selectable.where(id: ids).order(:name).to_a
     end
 
     def selected_api_missions
-      scope = current_tenant.missions
+      scope = scoped_missions
       return scope.ordered.to_a if @channel.scope_all?
 
       ids = Array(target_params[:mission_ids]).compact_blank

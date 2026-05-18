@@ -8,7 +8,7 @@ RSpec.describe Telegram::MessageProcessor do
   let!(:model) { create(:model, model_id: "gpt-4.1", provider: "openai") }
   let(:agent) { create(:agent, operation:, model_id: model.model_id, enabled: true, selectable: true) }
   let(:connector) { create(:connector, :telegram, :enabled, tenant:, bot_username: "test_bot") }
-  let(:channel) { create(:channel, :telegram, tenant:, connector:) }
+  let(:channel) { create(:channel, :telegram, tenant:, operation:, connector:) }
   let!(:target) { create(:channel_target, channel:, target: agent, default: true) }
   let(:telegram_chat_id) { 123_456 }
   let(:telegram_user_id) { 789_012 }

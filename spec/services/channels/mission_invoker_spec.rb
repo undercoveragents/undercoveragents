@@ -6,7 +6,7 @@ RSpec.describe Channels::MissionInvoker do
   let(:tenant) { create(:tenant) }
   let(:operation) { create(:operation, tenant:) }
   let(:mission) { create(:mission, operation:) }
-  let(:channel) { create(:channel, :api, tenant:) }
+  let(:channel) { create(:channel, :api, tenant:, operation:) }
   let(:channel_target) { create(:channel_target, :mission, channel:, target: mission, default: true) }
 
   def uploaded_file(name:, content: "hello")
@@ -89,7 +89,7 @@ RSpec.describe Channels::MissionInvoker do
     end
 
     it "rejects non-mission targets" do
-      agent_channel = create(:channel, :api, tenant:)
+      agent_channel = create(:channel, :api, tenant:, operation:)
       agent_target = create(:channel_target, channel: agent_channel, target: create(:agent, operation:))
 
       expect do

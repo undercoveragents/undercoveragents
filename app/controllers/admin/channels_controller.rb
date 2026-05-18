@@ -48,7 +48,8 @@ module Admin
       requested_type = requested_channel_type
       return render_type_selection unless requested_type
 
-      @channel = current_tenant.channels.new(
+      @channel = current_operation.channels.new(
+        tenant: current_tenant,
         channel_type: requested_type,
         enabled: true,
         default: !channel_scope.by_type(requested_type).exists?,
@@ -109,7 +110,7 @@ module Admin
     end
 
     def build_channel
-      channel = current_tenant.channels.new(channel_params)
+      channel = current_operation.channels.new(channel_params.merge(tenant: current_tenant))
       assign_type_params(channel, channel.channel_type)
       channel
     end

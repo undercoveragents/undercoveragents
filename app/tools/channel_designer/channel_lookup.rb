@@ -10,7 +10,7 @@ module ChannelDesigner
       identifier = channel_id.to_s.strip
       return nil if identifier.blank?
 
-      scope = Channel.where(tenant:)
+      scope = Channel.where(operation:)
 
       scope.find_by(id: identifier) || scope.find_by(slug: identifier) || unique_name_match(scope, identifier) ||
         missing_channel!(identifier)
@@ -26,6 +26,10 @@ module ChannelDesigner
 
     def missing_channel!(identifier)
       raise ActiveRecord::RecordNotFound, "Channel '#{identifier}' was not found."
+    end
+
+    def operation
+      @runtime_context&.operation || @current_channel&.operation || Current.operation || tenant&.default_operation
     end
 
     def tenant

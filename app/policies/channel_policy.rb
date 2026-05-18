@@ -10,26 +10,26 @@ class ChannelPolicy < ApplicationPolicy
   end
 
   def create?
-    admin_with_record_access?
+    operation_mutation_allowed?
   end
 
   def update?
-    admin_with_record_access?
+    operation_mutation_allowed?
   end
 
   def destroy?
-    admin_with_record_access?
+    operation_mutation_allowed?
   end
 
   def toggle?
-    admin_with_record_access?
+    operation_mutation_allowed?
   end
 
   def regenerate_token?
-    admin_with_record_access?
+    operation_mutation_allowed?
   end
 
   def setup_webhook?
-    admin_with_record_access?
+    operation_mutation_allowed?
   end
 end

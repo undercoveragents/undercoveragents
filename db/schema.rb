@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_11_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_18_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -193,6 +193,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_11_120000) do
     t.text "description"
     t.boolean "enabled", default: true, null: false
     t.string "name", null: false
+    t.bigint "operation_id", null: false
     t.string "slug", null: false
     t.bigint "tenant_id", null: false
     t.datetime "updated_at", null: false
@@ -200,8 +201,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_11_120000) do
     t.index ["connector_id"], name: "index_channels_on_connector_id"
     t.index ["default"], name: "index_channels_on_default"
     t.index ["enabled"], name: "index_channels_on_enabled"
+    t.index ["operation_id", "name"], name: "index_channels_on_operation_id_and_name", unique: true
+    t.index ["operation_id"], name: "index_channels_on_operation_id"
     t.index ["slug"], name: "index_channels_on_slug", unique: true
-    t.index ["tenant_id", "name"], name: "index_channels_on_tenant_id_and_name", unique: true
     t.index ["tenant_id"], name: "index_channels_on_tenant_id"
   end
 
@@ -705,6 +707,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_11_120000) do
   add_foreign_key "channel_identities", "users"
   add_foreign_key "channel_targets", "channels"
   add_foreign_key "channels", "connectors"
+  add_foreign_key "channels", "operations"
   add_foreign_key "channels", "tenants"
   add_foreign_key "chats", "agents"
   add_foreign_key "chats", "channel_conversations"

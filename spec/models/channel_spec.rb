@@ -45,7 +45,8 @@ RSpec.describe Channel do
   end
 
   describe "associations" do
-    it { is_expected.to belong_to(:tenant) }
+    it { is_expected.to belong_to(:tenant).optional }
+    it { is_expected.to belong_to(:operation) }
     it { is_expected.to belong_to(:connector).optional }
     it { is_expected.to have_many(:channel_targets).dependent(:destroy) }
     it { is_expected.to have_many(:channel_identities).dependent(:destroy) }
@@ -57,7 +58,7 @@ RSpec.describe Channel do
 
   describe "validations" do
     it { is_expected.to validate_presence_of(:name) }
-    it { is_expected.to validate_uniqueness_of(:name).scoped_to(:tenant_id).case_insensitive }
+    it { is_expected.to validate_uniqueness_of(:name).scoped_to(:operation_id).case_insensitive }
     it { is_expected.to validate_length_of(:name).is_at_most(100) }
     it { is_expected.to validate_length_of(:description).is_at_most(500) }
     it { is_expected.to validate_presence_of(:channel_type) }
@@ -74,6 +75,24 @@ RSpec.describe Channel do
 
       expect(channel).not_to be_valid
       expect(channel.errors[:connector]).to include("must belong to the same tenant")
+    end
+
+    it "requires the operation to belong to the same tenant" do
+      channel.tenant = create(:tenant)
+      channel.operation = create(:operation, tenant: create(:tenant))
+
+      channel.send(:operation_must_belong_to_tenant)
+
+      expect(channel.errors[:operation]).to include("must belong to the same tenant")
+    end
+
+    it "syncs the tenant from the selected operation" do
+      operation = create(:operation, tenant: create(:tenant))
+
+      channel.operation = operation
+      channel.valid?
+
+      expect(channel.tenant).to eq(operation.tenant)
     end
 
     it "requires connectors to match the channel type requirement" do
@@ -133,7 +152,7 @@ RSpec.describe Channel do
     it "returns the default target and client agent when present" do
       tenant = create(:tenant)
       operation = create(:operation, tenant:)
-      channel = create(:channel, :client, tenant:)
+      channel = create(:channel, :client, tenant:, operation:)
       fallback_agent = create(:agent, operation:, name: "Fallback Agent")
       default_agent = create(:agent, operation:, name: "Default Agent")
       create(:channel_target, channel:, target: fallback_agent, default: false, position: 1)
@@ -201,35 +220,52 @@ RSpec.describe Channel do
 
   describe ".current_client_channel" do
     it "returns nil without a tenant" do
-      expect(described_class.current_client_channel(tenant: nil)).to be_nil
-      expect(described_class.current_client_settings(tenant: nil)).to be_nil
+      expect(described_class.current_client_channel(operation: nil, tenant: nil)).to be_nil
+      expect(described_class.current_client_settings(operation: nil, tenant: nil)).to be_nil
+    end
+
+    it "returns nil when no current client operation can be resolved" do
+      allow(Tenant).to receive(:default_tenant).and_return(nil)
+      Current.reset
+
+      expect(described_class.send(:resolve_current_client_operation, operation: nil, tenant: nil)).to be_nil
+    end
+
+    it "falls back to the tenant default operation when no explicit operation is given" do
+      tenant = create(:tenant).tap(&:ensure_core_resources!)
+
+      resolved_operation = described_class.send(:resolve_current_client_operation, operation: nil, tenant:)
+
+      expect(resolved_operation).to eq(tenant.default_operation)
     end
 
     it "prefers the default enabled client channel" do
       tenant = create(:tenant)
-      preferred = create(:channel, :client, tenant:, default: true, name: "Preferred")
-      create(:channel, :client, tenant:, default: false, name: "Secondary")
+      operation = tenant.default_operation || tenant.ensure_core_resources!.default_operation
+      preferred = create(:channel, :client, tenant:, operation:, default: true, name: "Preferred")
+      create(:channel, :client, tenant:, operation:, default: false, name: "Secondary")
 
-      expect(described_class.current_client_channel(tenant:)).to eq(preferred)
+      expect(described_class.current_client_channel(operation:)).to eq(preferred)
     end
 
     it "falls back to the first enabled client channel when no default exists" do
       tenant = create(:tenant)
-      first_channel = create(:channel, :client, tenant:, default: false, name: "A Channel")
-      create(:channel, :client, tenant:, default: false, name: "B Channel")
+      operation = tenant.default_operation || tenant.ensure_core_resources!.default_operation
+      first_channel = create(:channel, :client, tenant:, operation:, default: false, name: "A Channel")
+      create(:channel, :client, tenant:, operation:, default: false, name: "B Channel")
 
-      expect(described_class.current_client_channel(tenant:)).to eq(first_channel)
+      expect(described_class.current_client_channel(operation:)).to eq(first_channel)
     end
 
     it "returns the current client settings for the resolved default channel" do
       tenant = create(:tenant)
       operation = create(:operation, tenant:)
       agent = create(:agent, operation:, name: "Support Agent")
-      channel = create(:channel, :client, tenant:, default: true, name: "Client Settings",
+      channel = create(:channel, :client, tenant:, operation:, default: true, name: "Client Settings",
                                           configuration: { "title" => "Hello" },)
       create(:channel_target, channel:, target: agent, default: true)
 
-      expect(described_class.current_client_settings(tenant:)).to include(name: "Client Settings", title: "Hello")
+      expect(described_class.current_client_settings(operation:)).to include(name: "Client Settings", title: "Hello")
     end
   end
 
@@ -299,6 +335,16 @@ RSpec.describe Channel do
       channel.send(:ensure_configuration)
 
       expect(channel.configuration).to eq({})
+    end
+
+    it "leaves the tenant unchanged when no operation is present" do
+      tenant = create(:tenant)
+      channel = build(:channel, tenant: nil, operation: nil)
+      channel.tenant = tenant
+
+      channel.send(:sync_tenant_from_operation)
+
+      expect(channel.tenant).to eq(tenant)
     end
   end
 end

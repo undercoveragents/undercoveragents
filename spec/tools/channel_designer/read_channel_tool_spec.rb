@@ -127,6 +127,54 @@ RSpec.describe ChannelDesigner::ReadChannelTool do
       expect(tool.send(:target_line, target)).not_to include("(default)")
     end
 
+    it "uses the runtime context tenant when available" do
+      tool = described_class.new(runtime_context:, current_channel: client_channel)
+
+      expect(tool.send(:tenant)).to eq(tenant)
+    end
+
+    it "prefers the runtime context operation when available" do
+      other_operation = create(:operation, tenant:)
+      other_channel = create(:channel, :api, tenant:, operation: other_operation, name: "Other Channel")
+      tool = described_class.new(runtime_context:, current_channel: other_channel)
+
+      expect(tool.send(:operation)).to eq(operation)
+    end
+
+    it "falls back to the current channel operation when runtime context is missing" do
+      tool = described_class.new(runtime_context: nil, current_channel: client_channel)
+
+      expect(tool.send(:operation)).to eq(client_channel.operation)
+    end
+
+    it "falls back to Current.operation when runtime and current channel operations are unavailable" do
+      Current.operation = operation
+      tool = described_class.new(runtime_context: nil)
+
+      allow(Tenant).to receive(:default_tenant).and_return(nil)
+
+      expect(tool.send(:operation)).to eq(operation)
+    ensure
+      Current.reset
+    end
+
+    it "returns nil when no operation source is available" do
+      tool = described_class.new(runtime_context: nil)
+
+      allow(Tenant).to receive(:default_tenant).and_return(nil)
+
+      expect(tool.send(:operation)).to be_nil
+    end
+
+    it "falls back to the tenant default operation when no other operation source is available" do
+      fallback_tenant = create(:tenant).tap(&:ensure_core_resources!)
+      tool = described_class.new(runtime_context: nil)
+
+      allow(Tenant).to receive(:default_tenant).and_return(fallback_tenant)
+
+      expect(tool.send(:operation)).to eq(fallback_tenant.default_operation)
+    end
+
     it "falls back to the current channel tenant when runtime context is missing" do
       tool = described_class.new(runtime_context: nil, current_channel: client_channel)
 

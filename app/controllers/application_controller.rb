@@ -43,14 +43,14 @@ class ApplicationController < ActionController::Base
   # ── Client Settings ───────────────────────────────────────────────────────────
   def current_client
     @current_client ||= current_client_record&.settings_payload ||
-                        Channel.current_client_settings(tenant: current_tenant)
+                        Channel.current_client_settings(operation: current_operation)
   end
   helper_method :current_client
 
   def current_client_record
     return @current_client_record if defined?(@current_client_record)
 
-    @current_client_record = chat_preview_channel_record || Channel.current_client_channel(tenant: current_tenant)
+    @current_client_record = chat_preview_channel_record || Channel.current_client_channel(operation: current_operation)
   end
   helper_method :current_client_record
 
@@ -123,7 +123,7 @@ class ApplicationController < ActionController::Base
   helper_method :scoped_connectors
 
   def scoped_channels
-    current_tenant ? current_tenant.channels : Channel.none
+    current_operation ? current_operation.channels : Channel.none
   end
   helper_method :scoped_channels
 

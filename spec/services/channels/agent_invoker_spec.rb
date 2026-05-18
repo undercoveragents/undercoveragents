@@ -6,7 +6,7 @@ RSpec.describe Channels::AgentInvoker do
   let(:tenant) { create(:tenant) }
   let(:operation) { create(:operation, tenant:) }
   let(:agent) { create(:agent, operation:, model_id: "gpt-4.1") }
-  let(:channel) { create(:channel, :api, tenant:) }
+  let(:channel) { create(:channel, :api, tenant:, operation:) }
   let(:channel_target) { create(:channel_target, channel:, target: agent, default: true) }
 
   before do

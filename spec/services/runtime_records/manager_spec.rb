@@ -89,7 +89,7 @@ RSpec.describe RuntimeRecords::Manager do
     end
 
     it "creates a client channel and demotes older defaults", :aggregate_failures do
-      existing_default = create(:channel, :client, tenant:, default: true, name: "Existing Default")
+      existing_default = create(:channel, :client, tenant:, operation:, default: true, name: "Existing Default")
       assigned_agent = create(:agent, operation:, name: "Client Agent")
       create(:channel_target, channel: existing_default, target: create(:agent, operation:), default: true)
 
@@ -107,13 +107,13 @@ RSpec.describe RuntimeRecords::Manager do
       expect(result.record).to be_persisted
       expect(result.record).to have_attributes(tenant:, default: true, title: "<p>Hello</p>")
       expect(result.record.client_agent).to eq(assigned_agent)
-      expect(Channel.where(tenant:, channel_type: "client", default: true).pluck(:id)).to eq([result.record.id])
+      expect(Channel.where(operation:, channel_type: "client", default: true).pluck(:id)).to eq([result.record.id])
       expect(result.path).to eq(Rails.application.routes.url_helpers.admin_channel_path(result.record, view: :preview))
     end
 
-    it "creates an API channel with a primary credential and tenant mission targets" do
+    it "creates an API channel with a primary credential and operation mission targets" do
       mission_one = create(:mission, operation:)
-      mission_two = create(:mission, operation: create(:operation, tenant:))
+      create(:mission, operation: create(:operation, tenant:))
 
       result = manager.create(
         resource: "channel",
@@ -127,7 +127,7 @@ RSpec.describe RuntimeRecords::Manager do
       expect(result.record).to be_persisted
       expect(result.record.channel_credentials.count).to eq(1)
       expect(result.record.channel_targets.where(target_type: "Mission").pluck(:target_id))
-        .to contain_exactly(mission_one.id, mission_two.id)
+        .to contain_exactly(mission_one.id)
     end
 
     it "surfaces the shared read-only reason for Headquarter creates" do
@@ -229,9 +229,9 @@ RSpec.describe RuntimeRecords::Manager do
     end
 
     it "updates a client channel through the shared runtime handler" do
-      current_default = create(:channel, :client, tenant:, default: true, name: "Current")
+      current_default = create(:channel, :client, tenant:, operation:, default: true, name: "Current")
       create(:channel_target, channel: current_default, target: create(:agent, operation:), default: true)
-      target_channel = create(:channel, :client, tenant:, default: false, name: "Target")
+      target_channel = create(:channel, :client, tenant:, operation:, default: false, name: "Target")
       create(:channel_target, channel: target_channel, target: create(:agent, operation:), default: true)
 
       result = manager.update(
@@ -261,7 +261,7 @@ RSpec.describe RuntimeRecords::Manager do
     end
 
     it "rejects attempts to change a channel type" do
-      channel = create(:channel, :client, tenant:)
+      channel = create(:channel, :client, tenant:, operation:)
 
       expect do
         manager.update(
@@ -276,7 +276,7 @@ RSpec.describe RuntimeRecords::Manager do
       with_mission_only_channel_type do
         original_mission = create(:mission, operation:, name: "Original Mission")
         replacement_mission = create(:mission, operation:, name: "Replacement Mission")
-        channel = create(:channel, tenant:, channel_type: "mission_only_spec")
+        channel = create(:channel, tenant:, operation:, channel_type: "mission_only_spec")
         create(:channel_target, :mission, channel:, target: original_mission, default: true)
 
         manager.update(
@@ -301,7 +301,7 @@ RSpec.describe RuntimeRecords::Manager do
       first_agent = create(:agent, operation:, name: "A Agent")
       second_agent = create(:agent, operation:, name: "B Agent")
       mission = create(:mission, operation:, name: "Preserved Mission")
-      channel = create(:channel, :api, tenant:, configuration: { "access_scope" => "scoped" })
+      channel = create(:channel, :api, tenant:, operation:, configuration: { "access_scope" => "scoped" })
       create(:channel_target, channel:, target: first_agent, default: true)
       create(:channel_target, :mission, channel:, target: mission, position: 1)
 
@@ -318,7 +318,7 @@ RSpec.describe RuntimeRecords::Manager do
     it "updates scoped API channel mission targets when mission ids are provided" do
       first_mission = create(:mission, operation:, name: "First Mission")
       second_mission = create(:mission, operation:, name: "Second Mission")
-      channel = create(:channel, :api, tenant:, configuration: { "access_scope" => "scoped" })
+      channel = create(:channel, :api, tenant:, operation:, configuration: { "access_scope" => "scoped" })
       create(:channel_target, :mission, channel:, target: first_mission, default: true)
 
       manager.update(
@@ -414,12 +414,12 @@ RSpec.describe RuntimeRecords::Manager do
         .to raise_error(Pundit::NotAuthorizedError, "You do not have permission to do that.")
     end
 
-    it "raises when no tenant is available for channel operations" do
-      tenantless_manager = described_class.new(context.with(tenant: nil))
+    it "raises when no operation is available for channel operations" do
+      tenantless_manager = described_class.new(context.with(operation: nil))
 
       expect do
         tenantless_manager.create(resource: "channel", attributes: { name: "Tenantless", channel_type: "client" })
-      end.to raise_error(ArgumentError, "No active tenant is available for channels.")
+      end.to raise_error(ArgumentError, "No active operation is available for channels.")
     end
   end
 end

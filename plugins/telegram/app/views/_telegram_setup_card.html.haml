@@ -2,7 +2,8 @@
 / Shows setup status and next steps for Telegram connector
 / Locals: connector (Connector with type "telegram")
 
-- telegram_channel = connector.tenant.channels.by_type(Channels::Telegram.key).find_by(connector_id: connector.id)
+- operation_channels = current_operation ? current_operation.channels : Channel.none
+- telegram_channel = operation_channels.by_type(Channels::Telegram.key).find_by(connector_id: connector.id)
 
 .card.mb-6
   .card-header
