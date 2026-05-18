@@ -14,29 +14,16 @@ module Tools
 
     LLM_CONFIG_SOURCES = ["inherit", "custom"].freeze
     TEMPERATURE_RANGE = (0.0..2.0)
-    SCHEMA_ANALYSIS_STATUSES = ["pending", "running", "completed", "failed"].freeze
-    INSTRUCTION_GENERATION_STATUSES = ["pending", "running", "completed", "failed"].freeze
 
     attribute :connector_id, :integer
     attribute :llm_connector_id, :integer
-    attribute :schema_analysis_llm_connector_id, :integer
     attribute :instructions, :string
-    attribute :enhanced_description, :string
     attribute :llm_config_source, :string, default: "inherit"
     attribute :model_id, :string
-    attribute :schema_analysis_model_id, :string
     attribute :temperature, :float
     attribute :discovered_schema, default: -> { {} }
     attribute :selected_objects, default: -> { [] }
     attribute :schema_discovered_at, :datetime
-    attribute :schema_analysis_status, :string
-    attribute :schema_analysis_started_at, :datetime
-    attribute :schema_analysis_completed_at, :datetime
-    attribute :schema_analysis_error, :string
-    attribute :instruction_generation_status, :string
-    attribute :instruction_generation_started_at, :datetime
-    attribute :instruction_generation_completed_at, :datetime
-    attribute :instruction_generation_error, :string
 
     validates :instructions, length: { maximum: 10_000 }
     validates :llm_config_source, presence: true, inclusion: { in: LLM_CONFIG_SOURCES }
@@ -122,7 +109,6 @@ module Tools
         self.discovered_schema = result.schema
         self.schema_discovered_at = Time.current
         sync_selected_after_discovery(previous_names)
-        clear_legacy_analysis_state
         self.instructions = effective_instructions
         save!
         ToolPlugin::Result.new(success?: true, message: I18n.t("tools.schema_discovered"))
@@ -134,7 +120,6 @@ module Tools
     def update_visibility!(raw_params)
       names = Array(raw_params.dig(:sql_query, :selected_objects))
       self.selected_objects = names.map { |n| { "name" => n } }
-      clear_legacy_analysis_state
       self.instructions = effective_instructions
       save!
     end
@@ -151,20 +136,6 @@ module Tools
       return [] unless discovered_schema.is_a?(Hash)
 
       Array(discovered_schema["objects"]).select { |object| object["type"] == type }
-    end
-
-    def clear_legacy_analysis_state
-      self.enhanced_description = nil
-      self.schema_analysis_status = nil
-      self.schema_analysis_started_at = nil
-      self.schema_analysis_completed_at = nil
-      self.schema_analysis_error = nil
-      self.instruction_generation_status = nil
-      self.instruction_generation_started_at = nil
-      self.instruction_generation_completed_at = nil
-      self.instruction_generation_error = nil
-      self.schema_analysis_llm_connector_id = nil
-      self.schema_analysis_model_id = nil
     end
   end
 end

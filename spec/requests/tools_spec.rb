@@ -1120,12 +1120,12 @@ RSpec.describe "Tools" do
     end
   end
 
-  describe "GET /tools/schema_analysis_model_options" do
+  describe "GET /admin/agents/model_options for SQL tool LLM config" do
     it "returns a response with no connector" do
       get model_options_admin_agents_path,
           params: {
-            frame_id: "schema_analysis_model_select", field_prefix: "sql_query",
-            field_name: "schema_analysis_model_id", required: "false",
+            frame_id: "tool_model_select", field_prefix: "sql_query",
+            field_name: "model_id", required: "false",
           }
       expect(response).to have_http_status(:ok)
     end
@@ -1134,8 +1134,8 @@ RSpec.describe "Tools" do
       connector = create(:connector, :sql_database, :enabled)
       get model_options_admin_agents_path,
           params: {
-            connector_id: connector.id, frame_id: "schema_analysis_model_select",
-            field_prefix: "sql_query", field_name: "schema_analysis_model_id", required: "false",
+            connector_id: connector.id, frame_id: "tool_model_select",
+            field_prefix: "sql_query", field_name: "model_id", required: "false",
           }
       expect(response).to have_http_status(:ok)
     end
@@ -1144,8 +1144,8 @@ RSpec.describe "Tools" do
       connector = create(:connector, :llm_provider, :enabled)
       get model_options_admin_agents_path,
           params: {
-            connector_id: connector.id, frame_id: "schema_analysis_model_select",
-            field_prefix: "sql_query", field_name: "schema_analysis_model_id", required: "false",
+            connector_id: connector.id, frame_id: "tool_model_select",
+            field_prefix: "sql_query", field_name: "model_id", required: "false",
           }
       expect(response).to have_http_status(:ok)
     end
@@ -1155,8 +1155,8 @@ RSpec.describe "Tools" do
       get model_options_admin_agents_path,
           params: {
             connector_id: connector.id, selected_model_id: "gpt-4",
-            frame_id: "schema_analysis_model_select", field_prefix: "sql_query",
-            field_name: "schema_analysis_model_id", required: "false",
+            frame_id: "tool_model_select", field_prefix: "sql_query",
+            field_name: "model_id", required: "false",
           }
       expect(response).to have_http_status(:ok)
     end

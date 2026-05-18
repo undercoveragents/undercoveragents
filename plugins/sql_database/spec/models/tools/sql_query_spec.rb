@@ -1,46 +1,5 @@
 # frozen_string_literal: true
 
-# == Schema Information
-#
-# Table name: tools_sql_queries
-# Database name: primary
-#
-#  id                                  :bigint           not null, primary key
-#  discovered_schema                   :jsonb            not null
-#  enhanced_description                :text
-#  instruction_generation_completed_at :datetime
-#  instruction_generation_error        :text
-#  instruction_generation_started_at   :datetime
-#  instruction_generation_status       :string
-#  instructions                        :text
-#  llm_config_source                   :string           default("inherit"), not null
-#  schema_analysis_completed_at        :datetime
-#  schema_analysis_error               :text
-#  schema_analysis_started_at          :datetime
-#  schema_analysis_status              :string
-#  schema_discovered_at                :datetime
-#  selected_objects                    :jsonb            not null
-#  temperature                         :float
-#  created_at                          :datetime         not null
-#  updated_at                          :datetime         not null
-#  connector_id                        :bigint           not null
-#  llm_connector_id                    :bigint
-#  model_id                            :string
-#  schema_analysis_llm_connector_id    :bigint
-#  schema_analysis_model_id            :string
-#
-# Indexes
-#
-#  index_tools_sql_queries_on_connector_id                      (connector_id)
-#  index_tools_sql_queries_on_llm_connector_id                  (llm_connector_id)
-#  index_tools_sql_queries_on_schema_analysis_llm_connector_id  (schema_analysis_llm_connector_id)
-#
-# Foreign Keys
-#
-#  fk_rails_...  (connector_id => connectors.id)
-#  fk_rails_...  (llm_connector_id => connectors.id)
-#  fk_rails_...  (schema_analysis_llm_connector_id => connectors.id)
-#
 require "rails_helper"
 
 RSpec.describe Tools::SqlQuery do
@@ -91,10 +50,17 @@ RSpec.describe Tools::SqlQuery do
       )
     end
 
-    it "does not expose schema-analysis setup as editable fields" do
-      expect(described_class.tool_designer_editable_attributes).not_to include(
-        "schema_analysis_llm_connector_id",
-        "schema_analysis_model_id",
+    it "exposes only the current editable SQL query fields" do
+      expect(described_class.tool_designer_editable_attributes).to eq(
+        [
+          "connector_id",
+          "instructions",
+          "llm_config_source",
+          "llm_connector_id",
+          "model_id",
+          "temperature",
+          *ToolWidgetConfigurable::DESIGNER_ATTRIBUTE_KEYS,
+        ],
       )
     end
   end
@@ -172,17 +138,6 @@ RSpec.describe Tools::SqlQuery do
       expect(sq.llm_connector_id).to be_nil
     end
 
-    it "returns nil when schema_analysis_llm_connector_id is blank" do
-      sq = build(:tools_sql_query, schema_analysis_llm_connector_id: nil)
-      expect(sq.schema_analysis_llm_connector).to be_nil
-    end
-
-    it "clears schema_analysis_llm_connector_id when schema_analysis_llm_connector= nil" do
-      sq = build(:tools_sql_query)
-      sq.schema_analysis_llm_connector = nil
-      expect(sq.schema_analysis_llm_connector_id).to be_nil
-    end
-
     it "loads llm_connector from DB when cache is cold" do
       sq = described_class.new(llm_connector_id: nil)
       expect(sq.llm_connector).to be_nil
@@ -234,34 +189,6 @@ RSpec.describe Tools::SqlQuery do
       sq = build(:tools_sql_query)
       sq.llm_connector = llm_connector
       expect(sq.llm_connector_id).to eq(llm_connector.id)
-    end
-
-    it "sets schema_analysis_llm_connector_id when schema_analysis_llm_connector= is used" do
-      llm_connector = create(:connector, :llm_provider)
-      sq = build(:tools_sql_query)
-      sq.schema_analysis_llm_connector = llm_connector
-      expect(sq.schema_analysis_llm_connector_id).to eq(llm_connector.id)
-    end
-
-    it "re-fetches schema_analysis_llm_connector when the cached id changes" do
-      first_connector = create(:connector, :llm_provider)
-      second_connector = create(:connector, :llm_provider)
-      sq = build(:tools_sql_query, schema_analysis_llm_connector: first_connector)
-
-      sq.schema_analysis_llm_connector
-      sq.schema_analysis_llm_connector_id = second_connector.id
-
-      expect(sq.schema_analysis_llm_connector).to eq(second_connector)
-    end
-
-    it "re-fetches schema_analysis_llm_connector when the cached instance is explicitly nil" do
-      llm_connector = create(:connector, :llm_provider)
-      sq = described_class.new(schema_analysis_llm_connector_id: llm_connector.id)
-
-      sq.schema_analysis_llm_connector = nil
-      sq.schema_analysis_llm_connector_id = llm_connector.id
-
-      expect(sq.schema_analysis_llm_connector).to eq(llm_connector)
     end
   end
 
@@ -643,14 +570,6 @@ RSpec.describe Tools::SqlQuery do
     it "returns false when llm_config_source is inherit" do
       sq = build(:tools_sql_query, llm_config_source: "inherit")
       expect(sq.use_custom_llm_config?).to be(false)
-    end
-  end
-
-  describe "schema analysis associations" do
-    it "returns schema_analysis_llm_connector by id" do
-      llm_connector = create(:connector, :llm_provider)
-      sq = build(:tools_sql_query, schema_analysis_llm_connector: llm_connector)
-      expect(sq.schema_analysis_llm_connector).to eq(llm_connector)
     end
   end
 

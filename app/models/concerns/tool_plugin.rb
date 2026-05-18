@@ -19,8 +19,6 @@
 #   - perform_discovery!
 #   - update_visibility!
 #   - visibility_available?
-#   - validate_and_enqueue_analysis
-#   - validate_and_enqueue_instruction_generation
 #   - form_partial_path
 #   - show_partial_path
 #   - edit_visibility_partial_path
@@ -48,18 +46,6 @@ module ToolPlugin
           "description" => "The complete desired list of discovered item names to expose.",
         },
       ],
-    },
-    "analyze_schema" => {
-      method_name: :validate_and_enqueue_analysis,
-      description: "Queue the tool's existing schema analysis workflow.",
-      policy_query: :analyze_schema?,
-      arguments: [],
-    },
-    "generate_instructions" => {
-      method_name: :validate_and_enqueue_instruction_generation,
-      description: "Queue the tool's existing instruction-generation workflow.",
-      policy_query: :generate_instructions?,
-      arguments: [],
     },
   }.freeze
 
@@ -250,14 +236,6 @@ module ToolPlugin
     false
   end
 
-  def validate_and_enqueue_analysis
-    I18n.t("tools.schema_analysis_not_supported")
-  end
-
-  def validate_and_enqueue_instruction_generation
-    I18n.t("tools.instruction_generation_not_supported")
-  end
-
   def form_partial_path
     "tools/#{self.class.type_key.pluralize}/form"
   end
@@ -301,13 +279,6 @@ module ToolPlugin
       perform_discovery!
     when "set_visibility"
       perform_tool_designer_visibility_action!(arguments)
-    when "analyze_schema"
-      queued_tool_designer_action_result(validate_and_enqueue_analysis, "tools.schema_analysis_started")
-    when "generate_instructions"
-      queued_tool_designer_action_result(
-        validate_and_enqueue_instruction_generation,
-        "tools.instruction_generation_started",
-      )
     else
       raise NotImplementedError, "Action '#{action_key}' is declared but not implemented by #{self.class.type_label}."
     end
@@ -343,10 +314,10 @@ module ToolPlugin
         self.class.type_key => { param_key => Array(normalized_arguments["selected_items"]) },
       ),
     )
-    queued_tool_designer_action_result(nil, "tools.visibility_updated")
+    tool_designer_action_result(nil, "tools.visibility_updated")
   end
 
-  def queued_tool_designer_action_result(error, success_key)
+  def tool_designer_action_result(error, success_key)
     Result.new(success?: error.blank?, message: error || I18n.t(success_key))
   end
 

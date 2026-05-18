@@ -164,7 +164,7 @@ RSpec.describe ToolPlugin do
       stub_const("DesignerActionToolPlugin", Class.new do
         include ToolPlugin
 
-        attr_accessor :analysis_error, :discoveries, :instruction_error, :selected_items
+        attr_accessor :discoveries, :selected_items
 
         def initialize
           @discoveries = 0
@@ -182,10 +182,6 @@ RSpec.describe ToolPlugin do
         end
 
         def visibility_param_key = "selected_items"
-
-        def validate_and_enqueue_analysis = analysis_error
-
-        def validate_and_enqueue_instruction_generation = instruction_error
       end,)
       DesignerActionToolPlugin
     end
@@ -315,7 +311,7 @@ RSpec.describe ToolPlugin do
         actions = designer_action_klass.tool_designer_actions
 
         expect(actions.map { |action| action.fetch("key") }).to eq(
-          ["discover", "set_visibility", "analyze_schema", "generate_instructions"],
+          ["discover", "set_visibility"],
         )
         expect(actions.second.fetch("arguments")).to include(
           hash_including("name" => "selected_items", "type" => "array"),
@@ -398,19 +394,6 @@ RSpec.describe ToolPlugin do
           ToolPlugin::Result.new(success?: true, message: I18n.t("tools.visibility_updated")),
         )
         expect(tool.selected_items).to eq(["users"])
-      end
-
-      it "wraps queued action errors and successes" do
-        tool = designer_action_klass.new
-
-        expect(tool.perform_tool_designer_action!("analyze_schema")).to eq(
-          ToolPlugin::Result.new(success?: true, message: I18n.t("tools.schema_analysis_started")),
-        )
-
-        tool.instruction_error = "Missing analysis"
-        expect(tool.perform_tool_designer_action!("generate_instructions")).to eq(
-          ToolPlugin::Result.new(success?: false, message: "Missing analysis"),
-        )
       end
 
       it "rejects unsupported and unimplemented declared actions" do

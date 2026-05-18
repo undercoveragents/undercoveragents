@@ -34,7 +34,6 @@ RSpec.describe ToolDesigner::ReadToolTool do
         },
         schema_discovered_at: Time.current,
         selected_objects: [{ "name" => "users" }],
-        schema_analysis_status: "completed",
       ),
     )
   end
