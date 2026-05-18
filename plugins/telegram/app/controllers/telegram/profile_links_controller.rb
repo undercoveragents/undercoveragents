@@ -23,7 +23,7 @@ module Telegram
     private
 
     def set_channel
-      @channel = current_user.tenant.channels.by_type(Channels::Telegram.key).friendly.find(params.expect(:channel_id))
+      @channel = scoped_channels.by_type(Channels::Telegram.key).friendly.find(params.expect(:channel_id))
     end
 
     def pending_tokens

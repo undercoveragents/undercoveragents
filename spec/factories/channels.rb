@@ -36,12 +36,32 @@
 FactoryBot.define do
   factory :channel do
     tenant
+    operation do
+      if tenant&.id.present? && Tenant.exists?(tenant.id)
+        tenant.operations.order(created_at: :desc).first || tenant.ensure_core_resources!.default_operation
+      else
+        association(:operation, tenant:)
+      end
+    end
     name { Faker::Company.unique.name }
     description { Faker::Lorem.sentence }
     channel_type { "client" }
     configuration { {} }
     enabled { true }
     default { false }
+
+    after(:build) do |channel|
+      if channel.operation.blank? && channel.tenant.present?
+        channel.operation = if channel.tenant&.id.present? && Tenant.exists?(channel.tenant.id)
+                              channel.tenant.operations.order(created_at: :desc).first ||
+                                channel.tenant.ensure_core_resources!.default_operation
+                            else
+                              build(:operation, tenant: channel.tenant)
+                            end
+      end
+
+      channel.tenant = channel.operation&.tenant if channel.operation.present?
+    end
 
     trait :client do
       channel_type { "client" }
@@ -54,14 +74,14 @@ FactoryBot.define do
 
   factory :channel_target do
     channel
-    target { association(:agent, operation: association(:operation, tenant: channel.tenant)) }
+    target { association(:agent, operation: channel.operation) }
     configuration { {} }
     default { false }
     position { 0 }
 
     trait :mission do
       channel { association(:channel, :api) }
-      target { association(:mission, operation: association(:operation, tenant: channel.tenant)) }
+      target { association(:mission, operation: channel.operation) }
     end
   end
 

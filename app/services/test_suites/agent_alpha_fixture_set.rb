@@ -111,6 +111,7 @@ module TestSuites
     def build_client_channel!
       Channel.create!(
         tenant: @tenant,
+        operation:,
         name: render_context.fetch(:benchmark_channel_name),
         description: "Fixture client channel for #{scenario_key}",
         channel_type: "client",
@@ -127,6 +128,7 @@ module TestSuites
     def build_api_channel!
       Channel.create!(
         tenant: @tenant,
+        operation:,
         name: render_context.fetch(:benchmark_api_channel_name),
         description: "Fixture API channel for #{scenario_key}",
         channel_type: "api",

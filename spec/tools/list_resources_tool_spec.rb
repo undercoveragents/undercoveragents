@@ -695,6 +695,13 @@ RSpec.describe ListResourcesTool do
       it "reports when no clients are available" do
         expect(tool.execute(kind: "clients")).to include("No clients available.")
       end
+
+      it "reports when no scoped operation is available" do
+        runtime_context = build_runtime_context(tenant:, operation: nil)
+
+        expect(described_class.new(nil, runtime_context:).execute(kind: "clients"))
+          .to include("No clients available.")
+      end
     end
 
     describe "channels" do
@@ -710,6 +717,13 @@ RSpec.describe ListResourcesTool do
 
       it "reports when no channels are available" do
         expect(tool.execute(kind: "channels")).to include("No channels available.")
+      end
+
+      it "reports when no scoped operation is available" do
+        runtime_context = build_runtime_context(tenant:, operation: nil)
+
+        expect(described_class.new(nil, runtime_context:).execute(kind: "channels"))
+          .to include("No channels available.")
       end
     end
 

@@ -102,8 +102,8 @@ RSpec.describe ChannelsHelper do
     end
 
     it "returns the default target path for agent and mission targets" do
-      agent_channel = create(:channel, :client, tenant:)
-      mission_channel = create(:channel, :api, tenant:)
+      agent_channel = create(:channel, :client, tenant:, operation:)
+      mission_channel = create(:channel, :api, tenant:, operation:)
       create(:channel_target, channel: agent_channel, target: agent, default: true)
       create(:channel_target, :mission, channel: mission_channel, target: mission, default: true)
 

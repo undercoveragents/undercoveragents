@@ -5,10 +5,10 @@ require "rails_helper"
 RSpec.describe "Telegram profile links", :unauthenticated do
   let(:user) { create(:user) }
   let(:tenant) { user.tenant }
-  let(:operation) { create(:operation, tenant:) }
+  let(:operation) { tenant.ensure_core_resources!.default_operation }
   let(:model) { create(:model, model_id: "gpt-4.1", provider: "openai") }
   let(:agent) { create(:agent, operation:, model_id: model.model_id, enabled: true, selectable: true) }
-  let(:channel) { create(:channel, :telegram, tenant:, name: "Support Bot") }
+  let(:channel) { create(:channel, :telegram, tenant:, operation:, name: "Support Bot") }
 
   before do
     create(:channel_target, channel:, target: agent, default: true)

@@ -47,7 +47,7 @@ class ChannelTarget < ApplicationRecord
   validates :name, presence: true, length: { maximum: 120 }
   validates :position, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validate :target_kind_allowed_for_channel
-  validate :target_must_belong_to_channel_tenant
+  validate :target_must_belong_to_channel_operation
 
   attribute :configuration, :jsonb, default: -> { {} }
 
@@ -87,17 +87,17 @@ class ChannelTarget < ApplicationRecord
     errors.add(:target_type, "is not allowed for this channel type")
   end
 
-  def target_must_belong_to_channel_tenant
+  def target_must_belong_to_channel_operation
     return if channel.blank? || target.blank?
-    return if target_tenant_id == channel.tenant_id
+    return if target_operation_id == channel.operation_id
 
-    errors.add(:target, "must belong to the same tenant as the channel")
+    errors.add(:target, "must belong to the same operation as the channel")
   end
 
-  def target_tenant_id
+  def target_operation_id
     case target
     when Agent, Mission
-      target.operation.tenant_id
+      target.operation_id
     end
   end
 end

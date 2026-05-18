@@ -22,11 +22,13 @@ module RuntimeRecords
     end
 
     def channel_scope(context)
-      Channel.where(tenant: channel_tenant(context))
+      Channel.where(operation: channel_operation(context))
     end
 
     def channel_base_attributes(context)
-      { tenant: channel_tenant(context) }
+      operation = channel_operation(context)
+
+      { operation:, tenant: operation.tenant }
     end
 
     def channel_page_path(page, record:, context:)
@@ -77,7 +79,7 @@ module RuntimeRecords
       channel.class.transaction do
         ensure_single_default_channel!(channel)
         channel.save!
-        sync_channel_targets!(channel, attributes:, tenant: channel_tenant(context), creating: true)
+        sync_channel_targets!(channel, attributes:, operation: channel_operation(context), creating: true)
         ensure_api_channel_credential!(channel)
       end
 
@@ -95,18 +97,18 @@ module RuntimeRecords
         apply_channel_configuration!(record, configuration_channel_attributes(attributes))
         ensure_single_default_channel!(record)
         record.save!
-        sync_channel_targets!(record, attributes:, tenant: channel_tenant(context), creating: false)
+        sync_channel_targets!(record, attributes:, operation: channel_operation(context), creating: false)
         ensure_api_channel_credential!(record)
       end
 
       record
     end
 
-    def channel_tenant(context)
-      tenant = context.tenant
-      raise ArgumentError, "No active tenant is available for channels." unless tenant
+    def channel_operation(context)
+      operation = context.operation
+      raise ArgumentError, "No active operation is available for channels." unless operation
 
-      tenant
+      operation
     end
 
     def apply_channel_configuration!(channel, attributes)
@@ -118,39 +120,39 @@ module RuntimeRecords
       end
     end
 
-    def sync_channel_targets!(channel, attributes:, tenant:, creating:)
-      return sync_api_channel_targets!(channel, attributes:, tenant:, creating:) if channel.api_channel?
+    def sync_channel_targets!(channel, attributes:, operation:, creating:)
+      return sync_api_channel_targets!(channel, attributes:, operation:, creating:) if channel.api_channel?
 
       return unless creating || single_target_attribute_updated?(attributes)
 
-      sync_single_channel_target!(channel, resolve_single_channel_target(channel, attributes:, tenant:))
+      sync_single_channel_target!(channel, resolve_single_channel_target(channel, attributes:, operation:))
     end
 
-    def sync_client_channel_target!(channel, attributes:, tenant:, creating:)
+    def sync_client_channel_target!(channel, attributes:, operation:, creating:)
       return unless creating || attributes.key?("agent_id")
 
-      sync_single_channel_target!(channel, resolve_channel_agent(attributes["agent_id"], tenant:))
+      sync_single_channel_target!(channel, resolve_channel_agent(attributes["agent_id"], operation:))
     end
 
     def single_target_attribute_updated?(attributes)
       ["target_kind", "agent_id", "mission_id"].any? { |key| attributes.key?(key) }
     end
 
-    def resolve_single_channel_target(channel, attributes:, tenant:)
+    def resolve_single_channel_target(channel, attributes:, operation:)
       target_kind = attributes["target_kind"].to_s.presence || channel.allowed_target_kinds.first
 
       case target_kind
       when "agent"
-        resolve_channel_agent(attributes["agent_id"], tenant:)
+        resolve_channel_agent(attributes["agent_id"], operation:)
       when "mission"
-        resolve_channel_mission(attributes["mission_id"], tenant:)
+        resolve_channel_mission(attributes["mission_id"], operation:)
       end
     end
 
-    def sync_api_channel_targets!(channel, attributes:, tenant:, creating:)
+    def sync_api_channel_targets!(channel, attributes:, operation:, creating:)
       return unless sync_api_channel_targets?(channel, attributes:, creating:)
 
-      sync_multiple_channel_targets!(channel, api_channel_target_records(channel, attributes:, tenant:))
+      sync_multiple_channel_targets!(channel, api_channel_target_records(channel, attributes:, operation:))
     end
 
     def sync_api_channel_targets?(channel, attributes:, creating:)
@@ -159,12 +161,12 @@ module RuntimeRecords
       ["access_scope", "agent_ids", "mission_ids"].any? { |key| attributes.key?(key) }
     end
 
-    def api_channel_target_records(channel, attributes:, tenant:)
+    def api_channel_target_records(channel, attributes:, operation:)
       agent_ids = resolved_api_agent_ids(channel, attributes)
-      mission_ids = resolved_api_mission_ids(channel, attributes, tenant)
+      mission_ids = resolved_api_mission_ids(channel, attributes, operation)
 
-      tenant.agents.enabled.selectable.where(id: agent_ids).order(:name).to_a +
-        tenant.missions.where(id: mission_ids).order(:name).to_a
+      operation.agents.enabled.selectable.where(id: agent_ids).order(:name).to_a +
+        operation.missions.where(id: mission_ids).order(:name).to_a
     end
 
     def resolved_api_agent_ids(channel, attributes)
@@ -173,8 +175,8 @@ module RuntimeRecords
       channel.channel_targets.where(target_type: "Agent").pluck(:target_id).map(&:to_s)
     end
 
-    def resolved_api_mission_ids(channel, attributes, tenant)
-      return tenant.missions.order(:name).pluck(:id).map(&:to_s) if channel.scope_all?
+    def resolved_api_mission_ids(channel, attributes, operation)
+      return operation.missions.order(:name).pluck(:id).map(&:to_s) if channel.scope_all?
       return Array(attributes["mission_ids"]).compact_blank if attributes.key?("mission_ids")
 
       channel.channel_targets.where(target_type: "Mission").pluck(:target_id).map(&:to_s)
@@ -202,19 +204,19 @@ module RuntimeRecords
       channel.channel_targets.where.not(id: target_ids).destroy_all
     end
 
-    def resolve_channel_agent(agent_id, tenant:)
+    def resolve_channel_agent(agent_id, operation:)
       identifier = agent_id.to_s.strip
       return nil if identifier.blank?
 
-      scope = tenant.agents.enabled.selectable
+      scope = operation.agents.enabled.selectable
       scope.find_by(id: identifier) || scope.find_by(slug: identifier)
     end
 
-    def resolve_channel_mission(mission_id, tenant:)
+    def resolve_channel_mission(mission_id, operation:)
       identifier = mission_id.to_s.strip
       return nil if identifier.blank?
 
-      tenant.missions.find_by(id: identifier) || tenant.missions.find_by(slug: identifier)
+      operation.missions.find_by(id: identifier) || operation.missions.find_by(slug: identifier)
     end
 
     def ensure_api_channel_credential!(channel)
@@ -227,7 +229,7 @@ module RuntimeRecords
     def ensure_single_default_channel!(channel)
       return unless channel.default?
 
-      channel.class.where(tenant: channel.tenant, channel_type: channel.channel_type)
+      channel.class.where(operation: channel.operation, channel_type: channel.channel_type)
              .where.not(id: channel.id)
              .update_all(default: false) # rubocop:disable Rails/SkipsModelValidations
     end

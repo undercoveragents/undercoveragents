@@ -16,6 +16,7 @@
 #  created_at    :datetime         not null
 #  updated_at    :datetime         not null
 #  connector_id  :bigint
+#  operation_id  :bigint
 #  tenant_id     :bigint           not null
 #
 # Indexes
@@ -24,13 +25,15 @@
 #  index_channels_on_connector_id        (connector_id)
 #  index_channels_on_default             (default)
 #  index_channels_on_enabled             (enabled)
+#  index_channels_on_operation_id        (operation_id)
+#  index_channels_on_operation_id_and_name  (operation_id,name) UNIQUE
 #  index_channels_on_slug                (slug) UNIQUE
 #  index_channels_on_tenant_id           (tenant_id)
-#  index_channels_on_tenant_id_and_name  (tenant_id,name) UNIQUE
 #
 # Foreign Keys
 #
 #  fk_rails_...  (connector_id => connectors.id)
+#  fk_rails_...  (operation_id => operations.id)
 #  fk_rails_...  (tenant_id => tenants.id)
 #
 class Channel < ApplicationRecord
@@ -40,7 +43,8 @@ class Channel < ApplicationRecord
 
   has_one_attached :logo
 
-  belongs_to :tenant
+  belongs_to :tenant, optional: true
+  belongs_to :operation
   belongs_to :connector, optional: true
 
   has_many :channel_targets, dependent: :destroy
@@ -54,42 +58,41 @@ class Channel < ApplicationRecord
   scope :disabled, -> { where(enabled: false) }
   scope :by_type, ->(type) { where(channel_type: type) }
   scope :ordered, -> { order(:name) }
+  scope :for_operation, ->(operation) { where(operation:) }
   scope :for_tenant, ->(tenant) { where(tenant:) }
-  validates :name, presence: true, uniqueness: { scope: :tenant_id, case_sensitive: false }, length: { maximum: 100 }
+  validates :name, presence: true, uniqueness: { scope: :operation_id, case_sensitive: false }, length: { maximum: 100 }
   validates :description, length: { maximum: 500 }
   validates :channel_type, presence: true
   validate :channel_type_registered
+  validate :operation_must_belong_to_tenant
   validate :connector_must_belong_to_tenant
   validate :connector_must_match_channel_type
 
   attribute :configuration, :jsonb, default: -> { {} }
 
+  before_validation :sync_tenant_from_operation
   before_validation :ensure_configuration
   before_validation :validate_configurator
   before_save :apply_configurator_before_save
   after_commit :invalidate_client_settings_cache
 
-  def self.current_client_channel(tenant: Current.tenant || Tenant.default_tenant)
-    return nil if tenant.blank?
+  def self.current_client_channel(operation: nil, tenant: nil)
+    resolved_operation = resolve_current_client_operation(operation:, tenant:)
+    return nil if resolved_operation.blank?
 
-    Rails.cache.fetch(client_settings_cache_key(tenant)) do
-      tenant.channels.includes(channel_targets: :target)
-            .enabled
-            .by_type("client")
-            .where(default: true)
-            .ordered
-            .first || tenant.channels.includes(channel_targets: :target).enabled.by_type("client").ordered.first
+    Rails.cache.fetch(client_settings_cache_key(resolved_operation)) do
+      default_client_channel_scope(resolved_operation).first || client_channel_scope(resolved_operation).first
     end
   end
 
-  def self.current_client_settings(tenant: Current.tenant || Tenant.default_tenant)
-    current_client_channel(tenant:)&.settings_payload
+  def self.current_client_settings(operation: nil, tenant: nil)
+    current_client_channel(operation:, tenant:)&.settings_payload
   end
 
-  def self.invalidate_client_settings_cache!(tenant = nil)
-    return Rails.cache.delete_matched("channel/*/default_client_settings") if tenant.nil?
+  def self.invalidate_client_settings_cache!(operation = nil)
+    return Rails.cache.delete_matched("channel/*/default_client_settings") if operation.nil?
 
-    Rails.cache.delete(client_settings_cache_key(tenant))
+    Rails.cache.delete(client_settings_cache_key(operation))
   end
 
   def configurator
@@ -163,10 +166,25 @@ class Channel < ApplicationRecord
 
   private
 
-  def self.client_settings_cache_key(tenant)
-    "channel/#{tenant.id}/default_client_settings"
+  def self.client_settings_cache_key(operation)
+    "channel/#{operation.id}/default_client_settings"
   end
   private_class_method :client_settings_cache_key
+
+  def self.resolve_current_client_operation(operation:, tenant:)
+    operation || tenant&.default_operation || Current.operation || Tenant.default_tenant&.default_operation
+  end
+  private_class_method :resolve_current_client_operation
+
+  def self.default_client_channel_scope(operation)
+    client_channel_scope(operation).where(default: true)
+  end
+  private_class_method :default_client_channel_scope
+
+  def self.client_channel_scope(operation)
+    operation.channels.includes(channel_targets: :target).enabled.by_type("client").ordered
+  end
+  private_class_method :client_channel_scope
 
   def build_configurator
     @configurator_built_for_type = channel_type
@@ -192,6 +210,13 @@ class Channel < ApplicationRecord
     return if ChannelPlugin.type_keys.include?(channel_type)
 
     errors.add(:channel_type, "is not a registered channel type")
+  end
+
+  def operation_must_belong_to_tenant
+    return if operation.blank? || tenant.blank?
+    return if operation.tenant_id == tenant_id
+
+    errors.add(:operation, "must belong to the same tenant")
   end
 
   def connector_must_belong_to_tenant
@@ -228,7 +253,13 @@ class Channel < ApplicationRecord
     self.configuration = {} unless configuration.is_a?(Hash)
   end
 
+  def sync_tenant_from_operation
+    return if operation.blank?
+
+    self.tenant = operation.tenant
+  end
+
   def invalidate_client_settings_cache
-    self.class.invalidate_client_settings_cache!(tenant)
+    self.class.invalidate_client_settings_cache!(operation)
   end
 end

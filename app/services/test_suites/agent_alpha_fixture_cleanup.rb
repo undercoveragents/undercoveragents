@@ -18,10 +18,10 @@ module TestSuites
     end
 
     def fixture_channels
-      channel_ids = @tenant.channels.where("name LIKE ?", "#{case_record_prefix}%").pluck(:id)
+      channel_ids = operation.channels.where("name LIKE ?", "#{case_record_prefix}%").pluck(:id)
       channel_ids.concat(channel_ids_for_operation_targets)
 
-      @tenant.channels.where(id: channel_ids.uniq)
+      operation.channels.where(id: channel_ids.uniq)
     end
 
     def channel_ids_for_operation_targets

@@ -36,6 +36,7 @@ class Operation < ApplicationRecord
   HEADQUARTER_NAME = "Headquarter"
   DEFAULT_NAME = "Default"
   belongs_to :tenant
+  has_many :channels, dependent: :restrict_with_error
   has_many :agents, dependent: :restrict_with_error
   has_many :missions, dependent: :restrict_with_error
   has_many :tools, dependent: :restrict_with_error

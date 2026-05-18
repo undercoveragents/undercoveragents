@@ -148,7 +148,7 @@ class DashboardPresenter
 
   def load_settings_inventory
     @users_count     = tenant.users.count
-    @channels_count  = tenant.channels.count
+    @channels_count  = operation ? operation.channels.count : tenant.channels.count
     @plugins_count   = UndercoverAgents::PluginSystem.registry.count
     @enabled_plugins = UndercoverAgents::PluginSystem.registry.enabled.count
   end

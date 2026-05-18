@@ -7,15 +7,20 @@ RSpec.describe "Admin Channels" do
   let(:mission) { create(:mission, operation: default_operation) }
 
   describe "GET /admin/channels" do
-    it "lists channels for the current tenant" do
-      create(:channel, tenant: default_tenant, name: "Support Channel")
-      create(:channel, tenant: create(:tenant), name: "Other Tenant Channel")
+    it "lists channels for the current operation" do
+      create(:channel, tenant: default_tenant, operation: default_operation, name: "Support Channel")
+      create(
+        :channel,
+        tenant: default_tenant,
+        operation: create(:operation, tenant: default_tenant),
+        name: "Other Operation Channel",
+      )
 
       get admin_channels_path
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include("Support Channel")
-      expect(response.body).not_to include("Other Tenant Channel")
+      expect(response.body).not_to include("Other Operation Channel")
     end
 
     it "renders each channel card as a single link without inline action buttons" do

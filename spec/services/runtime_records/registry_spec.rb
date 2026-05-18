@@ -523,29 +523,29 @@ RSpec.describe RuntimeRecords::Registry do
   describe "channel definition" do
     let(:definition) { described_class.fetch("channel") }
 
-    it "scopes channels to the current tenant" do
-      visible = create(:channel, :client, tenant:)
-      hidden = create(:channel, :client, tenant: create(:tenant))
+    it "scopes channels to the current operation" do
+      visible = create(:channel, :client, tenant:, operation:)
+      hidden = create(:channel, :client, tenant:, operation: create(:operation, tenant:))
 
       expect(definition.scope_for(context)).to contain_exactly(visible)
       expect(definition.scope_for(context)).not_to include(hidden)
     end
 
-    it "uses the active tenant as the base attribute" do
-      expect(definition.base_attributes_for(context)).to eq({ "tenant" => tenant })
+    it "uses the active operation as the base attribute" do
+      expect(definition.base_attributes_for(context)).to eq({ "operation" => operation, "tenant" => tenant })
     end
 
     it "falls back to the show page when no record is provided" do
       expect(definition.default_page_for(record: nil, context:)).to eq("show")
     end
 
-    it "raises when no active tenant is available for channels" do
-      expect { definition.base_attributes_for(context.with(tenant: nil)) }
-        .to raise_error(ArgumentError, "No active tenant is available for channels.")
+    it "raises when no active operation is available for channels" do
+      expect { definition.base_attributes_for(context.with(operation: nil)) }
+        .to raise_error(ArgumentError, "No active operation is available for channels.")
     end
 
     it "returns collection and record paths for supported pages", :aggregate_failures do
-      channel = create(:channel, :client, tenant:, name: "Support Portal")
+      channel = create(:channel, :client, tenant:, operation:, name: "Support Portal")
       helpers = Rails.application.routes.url_helpers
 
       expect(definition.path_for("index", record: nil, context:)).to eq(helpers.admin_channels_path)
@@ -567,14 +567,14 @@ RSpec.describe RuntimeRecords::Registry do
     end
 
     it "rejects preview for non-client channels" do
-      api_channel = create(:channel, :api, tenant:, name: "Public API")
+      api_channel = create(:channel, :api, tenant:, operation:, name: "Public API")
 
       expect { definition.path_for("preview", record: api_channel, context:) }
         .to raise_error(ArgumentError, "Channel page 'preview' is only available for client channels.")
     end
 
     it "raises for unknown channel pages" do
-      channel = create(:channel, :client, tenant:, name: "Support Portal")
+      channel = create(:channel, :client, tenant:, operation:, name: "Support Portal")
 
       expect { definition.path_for("designer", record: channel, context:) }
         .to raise_error(ArgumentError, "Unknown page 'designer' for channel. Use index, new, show, edit, or preview.")
@@ -618,44 +618,44 @@ RSpec.describe RuntimeRecords::Registry do
     end
 
     it "no-ops target sync for unsupported channel types" do
-      channel = build(:channel, tenant:, channel_type: "webhook_relay")
+      channel = build(:channel, tenant:, operation:, channel_type: "webhook_relay")
 
       expect do
-        described_class.send(:sync_channel_targets!, channel, attributes: {}, tenant:, creating: false)
+        described_class.send(:sync_channel_targets!, channel, attributes: {}, operation:, creating: false)
       end.not_to raise_error
     end
 
     it "keeps single-target mission channel targets untouched when no mission update is requested" do
       with_mission_only_channel_type do
-        channel = create(:channel, tenant:, channel_type: "mission_only_spec")
+        channel = create(:channel, tenant:, operation:, channel_type: "mission_only_spec")
         mission = create(:mission, operation:)
         target = create(:channel_target, :mission, channel:, target: mission, default: true)
 
-        described_class.send(:sync_channel_targets!, channel, attributes: {}, tenant:, creating: false)
+        described_class.send(:sync_channel_targets!, channel, attributes: {}, operation:, creating: false)
 
         expect(channel.reload.channel_targets).to contain_exactly(target)
       end
     end
 
     it "keeps client targets untouched when no agent update is requested" do
-      channel = create(:channel, :client, tenant:)
+      channel = create(:channel, :client, tenant:, operation:)
       agent = create(:agent, operation:)
       target = create(:channel_target, channel:, target: agent, default: true)
 
-      described_class.send(:sync_client_channel_target!, channel, attributes: {}, tenant:, creating: false)
+      described_class.send(:sync_client_channel_target!, channel, attributes: {}, operation:, creating: false)
 
       expect(channel.reload.channel_targets).to contain_exactly(target)
     end
 
     it "syncs client channel targets when an agent id is provided" do
-      channel = create(:channel, :client, tenant:)
+      channel = create(:channel, :client, tenant:, operation:)
       agent = create(:agent, operation:)
 
       described_class.send(
         :sync_client_channel_target!,
         channel,
         attributes: { "agent_id" => agent.id },
-        tenant:,
+        operation:,
         creating: false,
       )
 
@@ -664,14 +664,14 @@ RSpec.describe RuntimeRecords::Registry do
 
     it "syncs single-target mission channel targets when a mission id is provided" do
       with_mission_only_channel_type do
-        channel = create(:channel, tenant:, channel_type: "mission_only_spec")
+        channel = create(:channel, tenant:, operation:, channel_type: "mission_only_spec")
         mission = create(:mission, operation:)
 
         described_class.send(
           :sync_channel_targets!,
           channel,
           attributes: { "mission_id" => mission.id },
-          tenant:,
+          operation:,
           creating: false,
         )
 
@@ -680,34 +680,34 @@ RSpec.describe RuntimeRecords::Registry do
     end
 
     it "keeps scoped API targets untouched when no sync-driving attributes are present" do
-      channel = create(:channel, :api, tenant:, configuration: { "access_scope" => "scoped" })
+      channel = create(:channel, :api, tenant:, operation:, configuration: { "access_scope" => "scoped" })
       agent = create(:agent, operation:)
       target = create(:channel_target, channel:, target: agent, default: true)
 
-      described_class.send(:sync_api_channel_targets!, channel, attributes: {}, tenant:, creating: false)
+      described_class.send(:sync_api_channel_targets!, channel, attributes: {}, operation:, creating: false)
 
       expect(channel.reload.channel_targets).to contain_exactly(target)
     end
 
     it "returns nil for blank channel agent identifiers" do
-      expect(described_class.send(:resolve_channel_agent, "   ", tenant:)).to be_nil
+      expect(described_class.send(:resolve_channel_agent, "   ", operation:)).to be_nil
     end
 
     it "returns nil for unsupported single-target kinds" do
-      channel = create(:channel, :api, tenant:)
+      channel = create(:channel, :api, tenant:, operation:)
 
       expect(
         described_class.send(
           :resolve_single_channel_target,
           channel,
           attributes: { "target_kind" => "unsupported" },
-          tenant:,
+          operation:,
         ),
       ).to be_nil
     end
 
     it "does not create another API credential when one already exists" do
-      channel = create(:channel, :api, tenant:)
+      channel = create(:channel, :api, tenant:, operation:)
       create(:channel_credential, channel:, name: "Primary token")
 
       expect do

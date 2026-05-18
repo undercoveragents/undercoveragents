@@ -104,7 +104,7 @@ module ListResourcesToolCoreResources
   end
 
   def channels
-    scope = tenant.channels.order(:name)
+    scope = scoped_operation ? scoped_operation.channels.order(:name) : Channel.none
     return "No channels available." if scope.empty?
 
     lines = ["## Channels"]
@@ -113,7 +113,7 @@ module ListResourcesToolCoreResources
   end
 
   def clients
-    scope = tenant.channels.by_type("client").order(:name)
+    scope = scoped_operation ? scoped_operation.channels.by_type("client").order(:name) : Channel.none
     return "No clients available." if scope.empty?
 
     lines = ["## Clients"]
