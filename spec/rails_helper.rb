@@ -3,10 +3,12 @@
 require "simplecov"
 require "simplecov-cobertura"
 
-SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new([
-  SimpleCov::Formatter::HTMLFormatter,
-  SimpleCov::Formatter::CoberturaFormatter.new(result_file_name: "coverage.xml"),
-])
+SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new(
+  [
+    SimpleCov::Formatter::HTMLFormatter,
+    SimpleCov::Formatter::CoberturaFormatter.new(result_file_name: "coverage.xml"),
+  ],
+)
 
 SimpleCov.start "rails" do
   enable_coverage :branch
