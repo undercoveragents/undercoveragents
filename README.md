@@ -174,7 +174,7 @@ Before opening a PR, run:
 bundle exec rake
 ```
 
-GitHub Actions also emits a Cobertura coverage report at `coverage/coverage.xml` and uploads it to Codecov through GitHub Actions OIDC once the repository is connected to the Codecov GitHub app.
+GitHub Actions also emits a Cobertura coverage report at `coverage/coverage.xml`. The Codecov upload runs as a non-blocking best-effort step until the repository is connected to the Codecov GitHub app, so missing Codecov access does not fail the main CI job.
 
 
 ## Project Status

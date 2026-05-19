@@ -131,10 +131,11 @@ jobs:
         run: bundle exec rspec
 
       - name: Upload coverage to Codecov
+        continue-on-error: true
         uses: codecov/codecov-action@v5
         with:
           disable_search: true
-          fail_ci_if_error: true
+          fail_ci_if_error: false
           files: coverage/coverage.xml
           flags: rspec
           name: rspec-coverage
