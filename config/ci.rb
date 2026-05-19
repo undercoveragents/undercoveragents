@@ -10,7 +10,7 @@ CI.run do
   step "Style: RuboCop", "bundle exec rubocop"
   step "Style: Haml-Lint", "bundle exec haml-lint"
 
-  step "Tests: RSpec", "bundle exec rspec"
+  step "Tests: RSpec", "CI=1 bundle exec rspec"
 
   step "Security: Gem audit", "bin/bundler-audit"
   step "Security: Importmap vulnerability audit", "bin/importmap audit"
