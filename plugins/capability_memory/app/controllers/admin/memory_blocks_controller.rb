@@ -19,16 +19,13 @@ module Admin
     helper MemoryBlocksHelper
 
     before_action :set_memory_block, only: [:show, :update, :destroy]
+    before_action :set_my_blocks, only: [:show, :update]
 
     def index
       @memory_blocks = MemoryBlock.ordered
     end
 
-    def show
-      @my_blocks = AgentMemoryBlock.where(memory_block: @memory_block, user: current_user)
-                                   .eager_load(:agent)
-                                   .order("agents.name")
-    end
+    def show; end
 
     def new
       @memory_block = MemoryBlock.new
@@ -77,6 +74,12 @@ module Admin
 
     def redirect_read_only
       redirect_to admin_memory_block_path(@memory_block.label), alert: t("memory_blocks.read_only")
+    end
+
+    def set_my_blocks
+      @my_blocks = AgentMemoryBlock.where(memory_block: @memory_block, user: current_user)
+                                   .eager_load(:agent)
+                                   .order("agents.name")
     end
   end
 end
