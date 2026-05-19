@@ -4,6 +4,8 @@
 
 CI.run do
   step "Setup", "bin/setup --skip-server"
+  step "Setup: JavaScript dependencies", "pnpm install --frozen-lockfile"
+  step "Build: Mission designer bundle", "pnpm run build:mission"
 
   step "Style: RuboCop", "bundle exec rubocop"
   step "Style: Haml-Lint", "bundle exec haml-lint"

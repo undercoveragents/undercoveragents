@@ -86,6 +86,7 @@ bin/setup --skip-server
 This installs missing gems if needed, prepares the database, and clears old logs and temp files.
 
 Default `bundle exec rspec` runs only the repository's app and plugin specs under `spec/` and `plugins/**/spec/`, and excludes system specs unless you target them explicitly.
+Fresh environments that render the mission designer in request specs also need the esbuild bundle in `app/assets/builds`; run `pnpm run build:mission` once if you are not already running `bin/dev` or `bin/ci`.
 
 ### 3. Start the Development Stack
 

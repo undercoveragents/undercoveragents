@@ -98,10 +98,22 @@ jobs:
       - name: Install libvips
         run: sudo apt-get update && sudo apt-get install -y libvips
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
+
+      - name: Install JavaScript dependencies
+        run: corepack enable && pnpm install --frozen-lockfile
+
+      - name: Build mission designer bundle
+        run: pnpm run build:mission
 
       - name: Prepare test database
         run: bin/rails db:prepare
