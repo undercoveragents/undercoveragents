@@ -6,7 +6,7 @@ require "simplecov-cobertura"
 SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new(
   [
     SimpleCov::Formatter::HTMLFormatter,
-    SimpleCov::Formatter::CoberturaFormatter.new(result_file_name: "coverage.xml"),
+    SimpleCov::Formatter::CoberturaFormatter,
   ],
 )
 
