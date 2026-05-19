@@ -85,6 +85,8 @@ bin/setup --skip-server
 
 This installs missing gems if needed, prepares the database, and clears old logs and temp files.
 
+Default `bundle exec rspec` runs only the repository's app and plugin specs under `spec/` and `plugins/**/spec/`, and excludes system specs unless you target them explicitly.
+
 ### 3. Start the Development Stack
 
 ```bash

@@ -4,5 +4,5 @@
 --color
 --no-profile
 --order random
---default-path .
+--pattern {spec,plugins}/**/*_spec.rb
 --exclude-pattern {spec,plugins}/**/system/**/*_spec.rb
