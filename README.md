@@ -64,7 +64,7 @@ It is designed for teams that want more than a thin SDK. You can configure agent
 - Ruby 4.0.4
 - PostgreSQL running locally with the pgvector `vector` extension available
 - Bundler
-- Node.js and `pnpm`
+- Node.js and `pnpm` (via Corepack or a local install)
 
 Most integrations are optional. You can boot the app locally without configuring an LLM provider, but AI features that depend on a default model will stay unavailable until you add one.
 

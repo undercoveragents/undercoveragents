@@ -98,6 +98,12 @@ jobs:
       - name: Install libvips
         run: sudo apt-get update && sudo apt-get install -y libvips
 
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -110,7 +116,7 @@ jobs:
           bundler-cache: true
 
       - name: Install JavaScript dependencies
-        run: corepack enable && pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Build mission designer bundle
         run: pnpm run build:mission
