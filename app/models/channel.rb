@@ -186,6 +186,10 @@ class Channel < ApplicationRecord
   end
   private_class_method :client_channel_scope
 
+  def invalidate_client_settings_cache
+    self.class.invalidate_client_settings_cache!(operation)
+  end
+
   def build_configurator
     @configurator_built_for_type = channel_type
     klass = ChannelPlugin.resolve(channel_type)
