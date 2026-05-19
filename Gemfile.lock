@@ -730,6 +730,9 @@ GEM
       docile (~> 1.1)
       simplecov-html (~> 0.11)
       simplecov_json_formatter (~> 0.1)
+    simplecov-cobertura (3.1.0)
+      rexml
+      simplecov (~> 0.19)
     simplecov-html (0.13.2)
     simplecov_json_formatter (0.1.4)
     simpleidn (0.2.3)
@@ -895,6 +898,7 @@ DEPENDENCIES
   shoulda-matchers
   simple_form
   simplecov
+  simplecov-cobertura
   solid_cache
   solid_queue
   stimulus-rails

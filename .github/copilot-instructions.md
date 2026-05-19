@@ -93,6 +93,7 @@ AI Platform built with **Ruby 4.0.4 / Rails 8.1**, Falcon server, PostgreSQL, Ha
 - GitHub Actions jobs that use `actions/setup-node` with `cache: pnpm` must install pnpm first (for example via `pnpm/action-setup`) before the cache-enabled `setup-node` step, or the action fails while resolving the pnpm cache path.
 - Request specs auto-sign in by default via `spec/support/authentication_helpers.rb`; mark groups `unauthenticated: true` when a spec intentionally performs its own sign-in flow or needs a specific logged-out state.
 - 100% line and branch coverage (SimpleCov). Keep the repo-wide filter for `lib/undercover_agents/ruby_llm_debug_logging.rb`; it is a local toggle-only diagnostics hook and should not count against the app coverage gate. Suppress expected logger errors with `allow(Rails.logger).to receive(:error)`.
+- CI coverage uploads use Codecov OIDC and the Cobertura report at `coverage/coverage.xml`; keep SimpleCov generating both the default HTML output and the Cobertura XML when touching test coverage setup.
 
 ## Tool Architecture
 

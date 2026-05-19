@@ -144,6 +144,7 @@ group :test do
 
   # Code coverage
   gem "simplecov", require: false
+  gem "simplecov-cobertura", require: false
 
   # Time travel
   gem "timecop"

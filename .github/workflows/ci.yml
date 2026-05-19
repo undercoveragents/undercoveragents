@@ -73,6 +73,9 @@ jobs:
 
   spec:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     services:
       postgres:
         image: pgvector/pgvector:pg16
@@ -126,4 +129,15 @@ jobs:
 
       - name: Run RSpec
         run: bundle exec rspec
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          disable_search: true
+          fail_ci_if_error: true
+          files: coverage/coverage.xml
+          flags: rspec
+          name: rspec-coverage
+          use_oidc: true
+          verbose: true
 

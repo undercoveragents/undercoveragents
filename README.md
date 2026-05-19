@@ -4,6 +4,14 @@
 	<img src="app/assets/images/logo.png" alt="Undercover Agents logo" width="220">
 </p>
 
+<p align="center">
+	<a href="https://github.com/undercoveragents/undercoveragents/actions/workflows/ci.yml"><img src="https://github.com/undercoveragents/undercoveragents/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+	<a href="https://codecov.io/gh/undercoveragents/undercoveragents"><img src="https://codecov.io/gh/undercoveragents/undercoveragents/branch/main/graph/badge.svg" alt="Coverage"></a>
+	<a href="https://www.ruby-lang.org/"><img src="https://img.shields.io/badge/Ruby-4.0.4-CC342D?logo=ruby&logoColor=white" alt="Ruby 4.0.4"></a>
+	<a href="https://rubyonrails.org/"><img src="https://img.shields.io/badge/Rails-8.1-CC0000?logo=rubyonrails&logoColor=white" alt="Rails 8.1"></a>
+	<a href="LICENSE.md"><img src="https://img.shields.io/github/license/undercoveragents/undercoveragents" alt="License"></a>
+</p>
+
 Undercover Agents is an open-source, multi-tenant AI platform for building, operating, and publishing agentic systems from a Rails application.
 
 It is designed for teams that want more than a thin SDK. You can configure agents, orchestrate workflows, connect external systems, package reusable knowledge, and expose the result through branded chat or API channels, all inside the same product.
@@ -169,6 +177,8 @@ Before opening a PR, run:
 ```bash
 bundle exec rake
 ```
+
+GitHub Actions also emits a Cobertura coverage report at `coverage/coverage.xml` and uploads it to Codecov through GitHub Actions OIDC once the repository is connected to the Codecov GitHub app.
 
 
 ## Project Status
