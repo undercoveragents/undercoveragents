@@ -705,7 +705,7 @@ Mission-scoped builtin turns still run through the builtin `mission_designer` ag
 
 ## Infrastructure
 
-- PostgreSQL: `undercover_agents_development` / `undercover_agents_test`. Solid Queue uses separate `queue` DB.
+- PostgreSQL: `undercover_agents_development` / `undercover_agents_test`. Solid Queue uses separate `queue` DB. Local setup and GitHub Actions test databases must provide the pgvector `vector` extension; the Actions spec job uses the `pgvector/pgvector:pg16` service image so `db:prepare` can enable it.
 - Env vars via `.env.development` / `.env.test` (dotenv-rails). Never commit secrets.
 - GlitchTip/Sentry uses `SENTRY_DSN` and should initialize only in production, only when the env var is present, and never during rake tasks so deploy, db, and maintenance tasks do not report exceptions as app runtime failures.
 - RubyLLM request debugging is wired once through `lib/undercover_agents/ruby_llm_debug_logging.rb` plus `config/initializers/ruby_llm_debug_logging.rb`. Keep the hardcoded `ENABLED = false` default, toggle it locally only when needed, and let that provider-level hook write human-readable payload dumps to `log/llm_api_debug_chat_<chat_id>.log` for chat-backed calls, with `log/llm_api_debug.log` as the fallback for non-chat calls, instead of adding ad hoc logging around individual `chat.ask` call sites.

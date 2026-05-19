@@ -62,7 +62,7 @@ It is designed for teams that want more than a thin SDK. You can configure agent
 ### Prerequisites
 
 - Ruby 4.0.4
-- PostgreSQL running locally
+- PostgreSQL running locally with the pgvector `vector` extension available
 - Bundler
 - Node.js and `pnpm`
 
