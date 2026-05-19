@@ -4,6 +4,14 @@
 	<img src="app/assets/images/logo.png" alt="Undercover Agents logo" width="220">
 </p>
 
+<p align="center">
+	<a href="https://github.com/undercoveragents/undercoveragents/actions/workflows/ci.yml"><img src="https://github.com/undercoveragents/undercoveragents/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+	<a href="https://codecov.io/gh/undercoveragents/undercoveragents"><img src="https://codecov.io/gh/undercoveragents/undercoveragents/branch/main/graph/badge.svg" alt="Coverage"></a>
+	<a href="https://www.ruby-lang.org/"><img src="https://img.shields.io/badge/Ruby-4.0.4-CC342D?logo=ruby&logoColor=white" alt="Ruby 4.0.4"></a>
+	<a href="https://rubyonrails.org/"><img src="https://img.shields.io/badge/Rails-8.1-CC0000?logo=rubyonrails&logoColor=white" alt="Rails 8.1"></a>
+	<a href="LICENSE.md"><img src="https://img.shields.io/github/license/undercoveragents/undercoveragents" alt="License"></a>
+</p>
+
 Undercover Agents is an open-source, multi-tenant AI platform for building, operating, and publishing agentic systems from a Rails application.
 
 It is designed for teams that want more than a thin SDK. You can configure agents, orchestrate workflows, connect external systems, package reusable knowledge, and expose the result through branded chat or API channels, all inside the same product.
@@ -85,10 +93,6 @@ bin/setup --skip-server
 
 This installs missing gems if needed, prepares the database, and clears old logs and temp files.
 
-Default `bundle exec rspec` runs only the repository's app and plugin specs under `spec/` and `plugins/**/spec/`, and excludes system specs unless you target them explicitly.
-Fresh environments that render the mission designer in request specs also need the esbuild bundle in `app/assets/builds`; run `pnpm run build:mission` once if you are not already running `bin/dev` or `bin/ci`.
-`bin/ci` runs the RSpec step with `CI=1` so local coverage matches GitHub Actions' eager-load test mode.
-
 ### 3. Start the Development Stack
 
 ```bash
@@ -169,6 +173,8 @@ Before opening a PR, run:
 ```bash
 bundle exec rake
 ```
+
+GitHub Actions also emits a Cobertura coverage report at `coverage/coverage.xml`. The Codecov upload runs as a non-blocking best-effort step until the repository is connected to the Codecov GitHub app, so missing Codecov access does not fail the main CI job.
 
 
 ## Project Status
