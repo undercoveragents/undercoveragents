@@ -38,6 +38,10 @@ It is designed for teams that want more than a thin SDK. You can configure agent
 - Agent Alpha can now inspect agent chat history and run synchronous debug prompts against agents through the agent-designer runtime tools, using the same persisted chats/messages the inspector shows.
 - Rails-native stack with Hotwire, Haml, Tailwind, Solid Queue, and Falcon
 
+## LLM Providers Support
+
+Undercover Agents is built on [ruby_llm](https://github.com/crmne/ruby_llm), so it supports the providers available through that runtime, including OpenAI, xAI, Anthropic, Gemini, Vertex AI, Bedrock, DeepSeek, Mistral, Ollama, OpenRouter, Perplexity, GPUStack, and any OpenAI-compatible API.
+
 ## Core Concepts
 
 | Concept | What it means |
@@ -113,17 +117,12 @@ After setup, the app seeds a default system administrator account:
 - Email: `admin@localhost`
 - Password: `Changeme123!`
 
-You can override those defaults before first setup with `ADMIN_EMAIL` and `ADMIN_PASSWORD`.
-
 The bootstrap flow also creates a default tenant plus its two core operations:
 
 - `Headquarter`
 - `Default`
 
-Use the shared sign-in page at `/login` for local sign-in or already-linked external accounts, or tenant-specific login pages at `/tenants/:tenant_id/login`.
-First-time external sign-in and external-account linking must start from the tenant-specific login page.
-For hosted onboarding, `/try-in-cloud` creates a brand-new workspace and first admin with either email/password or Google when a Google authentication connector is enabled. The initial workspace name is generated from the admin email and can be renamed later.
-Normal user management in the admin UI is tenant-scoped, including for system administrators; cross-tenant administration belongs on the dedicated tenant-management surfaces.
+Use the shared sign-in page at `/login` for local sign-in
 
 ### 5. Configure Your First Model Provider
 
