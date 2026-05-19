@@ -88,7 +88,9 @@ AI Platform built with **Ruby 4.0.4 / Rails 8.1**, Falcon server, PostgreSQL, Ha
 - Rails transactional fixtures are the default test isolation mode. Only `:commit_db` specs and browser-visible JS/system specs should opt out and use truncation so committed rows stay visible across separate connections.
 - The test environment enables `ActiveModel::SecurePassword.min_cost = true`; keep it that way so password-backed factories and request-spec logins stay cheap.
 - Browser/system specs run through Capybara + Selenium with the app's Falcon stack and should use truncation (`js: true`) rather than transaction-only DB isolation so the browser can see committed records.
-- Default `bundle exec rake` / `bundle exec rake spec` runs should exclude `spec/system` unless `SYSTEM_SPECS=1` is set explicitly.
+- Default `bundle exec rspec`, `bundle exec rake`, `bundle exec rake spec`, and CI RSpec runs should only discover specs under `spec/` and `plugins/**/spec/`, and should exclude `spec/system` unless `SYSTEM_SPECS=1` is set explicitly for the rake path. Explicit `bundle exec rspec spec/system/...` file selections should still run.
+- Fresh environments that render the mission designer in request specs must build the esbuild mission bundle first (`pnpm run build:mission`) so Propshaft can resolve `mission_designer.js` and `mission_designer.css` from `app/assets/builds`; keep both GitHub Actions and local `bin/ci` doing that before RSpec, and keep `bin/ci` running `CI=1 bundle exec rspec` so local coverage matches GitHub Actions eager-load mode.
+- GitHub Actions jobs that use `actions/setup-node` with `cache: pnpm` must install pnpm first (for example via `pnpm/action-setup`) before the cache-enabled `setup-node` step, or the action fails while resolving the pnpm cache path.
 - Request specs auto-sign in by default via `spec/support/authentication_helpers.rb`; mark groups `unauthenticated: true` when a spec intentionally performs its own sign-in flow or needs a specific logged-out state.
 - 100% line and branch coverage (SimpleCov). Keep the repo-wide filter for `lib/undercover_agents/ruby_llm_debug_logging.rb`; it is a local toggle-only diagnostics hook and should not count against the app coverage gate. Suppress expected logger errors with `allow(Rails.logger).to receive(:error)`.
 
@@ -705,7 +707,7 @@ Mission-scoped builtin turns still run through the builtin `mission_designer` ag
 
 ## Infrastructure
 
-- PostgreSQL: `undercover_agents_development` / `undercover_agents_test`. Solid Queue uses separate `queue` DB.
+- PostgreSQL: `undercover_agents_development` / `undercover_agents_test`. Solid Queue uses separate `queue` DB. Local setup and GitHub Actions test databases must provide the pgvector `vector` extension; the Actions spec job uses the `pgvector/pgvector:pg16` service image so `db:prepare` can enable it.
 - Env vars via `.env.development` / `.env.test` (dotenv-rails). Never commit secrets.
 - GlitchTip/Sentry uses `SENTRY_DSN` and should initialize only in production, only when the env var is present, and never during rake tasks so deploy, db, and maintenance tasks do not report exceptions as app runtime failures.
 - RubyLLM request debugging is wired once through `lib/undercover_agents/ruby_llm_debug_logging.rb` plus `config/initializers/ruby_llm_debug_logging.rb`. Keep the hardcoded `ENABLED = false` default, toggle it locally only when needed, and let that provider-level hook write human-readable payload dumps to `log/llm_api_debug_chat_<chat_id>.log` for chat-backed calls, with `log/llm_api_debug.log` as the fallback for non-chat calls, instead of adding ad hoc logging around individual `chat.ask` call sites.

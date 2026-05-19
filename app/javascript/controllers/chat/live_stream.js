@@ -1060,6 +1060,7 @@ export class ChatLiveStream {
 
   finalizeStream() {
     const messageElement = this.messagesElement?.querySelector("#streaming-message")
+    this.finalizeChatControllerStatus()
     this.collapseThinking(messageElement)
     this.collapseStreamingBranches()
     this.removeWaitingPlaceholder(messageElement)
@@ -1090,6 +1091,35 @@ export class ChatLiveStream {
     this.activeToolCallCount = 0
 
     this.scrollToBottom()
+    queueMicrotask(() => this.cleanupFinalizedTransientMessage())
+  }
+
+  finalizeChatControllerStatus() {
+    const controller = this.chatController()
+    const chatId = this.state.activeChatId || this.currentChatId()
+    const statusElement = controller?.statusTarget || this.panelElement?.querySelector(`#chat-${chatId}-status`)
+    if (!statusElement) return
+
+    statusElement.dataset.status = "idle"
+    delete statusElement.dataset.phase
+
+    if (!controller) return
+
+    controller.localStreamActive = false
+    controller.recoveringExternalStream = false
+    controller.syncStatusTarget(statusElement, { live: true })
+  }
+
+  cleanupFinalizedTransientMessage() {
+    if (this.shouldShowWaitingPlaceholder()) return
+
+    const messageElement = this.messagesElement?.querySelector("#streaming-message")
+    if (!messageElement) return
+
+    this.removeWaitingPlaceholder(messageElement)
+    if (transientAssistantMessageIsEmpty(messageElement)) {
+      messageElement.remove()
+    }
   }
 
   resetTransientState() {
@@ -1176,7 +1206,8 @@ export class ChatLiveStream {
     const chatId = this.state.activeChatId || this.currentChatId()
     const statusElement = this.panelElement?.querySelector(`#chat-${chatId}-status`)
 
-    return statusElement?.dataset.status === "streaming" &&
+    return this.chatController()?.streamingValue === true &&
+      statusElement?.dataset.status === "streaming" &&
       this.currentStatusPhase() !== "thinking" &&
       !this.currentStreamingMessageHasVisibleOutput()
   }

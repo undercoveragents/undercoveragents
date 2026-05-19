@@ -4,10 +4,13 @@
 
 CI.run do
   step "Setup", "bin/setup --skip-server"
+  step "Setup: JavaScript dependencies", "pnpm install --frozen-lockfile"
+  step "Build: Mission designer bundle", "pnpm run build:mission"
 
   step "Style: RuboCop", "bundle exec rubocop"
+  step "Style: Haml-Lint", "bundle exec haml-lint"
 
-  step "Tests: RSpec", "bundle exec rspec"
+  step "Tests: RSpec", "CI=1 bundle exec rspec"
 
   step "Security: Gem audit", "bin/bundler-audit"
   step "Security: Importmap vulnerability audit", "bin/importmap audit"

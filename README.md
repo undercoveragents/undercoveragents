@@ -62,9 +62,9 @@ It is designed for teams that want more than a thin SDK. You can configure agent
 ### Prerequisites
 
 - Ruby 4.0.4
-- PostgreSQL running locally
+- PostgreSQL running locally with the pgvector `vector` extension available
 - Bundler
-- Node.js and `pnpm`
+- Node.js and `pnpm` (via Corepack or a local install)
 
 Most integrations are optional. You can boot the app locally without configuring an LLM provider, but AI features that depend on a default model will stay unavailable until you add one.
 
@@ -84,6 +84,10 @@ bin/setup --skip-server
 ```
 
 This installs missing gems if needed, prepares the database, and clears old logs and temp files.
+
+Default `bundle exec rspec` runs only the repository's app and plugin specs under `spec/` and `plugins/**/spec/`, and excludes system specs unless you target them explicitly.
+Fresh environments that render the mission designer in request specs also need the esbuild bundle in `app/assets/builds`; run `pnpm run build:mission` once if you are not already running `bin/dev` or `bin/ci`.
+`bin/ci` runs the RSpec step with `CI=1` so local coverage matches GitHub Actions' eager-load test mode.
 
 ### 3. Start the Development Stack
 
