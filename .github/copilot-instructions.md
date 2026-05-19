@@ -88,7 +88,7 @@ AI Platform built with **Ruby 4.0.4 / Rails 8.1**, Falcon server, PostgreSQL, Ha
 - Rails transactional fixtures are the default test isolation mode. Only `:commit_db` specs and browser-visible JS/system specs should opt out and use truncation so committed rows stay visible across separate connections.
 - The test environment enables `ActiveModel::SecurePassword.min_cost = true`; keep it that way so password-backed factories and request-spec logins stay cheap.
 - Browser/system specs run through Capybara + Selenium with the app's Falcon stack and should use truncation (`js: true`) rather than transaction-only DB isolation so the browser can see committed records.
-- Default `bundle exec rake` / `bundle exec rake spec` runs should exclude `spec/system` unless `SYSTEM_SPECS=1` is set explicitly.
+- Default `bundle exec rspec`, `bundle exec rake`, `bundle exec rake spec`, and CI RSpec runs should exclude `spec/system` unless `SYSTEM_SPECS=1` is set explicitly for the rake path. Explicit `bundle exec rspec spec/system/...` file selections should still run.
 - Request specs auto-sign in by default via `spec/support/authentication_helpers.rb`; mark groups `unauthenticated: true` when a spec intentionally performs its own sign-in flow or needs a specific logged-out state.
 - 100% line and branch coverage (SimpleCov). Keep the repo-wide filter for `lib/undercover_agents/ruby_llm_debug_logging.rb`; it is a local toggle-only diagnostics hook and should not count against the app coverage gate. Suppress expected logger errors with `allow(Rails.logger).to receive(:error)`.
 

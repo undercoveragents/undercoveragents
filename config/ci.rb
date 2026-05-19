@@ -6,6 +6,7 @@ CI.run do
   step "Setup", "bin/setup --skip-server"
 
   step "Style: RuboCop", "bundle exec rubocop"
+  step "Style: Haml-Lint", "bundle exec haml-lint"
 
   step "Tests: RSpec", "bundle exec rspec"
 

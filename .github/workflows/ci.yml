@@ -68,3 +68,44 @@ jobs:
       - name: Lint code for consistent style
         run: bin/rubocop -f github
 
+      - name: Lint Haml templates
+        run: bundle exec haml-lint
+
+  spec:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      RAILS_ENV: test
+      PG_GSSENCMODE: disable
+      DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/undercover_agents_test
+      QUEUE_DATABASE_URL: postgres://postgres:postgres@127.0.0.1:5432/undercover_agents_test_queue
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install libvips
+        run: sudo apt-get update && sudo apt-get install -y libvips
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Prepare test database
+        run: bin/rails db:prepare
+
+      - name: Run RSpec
+        run: bundle exec rspec
+
