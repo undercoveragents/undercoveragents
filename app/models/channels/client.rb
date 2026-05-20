@@ -57,14 +57,6 @@ module Channels
       )
     end
 
-    def self.default_message_actions_payload
-      ClientConfiguration.default_message_actions_payload
-    end
-
-    def self.normalized_message_actions_payload(settings)
-      ClientConfiguration.normalized_message_actions_payload(settings)
-    end
-
     def summary
       "Web chat"
     end
@@ -86,7 +78,6 @@ module Channels
       logo_url = if channel.logo.attached?
                    Rails.application.routes.url_helpers.rails_blob_path(channel.logo, only_path: true)
                  end
-      message_action_settings = effective_message_action_settings
 
       {
         id: channel.id,
@@ -95,7 +86,12 @@ module Channels
         welcome_message:,
         footer:,
         labels: effective_label_settings(channel_name: channel.name),
-        **message_action_payload_attributes(message_action_settings),
+        message_actions: normalized_message_action_settings,
+        message_actions_visibility: effective_message_action_settings["message_actions_visibility"],
+        copy_assistant_response_enabled: effective_message_action_settings["copy_assistant_response_enabled"],
+        copy_user_message_enabled: effective_message_action_settings["copy_user_message_enabled"],
+        assistant_feedback_enabled: effective_message_action_settings["assistant_feedback_enabled"],
+        retry_assistant_message_enabled: effective_message_action_settings["retry_assistant_message_enabled"],
         agent_id: agent&.id,
         agent_name: agent&.name,
         logo_url:,
@@ -120,7 +116,11 @@ module Channels
     end
 
     def effective_message_action_settings
-      self.class.default_message_actions_payload.merge(message_action_overrides)
+      ClientConfiguration.default_message_actions_payload.merge(message_action_overrides)
+    end
+
+    def normalized_message_action_settings
+      ClientConfiguration.normalized_message_actions_payload(effective_message_action_settings)
     end
 
     def sanitize_rich_fields
@@ -154,17 +154,6 @@ module Channels
 
         overrides[field_name.to_s] = value
       end
-    end
-
-    def message_action_payload_attributes(settings)
-      {
-        message_actions: self.class.normalized_message_actions_payload(settings),
-        message_actions_visibility: settings["message_actions_visibility"],
-        copy_assistant_response_enabled: settings["copy_assistant_response_enabled"],
-        copy_user_message_enabled: settings["copy_user_message_enabled"],
-        assistant_feedback_enabled: settings["assistant_feedback_enabled"],
-        retry_assistant_message_enabled: settings["retry_assistant_message_enabled"],
-      }
     end
   end
 end
