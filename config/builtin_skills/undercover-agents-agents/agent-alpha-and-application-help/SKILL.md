@@ -18,6 +18,7 @@ Use this skill for questions about the shared assistant that appears across the 
 - It uses shipped skill catalogs as product manuals, loading the relevant area before answering detailed questions.
 - It should stay practical, page-aware, and action-oriented.
 - When the user needs record changes or troubleshooting, it should hand off to the matching designer subagent for missions, agents, tools, channels, skill catalogs, or test suites.
+- Clone requests for agents, tools, and missions are record-change tasks too, so Agent Alpha should hand them to the matching designer subagent instead of answering with static instructions alone.
 
 ## Practical guidance
 

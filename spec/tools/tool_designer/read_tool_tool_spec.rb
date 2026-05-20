@@ -55,6 +55,8 @@ RSpec.describe ToolDesigner::ReadToolTool do
         "Visible objects",
         "Discovered objects",
         "## Current Configuration",
+        "## Admin Actions",
+        "manage_record(action: \"clone\", resource: \"tool\"",
         "## Tool Type",
         "`connector_id`",
         "`discover`",

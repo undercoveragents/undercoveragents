@@ -367,6 +367,39 @@ RSpec.describe ManageRecordTool do
       )
     end
 
+    it "clones a mission and returns same-turn designer guidance", :aggregate_failures do
+      allow(ActionCable.server).to receive(:broadcast)
+
+      result = tool.execute(resource: "mission", action: "clone", record_id: mission.id)
+
+      cloned_mission = Mission.order(:id).last
+      expect(result).to include("Mission cloned successfully.")
+      expect(result).to include("Continue same-turn mission edits by passing the returned ID as `mission_id`.")
+      expect(cloned_mission.name).to start_with("Clone of ")
+      expect_navigation_to(chat, Rails.application.routes.url_helpers.designer_admin_mission_path(cloned_mission))
+    end
+
+    it "clones a mission and resolves a custom follow-up page" do
+      result = tool.execute(resource: "mission", action: "clone", record_id: mission.id, page: "edit")
+      cloned_mission = Mission.order(:id).last
+      expected_path = Rails.application.routes.url_helpers.edit_admin_mission_path(cloned_mission)
+
+      expect(result).to include("Mission cloned successfully.")
+      expect(result).to include("- Path: `#{expected_path}`")
+    end
+
+    it "returns a clear error when clone is unsupported for the resource" do
+      skill_catalog = create(:skill_catalog, operation:, name: "Support")
+
+      result = tool.execute(resource: "skill_catalog", action: "clone", record_id: skill_catalog.id)
+
+      expect(result).to eq("Error: Clone is not supported for skill catalogs.")
+    end
+
+    it "requires a record id for clone" do
+      expect(tool.execute(resource: "mission", action: "clone")).to eq("Error: Provide record_id for clone.")
+    end
+
     it "requires explicit delete confirmation" do
       result = tool.execute(resource: "mission", action: "delete", record_id: mission.id)
 
@@ -453,7 +486,7 @@ RSpec.describe ManageRecordTool do
 
     it "rejects unknown actions" do
       expect(tool.execute(resource: "mission", action: "archive")).to eq(
-        "Error: Unknown action 'archive'. Use create, update, or delete.",
+        "Error: Unknown action 'archive'. Use create, clone, update, or delete.",
       )
     end
 

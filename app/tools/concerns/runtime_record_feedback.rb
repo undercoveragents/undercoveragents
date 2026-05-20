@@ -30,6 +30,7 @@ module RuntimeRecordFeedback
   def past_tense_for(action)
     case action
     when :create then "created"
+    when :clone then "cloned"
     when :update then "updated"
     when :delete then "deleted"
     else action.to_s
@@ -47,7 +48,7 @@ module RuntimeRecordFeedback
   end
 
   def navigated_note(action, resource_key:)
-    return mission_create_navigation_note if action == :create && resource_key == "mission"
+    return mission_create_navigation_note if [:create, :clone].include?(action) && resource_key == "mission"
 
     if create_or_update?(action)
       return "Turbo navigation started. Wait for the next turn before editing the newly opened record."
@@ -61,7 +62,7 @@ module RuntimeRecordFeedback
   end
 
   def create_or_update?(action)
-    [:create, :update].include?(action)
+    [:create, :clone, :update].include?(action)
   end
 
   def refresh_note(refreshed)

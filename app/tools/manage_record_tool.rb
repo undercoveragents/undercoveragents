@@ -20,12 +20,13 @@ class ManageRecordTool < RubyLLM::Tool
     "configuration.",
   ].join(" ")
   DESCRIPTION = [
-    "Create, update, or delete a supported admin record inside the current tenant and operation.",
+    "Create, update, delete, or clone a supported admin record inside the current tenant and operation.",
+    "Clone is supported for missions, agents, and tools.",
     "Currently supports missions, agents, skill catalogs, test suites, channels, and tools.",
   ].join(" ")
   NAVIGATE_DESCRIPTION = [
     "Whether to navigate the admin UI after success.",
-    "Defaults to true for create/delete and false for update unless page is provided.",
+    "Defaults to true for create/clone/delete and false for update unless page is provided.",
   ].join(" ")
   PAGE_DESCRIPTION = [
     "Optional page to visit after success.",
@@ -46,10 +47,10 @@ class ManageRecordTool < RubyLLM::Tool
         ].join(" ")
 
   param :action,
-        desc: "The mutation to perform: 'create', 'update', or 'delete'."
+        desc: "The mutation to perform: 'create', 'update', 'delete', or 'clone'."
 
   param :record_id,
-        desc: "Required for update and delete. Accepts a numeric ID or a slug.",
+        desc: "Required for clone, update, and delete. Accepts a numeric ID or a slug.",
         required: false
 
   param :attributes, desc: ATTRIBUTES_DESCRIPTION, required: false
@@ -78,12 +79,14 @@ class ManageRecordTool < RubyLLM::Tool
     case action
     when "create"
       create_record(manager, options)
+    when "clone"
+      clone_record(manager, options)
     when "update"
       update_record(manager, options)
     when "delete"
       delete_record(manager, options)
     else
-      "Error: Unknown action '#{action}'. Use create, update, or delete."
+      "Error: Unknown action '#{action}'. Use create, clone, update, or delete."
     end
   rescue ActiveRecord::RecordInvalid => e
     "Error: #{e.record.errors.full_messages.to_sentence}"
@@ -116,6 +119,18 @@ class ManageRecordTool < RubyLLM::Tool
     result = manager.update(resource: options[:resource], record_id:, attributes:)
     path = update_path(manager, options, result)
     navigated = perform_navigation?(path, requested_navigation?(options, default: false))
+    refreshed = perform_refresh?(resource: options[:resource], result:, navigated:)
+
+    success_message(result:, path:, navigated:, refreshed:)
+  end
+
+  def clone_record(manager, options)
+    record_id = options[:record_id]
+    return "Error: Provide record_id for clone." if record_id.blank?
+
+    result = manager.clone(resource: options[:resource], record_id:)
+    path = clone_path(manager, options, result)
+    navigated = perform_navigation?(path, requested_navigation?(options, default: true))
     refreshed = perform_refresh?(resource: options[:resource], result:, navigated:)
 
     success_message(result:, path:, navigated:, refreshed:)
@@ -166,6 +181,12 @@ class ManageRecordTool < RubyLLM::Tool
   end
 
   def create_path(manager, options, result)
+    return result.path if options[:page].blank?
+
+    manager.navigation_path(resource: options[:resource], page: options[:page], record_id: result.record.id)
+  end
+
+  def clone_path(manager, options, result)
     return result.path if options[:page].blank?
 
     manager.navigation_path(resource: options[:resource], page: options[:page], record_id: result.record.id)
