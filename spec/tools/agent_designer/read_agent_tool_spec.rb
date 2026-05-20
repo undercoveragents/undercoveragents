@@ -22,6 +22,8 @@ RSpec.describe AgentDesigner::ReadAgentTool do
       "manage_capability",
       "## Input Schema",
       "`task`",
+      "## Model Routing",
+      '"strategy": "fallback"',
       "## Custom LLM Params",
       '"top_p": 0.2',
       "## Instructions",
@@ -29,6 +31,7 @@ RSpec.describe AgentDesigner::ReadAgentTool do
       "## Editable Attribute Keys",
       "`assigned_tool_ids`",
       "manage_record(action: \"clone\", resource: \"agent\"",
+      "`model_routing_config`",
       "Capability configuration goes through `manage_capability`",
     ]
   end
@@ -44,7 +47,7 @@ RSpec.describe AgentDesigner::ReadAgentTool do
     )
   end
 
-  def create_configured_agent(operation:, helper_tool:, helper_subagent:, skill_catalog:)
+  def create_configured_agent(operation:, helper_tool:, helper_subagent:, skill_catalog:, llm_connector:)
     agent = create(
       :agent,
       operation:,
@@ -59,10 +62,18 @@ RSpec.describe AgentDesigner::ReadAgentTool do
     agent.skill_catalog_ids = [skill_catalog.id]
     agent.input_schema = [{ variable_name: "task", label: "Task", field_type: "string", required: true }]
     agent.custom_llm_params = { "top_p" => 0.2 }
+    agent.model_routing_config = fallback_model_routing_config(llm_connector)
     agent.set_capability_config("chat_title_generator", { "max_length" => 30 })
     agent.runtime_tool_keys = ["records.manage_record"]
     agent.save!
     agent
+  end
+
+  def fallback_model_routing_config(llm_connector)
+    {
+      "strategy" => "fallback",
+      "fallback_models" => [{ "connector_id" => llm_connector.id, "model_id" => "gpt-4.1-mini" }],
+    }
   end
 
   def build_optional_details_agent(operation:)
@@ -107,7 +118,8 @@ RSpec.describe AgentDesigner::ReadAgentTool do
       helper_tool = create(:tool, :mission_tool, :enabled, operation:, name: "Agent Helper")
       helper_subagent = create(:agent, :enabled, operation:, name: "Subagent Helper", model_id: "gpt-4.1")
       skill_catalog = create(:skill_catalog, operation:, name: "Ops Guide")
-      agent = create_configured_agent(operation:, helper_tool:, helper_subagent:, skill_catalog:)
+      llm_connector = create(:connector, :llm_provider, :enabled, tenant:, name: "Primary LLM")
+      agent = create_configured_agent(operation:, helper_tool:, helper_subagent:, skill_catalog:, llm_connector:)
 
       result = described_class.new(runtime_context:, current_agent: agent).execute
 
@@ -163,6 +175,7 @@ RSpec.describe AgentDesigner::ReadAgentTool do
       expect(tool.send(:summary_section, agent)).to include("- Built-in key: `agent_designer`")
       expect(tool.send(:llm_section, agent)).to include("- Thinking effort: `high`", "- Thinking budget: `128`")
       expect(tool.send(:llm_section, agent)).not_to include("LLM connector ID", "Model ID")
+      expect(tool.send(:model_routing_section, agent)).to include("Single route only")
       expect(tool.send(:input_schema_section, agent)).to include("(string, optional) config={\"min\":1}")
     end
 

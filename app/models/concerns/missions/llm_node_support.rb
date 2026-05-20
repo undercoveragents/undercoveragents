@@ -39,6 +39,7 @@ module Missions
       )
       chat.context = runtime_config.connector.build_context
       apply_llm_node_options(chat, runtime_config, node_data)
+      attach_llm_node_model_routing(chat, runtime_config, node_data)
       chat
     end
 
@@ -47,11 +48,28 @@ module Missions
         chat:,
         model_id: runtime_config.model_id,
         model_record: runtime_config.model_record,
-        tools_present: Array(node_data["tool_ids"]).filter_map { |value| Integer(value, exception: false) }.any?,
+        tools_present: llm_node_tools_present?(node_data),
         temperature: runtime_config.temperature,
         thinking_effort: runtime_config.thinking_effort,
         thinking_budget: runtime_config.thinking_budget,
         custom_params: runtime_config.custom_params,
+      )
+    end
+
+    def attach_llm_node_model_routing(chat, runtime_config, node_data)
+      routing_config = runtime_config.model_routing_config
+      return if Llm::ModelRoutingConfig.persistable(routing_config).blank?
+
+      chat.configure_model_routing!(
+        primary_connector: runtime_config.connector,
+        primary_model_id: runtime_config.model_id,
+        primary_model_record: runtime_config.model_record,
+        routing_config:,
+        temperature: runtime_config.temperature,
+        thinking_effort: runtime_config.thinking_effort,
+        thinking_budget: runtime_config.thinking_budget,
+        custom_params: runtime_config.custom_params,
+        tools_present: llm_node_tools_present?(node_data),
       )
     end
 
@@ -98,6 +116,7 @@ module Missions
         thinking_effort: node_data["thinking_effort"],
         thinking_budget: node_data["thinking_budget"],
         custom_params: node_data["custom_llm_params"],
+        model_routing_config: node_data["model_routing_config"],
       )
     end
 
@@ -153,6 +172,10 @@ module Missions
       blob.download { |chunk| tmpfile.write(chunk) }
       tmpfile.rewind
       tmpfile.path
+    end
+
+    def llm_node_tools_present?(node_data)
+      Array(node_data["tool_ids"]).filter_map { |value| Integer(value, exception: false) }.any?
     end
   end
 end

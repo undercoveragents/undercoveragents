@@ -46,8 +46,12 @@ module Missions
         value = node_data&.dig(field.to_s)
         next if value.blank?
 
-        Llm::ChatOptions.normalize_custom_params(value)
-      rescue Llm::ChatOptions::InvalidCustomParamsError => e
+        if field.to_s == "model_routing_config"
+          Llm::ModelRoutingConfig.validate!(value, tenant: resolved_tenant)
+        else
+          Llm::ChatOptions.normalize_custom_params(value)
+        end
+      rescue Llm::ChatOptions::InvalidCustomParamsError, Llm::ModelRoutingConfig::InvalidConfigError => e
         errors.add(field.to_sym, e.message)
       end
     end
@@ -107,6 +111,10 @@ module Missions
       return false unless expression.include?("+")
 
       expression.match?(/["']/) || expression.match?(/\bSTR\s*\(/i)
+    end
+
+    def resolved_tenant
+      Current.tenant || Tenant.default_tenant
     end
   end
 end

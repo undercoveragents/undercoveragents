@@ -35,7 +35,7 @@ module Channels
         channel: @channel,
         channel_target: @channel_target,
         execution_context: :channel,
-        model: resolved_model!,
+        model: initial_model_record,
         title: Chat::DEFAULT_TITLE,
       )
     end
@@ -51,9 +51,19 @@ module Channels
       response.to_s
     end
 
-    def resolved_model!
-      Model.find_by(model_id: @agent.resolved_model_id) ||
-        raise(InvalidInvocation, "Agent model is unavailable")
+    def initial_model_record
+      return if @agent.model_id.blank?
+
+      connector = @agent.llm_connector || SystemPreference.current(tenant: @agent.tenant)&.llm_connector
+      return if connector.blank?
+
+      Model.find_or_create_by!(model_id: @agent.model_id, provider: connector.provider.to_s) do |model|
+        model.name = @agent.model_id
+        model.capabilities = []
+        model.modalities = {}
+        model.metadata = {}
+        model.pricing = {}
+      end
     end
   end
 end

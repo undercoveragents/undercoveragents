@@ -198,6 +198,99 @@ RSpec.describe Chat do
         Current.chat = nil
       end
     end
+
+    it "delegates to the routing executor when model routing is enabled" do
+      chat = create(:chat)
+      executor = instance_double(Llm::ModelRoutingExecutor, enabled?: true)
+      chat.instance_variable_set(:@duration_tracking_initialized, true)
+      chat.instance_variable_set(:@model_routing_executor, executor)
+      allow(executor).to receive(:ask).with("Hello", with: nil).and_return(:routed)
+
+      expect(chat.ask("Hello", with: nil)).to eq(:routed)
+    end
+  end
+
+  describe "model routing helpers" do
+    # rubocop:disable RSpec/ExampleLength
+    it "builds and clears the routing executor based on primary model inputs" do
+      tenant = create(:tenant)
+      connector = create(:connector, :llm_provider, :enabled, tenant:)
+      model = create(:model, model_id: "gpt-4.1", provider: connector.provider)
+      chat = create(:chat, user: create(:user, tenant:))
+
+      chat.configure_model_routing!(
+        primary_connector: connector,
+        primary_model_id: nil,
+        primary_model_record: model,
+        routing_config: {},
+        temperature: nil,
+        thinking_effort: nil,
+        thinking_budget: nil,
+        custom_params: {},
+        tools_present: false,
+      )
+      expect(chat.instance_variable_get(:@model_routing_executor)).to be_nil
+
+      chat.configure_model_routing!(
+        primary_connector: connector,
+        primary_model_id: model.model_id,
+        primary_model_record: model,
+        routing_config: { "strategy" => "fallback" },
+        temperature: 0.2,
+        thinking_effort: "low",
+        thinking_budget: 64,
+        custom_params: { "top_p" => 0.9 },
+        tools_present: true,
+      )
+
+      executor = chat.instance_variable_get(:@model_routing_executor)
+      expect(executor).to be_a(Llm::ModelRoutingExecutor)
+    end
+    # rubocop:enable RSpec/ExampleLength
+
+    it "temporarily bypasses routing while preserving the previous flag value" do
+      chat = create(:chat)
+      chat.instance_variable_set(:@_bypass_model_routing, false)
+      seen_flag = nil
+      allow(chat).to receive(:ask) do
+        seen_flag = chat.instance_variable_get(:@_bypass_model_routing)
+        :ok
+      end
+
+      expect(chat.send(:perform_ask_without_routing, "Hello", with: nil)).to eq(:ok)
+      expect(seen_flag).to be(true)
+      expect(chat.instance_variable_get(:@_bypass_model_routing)).to be(false)
+    end
+
+    # rubocop:disable RSpec/MultipleExpectations
+    it "resolves routing connectors from the available tenant contexts" do
+      tenant = create(:tenant)
+      connector = create(:connector, :llm_provider, :enabled, tenant:)
+      mission = create(:mission, operation: create(:operation, tenant:))
+      agent = create(:agent, operation: create(:operation, tenant:))
+      parent_agent = create(:agent, operation: create(:operation, tenant:))
+      parent_chat = create(:chat, agent: parent_agent)
+
+      expect(create(:chat, agent:).send(:routing_tenant)).to eq(agent.operation.tenant)
+      expect(create(:chat, mission:).send(:routing_tenant)).to eq(mission.operation.tenant)
+
+      user_chat = create(:chat, user: create(:user, tenant:))
+      expect(user_chat.send(:routing_tenant)).to eq(tenant)
+      expect(user_chat.send(:resolve_routing_connector, connector.id)).to eq(connector)
+
+      child_chat = create(:chat, parent_chat:)
+      expect(child_chat.send(:routing_tenant)).to eq(parent_agent.operation.tenant)
+      expect(build(:chat).send(:resolve_routing_connector, connector.id)).to be_nil
+    end
+    # rubocop:enable RSpec/MultipleExpectations
+
+    it "returns nil for a parent chat without an operation-backed agent" do
+      chat = build(:chat)
+      orphan_agent = instance_double(Agent, operation: nil)
+      allow(chat).to receive(:parent_chat).and_return(instance_double(described_class, agent: orphan_agent))
+
+      expect(chat.send(:parent_chat_tenant)).to be_nil
+    end
   end
 
   describe "#with_current_chat_context" do

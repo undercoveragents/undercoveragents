@@ -16,15 +16,18 @@ RSpec.describe Missions::Nodes::Llm do
     }
   end
 
+  # rubocop:disable Metrics/AbcSize
   def stub_shared_llm_chat(connector:, chat:, response:)
     allow(connector).to receive(:build_context).and_return(double)
     allow(chat).to receive(:context=)
     allow(chat).to receive(:with_instructions)
     allow(chat).to receive(:with_tools)
+    allow(chat).to receive(:configure_model_routing!)
     allow(chat).to receive(:ask).and_return(response)
     allow(Chat).to receive(:create!).and_return(chat)
     allow(Llm::ChatOptions).to receive(:apply_to_chat)
   end
+  # rubocop:enable Metrics/AbcSize
 
   def configure_shared_llm_node(context, connector, model_record)
     context.set_variable(
@@ -74,8 +77,8 @@ RSpec.describe Missions::Nodes::Llm do
   end
 
   describe ".json_field_keys" do
-    it "marks custom_llm_params as JSON-backed" do
-      expect(described_class.json_field_keys).to eq(["custom_llm_params"])
+    it "marks shared llm config objects as JSON-backed" do
+      expect(described_class.json_field_keys).to contain_exactly("custom_llm_params", "model_routing_config")
     end
   end
 
@@ -114,6 +117,45 @@ RSpec.describe Missions::Nodes::Llm do
       expect(result).to be_success
       expect_shared_llm_options(chat, model_record)
     end
+
+    # rubocop:disable RSpec/ExampleLength, RSpec/MultipleExpectations
+    it "attaches model routing config to the chat" do
+      connector = create(:connector, :llm_provider, enabled: true)
+      fallback_connector = create(:connector, :llm_provider, enabled: true, tenant: run.mission.operation.tenant)
+      model_record = create(:model, model_id: "gpt-4.1", provider: connector.provider)
+      response = double("response", content: "Generated response") # rubocop:disable RSpec/VerifiedDoubles
+      chat = instance_double(Chat)
+
+      stub_shared_llm_chat(connector:, chat:, response:)
+      allow(chat).to receive(:configure_model_routing!)
+      context.set_variable(
+        "_current_node_data",
+        llm_node_data(
+          connector:,
+          model: model_record.model_id,
+          prompt: "Summarize this",
+          model_routing_config: {
+            "strategy" => "fallback",
+            "fallback_models" => [{ "connector_id" => fallback_connector.id, "model_id" => "gpt-4.1-mini" }],
+          },
+        ),
+      )
+
+      result = node.execute(context)
+
+      expect(result).to be_success
+      expect(chat).to have_received(:configure_model_routing!) do |**kwargs|
+        expect(kwargs[:primary_connector]).to eq(connector)
+        expect(kwargs[:primary_model_id]).to eq(model_record.model_id)
+        expect(kwargs[:primary_model_record]).to eq(model_record)
+        expect(kwargs[:routing_config]).to eq(
+          "strategy" => "fallback",
+          "fallback_models" => [{ "connector_id" => fallback_connector.id, "model_id" => "gpt-4.1-mini" }],
+        )
+        expect(kwargs[:tools_present]).to be(false)
+      end
+    end
+    # rubocop:enable RSpec/ExampleLength, RSpec/MultipleExpectations
 
     it "registers selected tools from the mission operation on the chat" do
       connector = create(:connector, :llm_provider, enabled: true)

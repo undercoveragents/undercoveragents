@@ -19,6 +19,7 @@ Use this skill for questions about how to design or reshape a mission in the mis
 - Prefer purpose-built nodes before reaching for custom code.
 - Add required resources and configuration as part of the same design step, not as a vague follow-up.
 - Keep the canvas readable by placing related steps near each other and by keeping branches easy to follow.
+- Keep `llm` nodes on one primary model by default, and add `model_routing_config` only when the workflow explicitly needs fallback, canary rollout, or A/B comparison behavior.
 
 ## Direct authoring guidance
 

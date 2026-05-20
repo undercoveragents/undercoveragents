@@ -99,7 +99,7 @@ RSpec.describe ManageRecordTool do
     }]
   end
 
-  def agent_update_payload(helper_tool:, helper_subagent:, skill_catalog:)
+  def agent_update_payload(helper_tool:, helper_subagent:, skill_catalog:, llm_connector:)
     {
       description: "Updated by the builtin agent designer",
       assigned_tool_ids: [helper_tool.id],
@@ -107,6 +107,10 @@ RSpec.describe ManageRecordTool do
       skill_catalog_ids: [skill_catalog.id],
       input_schema: agent_input_schema_payload,
       custom_llm_params: { "top_p" => 0.4 },
+      model_routing_config: {
+        strategy: "fallback",
+        fallback_models: [{ connector_id: llm_connector.id, model_id: "gpt-4.1-mini" }],
+      },
     }
   end
 
@@ -308,12 +312,13 @@ RSpec.describe ManageRecordTool do
       helper_tool = create(:tool, :mission_tool, :enabled, operation:, name: "Agent Helper")
       helper_subagent = create(:agent, :enabled, operation:, name: "Research Wing", model_id: "gpt-4.1")
       skill_catalog = create(:skill_catalog, operation:, name: "Agent Playbook")
+      llm_connector = create(:connector, :llm_provider, :enabled, tenant:, name: "Primary LLM")
 
       result = tool.execute(
         resource: "agent",
         action: "update",
         record_id: agent_record.id,
-        attributes: agent_update_payload(helper_tool:, helper_subagent:, skill_catalog:),
+        attributes: agent_update_payload(helper_tool:, helper_subagent:, skill_catalog:, llm_connector:),
       )
 
       updated_agent = agent_record.reload
@@ -325,6 +330,10 @@ RSpec.describe ManageRecordTool do
         subagent_ids: [helper_subagent.id],
         skill_catalog_ids: [skill_catalog.id],
         custom_llm_params: { "top_p" => 0.4 },
+        model_routing_config: {
+          "strategy" => "fallback",
+          "fallback_models" => [{ "connector_id" => llm_connector.id, "model_id" => "gpt-4.1-mini" }],
+        },
       )
       expect(updated_agent.input_schema).to eq(expected_agent_input_schema)
     end

@@ -225,3 +225,14 @@ match_type = "semantic"
 prompt = "After a designer changes a record, what does Agent Alpha usually do next?"
 expected_answer = "After a designer change, Agent Alpha reads the result, may take one narrow follow-up step for blockers or warnings, and then gives a short summary or handoff."
 disallow_child_chats = true
+
+[[test_cases]]
+key = "knowledge-21"
+name = "Knowledge 21"
+category = "knowledge"
+complexity = "medium"
+position = 20
+match_type = "semantic"
+prompt = "Can agents or Generate Text nodes use fallback models, canary rollout, or A/B comparison?"
+expected_answer = "Yes. Agents and Generate Text nodes support single-model routing plus fallback, canary rollout, and A/B comparison through model routing settings."
+disallow_child_chats = true

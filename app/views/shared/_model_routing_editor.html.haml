@@ -1,0 +1,58 @@
+- input_name = local_assigns[:input_name]
+- input_id = local_assigns.fetch(:input_id)
+- input_value = local_assigns.fetch(:input_value, "")
+- label = local_assigns.fetch(:label, "Model Routing")
+- hint = local_assigns.fetch(:hint, "Configure optional fallback, canary, or A/B routing for this model call.")
+- hidden_input_data = local_assigns.fetch(:hidden_input_data, {})
+- compact = local_assigns.fetch(:compact, false)
+- editor = model_routing_editor_state(input_value:, connectors: local_assigns.fetch(:connectors, []), compact:)
+
+%div{ class: editor[:container_classes], data: { controller: "model-routing-editor", model_routing_editor_model_catalog_value: editor[:model_catalog].to_json } }
+  - if input_name.present?
+    = hidden_field_tag input_name, input_value.to_s, id: input_id, data: hidden_input_data.merge(model_routing_editor_target: "hiddenInput")
+  - else
+    %input{ type: "hidden", id: input_id, value: input_value.to_s, data: hidden_input_data.merge(model_routing_editor_target: "hiddenInput") }
+
+  %template{ data: { model_routing_editor_target: "routeTemplate" } }
+    = render "shared/model_routing_route_fields", route: {}, connector_options: editor[:connector_options], model_catalog: editor[:model_catalog], removable: true, select_class: editor[:select_class]
+
+  .llm-routing-editor__header
+    .llm-routing-editor__title-wrap
+      %label.llm-routing-editor__title{ for: "#{input_id}_strategy" }= label
+      .llm-routing-editor__hint= hint
+
+  .llm-routing-editor__field
+    %label.llm-routing-editor__field-label{ for: "#{input_id}_strategy" } Routing Strategy
+    %select{ id: "#{input_id}_strategy", class: editor[:select_class], data: { action: "change->model-routing-editor#strategyChanged", model_routing_editor_target: "strategyInput" } }
+      - model_routing_strategy_options_for_select.each do |option_label, option_value|
+        %option{ value: option_value, selected: option_value == editor[:strategy] }= option_label
+
+  .llm-routing-editor__strategy.llm-routing-editor__strategy--fallback{ data: { model_routing_editor_target: "fallbackSection" }, hidden: editor[:strategy] != "fallback" }
+    .llm-routing-editor__strategy-header
+      .llm-routing-editor__strategy-copy
+        %span.llm-routing-editor__strategy-title Fallback Models
+        %span.llm-routing-editor__strategy-description Retry with alternate models when the primary call fails early.
+      %button.llm-routing-editor__add{ type: "button", data: { action: "model-routing-editor#addFallbackRoute" } }
+        %i.fa-solid.fa-plus
+        Add alternate
+    .llm-routing-editor__routes{ data: { model_routing_editor_target: "fallbackList" } }
+      - editor[:fallback_routes].each do |route|
+        = render "shared/model_routing_route_fields", route:, connector_options: editor[:connector_options], model_catalog: editor[:model_catalog], removable: true, select_class: editor[:select_class]
+
+  .llm-routing-editor__strategy.llm-routing-editor__strategy--canary{ data: { model_routing_editor_target: "canarySection" }, hidden: editor[:strategy] != "canary" }
+    .llm-routing-editor__strategy-header
+      .llm-routing-editor__strategy-copy
+        %span.llm-routing-editor__strategy-title Canary Model
+        %span.llm-routing-editor__strategy-description Send a controlled percentage of traffic to an alternate model before promoting it.
+    = render "shared/model_routing_route_fields", route: editor[:canary_route], connector_options: editor[:connector_options], model_catalog: editor[:model_catalog], label_prefix: "Canary", select_class: editor[:select_class]
+    .llm-routing-editor__field
+      %label.llm-routing-editor__field-label{ for: "#{input_id}_canary_percent" } Canary Traffic Percentage
+      %input{ id: "#{input_id}_canary_percent", type: "number", min: "1", max: "100", step: "1", value: editor[:canary_percent], class: editor[:input_class], data: { action: "input->model-routing-editor#sync change->model-routing-editor#sync", model_routing_editor_role: "canary-percent" } }
+      .llm-routing-editor__field-hint Choose how much traffic should use the canary route.
+
+  .llm-routing-editor__strategy.llm-routing-editor__strategy--ab-test{ data: { model_routing_editor_target: "abTestSection" }, hidden: editor[:strategy] != "ab_test" }
+    .llm-routing-editor__strategy-header
+      .llm-routing-editor__strategy-copy
+        %span.llm-routing-editor__strategy-title Comparison Model
+        %span.llm-routing-editor__strategy-description Capture a second model output for offline comparison without changing the visible transcript.
+    = render "shared/model_routing_route_fields", route: editor[:comparison_route], connector_options: editor[:connector_options], model_catalog: editor[:model_catalog], label_prefix: "Comparison", select_class: editor[:select_class]

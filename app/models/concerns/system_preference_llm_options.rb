@@ -12,6 +12,7 @@ module SystemPreferenceLlmOptions
     validate :thinking_effort_must_be_valid
     validate :thinking_budget_must_be_positive
     validate :custom_llm_params_must_be_valid
+    validate :model_routing_config_must_be_valid
   end
 
   def temperature
@@ -41,6 +42,33 @@ module SystemPreferenceLlmOptions
     params.present? ? JSON.pretty_generate(params) : ""
   end
 
+  def model_routing_config
+    raw = self[:model_routing_config]
+    return Llm::ModelRoutingConfig.default if raw.blank?
+
+    Llm::ModelRoutingConfig.normalize(raw)
+  rescue Llm::ModelRoutingConfig::InvalidConfigError
+    Llm::ModelRoutingConfig.default
+  end
+
+  def model_routing_config=(value)
+    @model_routing_config_error = nil
+
+    normalized = Llm::ModelRoutingConfig.validate!(value, tenant:)
+    @model_routing_config_json_input = formatted_model_routing_config_input(normalized)
+    self[:model_routing_config] = Llm::ModelRoutingConfig.persistable(normalized)
+  rescue Llm::ModelRoutingConfig::InvalidConfigError => e
+    @model_routing_config_json_input = model_routing_config_json_input(value)
+    @model_routing_config_error = e.message
+  end
+
+  def model_routing_config_json
+    return @model_routing_config_json_input if defined?(@model_routing_config_json_input)
+
+    config = model_routing_config
+    config == Llm::ModelRoutingConfig.default ? "" : JSON.pretty_generate(config)
+  end
+
   def llm_runtime_settings
     {
       connector_id: llm_connector_id,
@@ -50,6 +78,7 @@ module SystemPreferenceLlmOptions
       thinking_effort: thinking_effort.presence,
       thinking_budget: thinking_budget.presence,
       custom_params: custom_llm_params,
+      model_routing_config:,
     }
   end
 
@@ -80,6 +109,12 @@ module SystemPreferenceLlmOptions
     errors.add(:custom_llm_params, @custom_llm_params_error)
   end
 
+  def model_routing_config_must_be_valid
+    return if @model_routing_config_error.blank?
+
+    errors.add(:model_routing_config, @model_routing_config_error)
+  end
+
   def custom_llm_params_json_input(value)
     return value if value.is_a?(String)
     return "" if value.blank?
@@ -87,5 +122,18 @@ module SystemPreferenceLlmOptions
     JSON.pretty_generate(value)
   rescue JSON::JSONError
     value.to_s
+  end
+
+  def model_routing_config_json_input(value)
+    return value if value.is_a?(String)
+    return "" if value.blank?
+
+    JSON.pretty_generate(value)
+  rescue JSON::JSONError
+    value.to_s
+  end
+
+  def formatted_model_routing_config_input(normalized)
+    normalized == Llm::ModelRoutingConfig.default ? "" : JSON.pretty_generate(normalized)
   end
 end

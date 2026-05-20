@@ -1,0 +1,29 @@
+- route = local_assigns.fetch(:route, {})
+- connector_options = local_assigns.fetch(:connector_options, [])
+- model_catalog = local_assigns.fetch(:model_catalog, {})
+- route_options = {}
+- route_options[:label_prefix] = local_assigns.fetch(:label_prefix, "Alternate")
+- route_options[:select_class] = local_assigns.fetch(:select_class, "form-input form-select")
+- route_options[:wrapper_class] = local_assigns.fetch(:wrapper_class, "llm-routing-editor__route")
+- route_options[:removable] = local_assigns.fetch(:removable, false)
+- route_state = model_routing_route_state(route:, model_catalog:, options: route_options)
+
+%div{ class: route_state[:wrapper_class], data: { model_routing_route: true } }
+  .llm-routing-editor__route-grid
+    .llm-routing-editor__field
+      %label.llm-routing-editor__field-label #{route_state[:label_prefix]} Connection
+      %select{ class: route_state[:select_class], data: { action: "change->model-routing-editor#connectorChanged", model_routing_editor_role: "connector" } }
+        %option{ value: "" } Select a connection…
+        - connector_options.each do |option|
+          %option{ value: option[:value], selected: option[:value] == route_state[:connector_id] }= option[:label]
+
+    .llm-routing-editor__field
+      %label.llm-routing-editor__field-label #{route_state[:label_prefix]} Model
+      %select{ class: route_state[:select_class], data: { action: "change->model-routing-editor#sync", model_routing_editor_role: "model" } }
+        %option{ value: "" } Select a model…
+        - route_state[:model_options].each do |option|
+          %option{ value: option[:value], selected: option[:value] == route_state[:model_id] }= option[:label]
+
+  - if route_state[:removable]
+    %button.llm-routing-editor__remove{ type: "button", data: { action: "model-routing-editor#removeRoute" }, "aria-label": "Remove route" }
+      %i.fa-solid.fa-trash-can

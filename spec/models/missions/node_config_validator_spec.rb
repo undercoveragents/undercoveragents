@@ -93,6 +93,20 @@ RSpec.describe Missions::NodeConfigValidator do
       expect(validator.errors[:custom_llm_params]).to include("must be a JSON object")
     end
 
+    it "validates model routing config json via the shared router validator" do
+      validator = described_class.new(
+        node_type: "llm",
+        node_data: {
+          "connector_id" => "1",
+          "model" => "gpt-4.1",
+          "model_routing_config" => '{"strategy":"fallback"',
+        },
+      )
+
+      expect(validator).not_to be_valid
+      expect(validator.errors[:model_routing_config].first).to include("must be valid JSON")
+    end
+
     it "includes node-specific validation errors" do
       stub_const("Missions::Nodes::ConfigValidated", Class.new do
         include MissionNodePlugin

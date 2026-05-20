@@ -76,6 +76,16 @@
           .ms-prop-field.ms-prop-field--dense
             %label.ms-prop-label{ for: "mission-node-custom-llm-params" } Custom Params JSON
             %textarea.ms-prop-textarea.llm-settings-json-input#mission-node-custom-llm-params{ rows: "4", data: { action: "change->mission#updateNodeProp", "prop-key": "custom_llm_params" }, placeholder: '{"top_p": 0.9}' }= presenter.data_raw("custom_llm_params").to_s
+          .ms-prop-field.ms-prop-field--dense.col-span-full
+            = render "shared/model_routing_editor",
+                     input_name: nil,
+                     input_id: "mission-node-model-routing-config",
+                     input_value: presenter.data_raw("model_routing_config").to_s,
+                     connectors: llm_connectors,
+                     label: "Model Routing",
+                     hint: "Configure fallback, canary rollout, or A/B comparison for this Generate Text node.",
+                     compact: true,
+                     hidden_input_data: { action: "change->mission#updateNodeProp", "prop-key": "model_routing_config" }
 
   / Tools
   .ms-prop-field

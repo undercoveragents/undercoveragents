@@ -11,6 +11,7 @@ module Missions
       :thinking_effort,
       :thinking_budget,
       :custom_params,
+      :model_routing_config,
     )
 
     NODE_SOURCE = "node"
@@ -74,6 +75,7 @@ module Missions
         thinking_effort: node_data["thinking_effort"],
         thinking_budget: node_data["thinking_budget"],
         custom_params: node_data["custom_llm_params"],
+        model_routing_config: node_data["model_routing_config"],
       }
     end
 
@@ -114,6 +116,7 @@ module Missions
         thinking_effort: data["thinking_effort"],
         thinking_budget: data["thinking_budget"],
         custom_params: data["custom_llm_params"].presence || data["custom_params"],
+        model_routing_config: data["model_routing_config"].presence || data["model_routing"],
       }.compact
     end
 
@@ -153,6 +156,7 @@ module Missions
         thinking_effort: settings[:thinking_effort],
         thinking_budget: settings[:thinking_budget],
         custom_params: settings[:custom_params],
+        model_routing_config: settings[:model_routing_config],
       )
     end
   end

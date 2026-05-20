@@ -52,22 +52,40 @@ RSpec.describe Missions::LlmNodeRuntimeConfig do
         "thinking_effort" => "low",
         "thinking_budget" => "128",
         "custom_llm_params" => { "top_p" => 0.7 },
+        "model_routing_config" => { "strategy" => "fallback",
+                                    "fallback_models" => [{ "connector_id" => runtime_connector.id,
+                                                            "model_id" => "gpt-runtime", }], },
       )
 
       expect(error).to be_nil
       expect_resolved(resolved, source: "node", connector:, model_id: "gpt-node", temperature: "0.2",
-                                thinking_effort: "low", thinking_budget: "128", custom_params: { "top_p" => 0.7 },)
+                                thinking_effort: "low", thinking_budget: "128", custom_params: { "top_p" => 0.7 },
+                                model_routing_config: {
+                                  "strategy" => "fallback",
+                                  "fallback_models" => [{ "connector_id" => runtime_connector.id,
+                                                          "model_id" => "gpt-runtime", }],
+                                },)
     end
 
     it "resolves system preference connector, model, and thinking settings" do
       create_default_preference(temperature: 0.3, thinking_effort: "high", thinking_budget: 1024,
-                                custom_llm_params: { "top_p" => 0.9 },)
+                                custom_llm_params: { "top_p" => 0.9 },
+                                model_routing_config: {
+                                  "strategy" => "ab_test",
+                                  "comparison_model" => { "connector_id" => runtime_connector.id,
+                                                          "model_id" => "gpt-runtime", },
+                                },)
 
       resolved, error = resolve_config("llm_config_source" => "system_preference")
 
       expect(error).to be_nil
       expect_resolved(resolved, source: "system_preference", connector:, model_id: "gpt-system", temperature: 0.3,
-                                thinking_effort: "high", thinking_budget: 1024, custom_params: { "top_p" => 0.9 },)
+                                thinking_effort: "high", thinking_budget: 1024, custom_params: { "top_p" => 0.9 },
+                                model_routing_config: {
+                                  "strategy" => "ab_test",
+                                  "comparison_model" => { "connector_id" => runtime_connector.id,
+                                                          "model_id" => "gpt-runtime", },
+                                },)
     end
 
     it "rejects an invalid LLM source" do
@@ -89,14 +107,24 @@ RSpec.describe Missions::LlmNodeRuntimeConfig do
                                 custom_llm_params: { "top_p" => 0.5 },)
       set_runtime_config(connector_id: runtime_connector.id.to_s, model: "gpt-runtime", temperature: 1.1,
                          thinking_effort: "high", thinking_budget: 2048,
-                         custom_llm_params: { "top_p" => 0.95 },)
+                         custom_llm_params: { "top_p" => 0.95 },
+                         model_routing_config: {
+                           "strategy" => "canary",
+                           "canary_model" => { "connector_id" => connector.id, "model_id" => "gpt-node" },
+                           "canary_percent" => 15,
+                         },)
 
       resolved, error = resolve_config("llm_config_source" => "runtime")
 
       expect(error).to be_nil
       expect_resolved(resolved, source: "runtime", connector: runtime_connector, model_id: "gpt-runtime",
                                 temperature: 1.1, thinking_effort: "high", thinking_budget: 2048,
-                                custom_params: { "top_p" => 0.95 },)
+                                custom_params: { "top_p" => 0.95 },
+                                model_routing_config: {
+                                  "strategy" => "canary",
+                                  "canary_model" => { "connector_id" => connector.id, "model_id" => "gpt-node" },
+                                  "canary_percent" => 15,
+                                },)
     end
 
     it "falls back to system preference when runtime config is absent" do

@@ -213,3 +213,17 @@ expected_child_builtin_key = "mission_designer"
 expected_tool_names = ["ask_agent_mission_designer"]
 disallow_child_chats = false
 required_keywords = ["%{new_mission_name}"]
+
+[[test_cases]]
+key = "mission-16"
+name = "Mission 16"
+category = "mission"
+complexity = "high"
+position = 15
+match_type = "semantic"
+prompt = "Update %{benchmark_mission_name} so its Generate Text step keeps the current primary model but routes 10 percent of traffic to another available model as a canary."
+expected_answer = "Mission Designer should update %{benchmark_mission_name} so its Generate Text step uses a 10 percent canary model route."
+expected_child_builtin_key = "mission_designer"
+expected_tool_names = ["ask_agent_mission_designer"]
+disallow_child_chats = false
+required_keywords = ["canary", "10", "%{benchmark_mission_name}"]

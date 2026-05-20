@@ -60,6 +60,35 @@ module AgentLlmConfiguration
     params.present? ? JSON.pretty_generate(params) : ""
   end
 
+  def model_routing_config
+    raw = configuration["model_routing_config"]
+    return Llm::ModelRoutingConfig.default if raw.blank?
+
+    Llm::ModelRoutingConfig.normalize(raw)
+  rescue Llm::ModelRoutingConfig::InvalidConfigError
+    Llm::ModelRoutingConfig.default
+  end
+
+  def model_routing_config=(value)
+    @model_routing_config_error = nil
+
+    normalized = Llm::ModelRoutingConfig.validate!(value, tenant:)
+    @model_routing_config_json_input = formatted_model_routing_config_input(normalized)
+    merged = (configuration || {}).merge("model_routing_config" => Llm::ModelRoutingConfig.persistable(normalized))
+    merged.delete("model_routing_config") if merged["model_routing_config"].blank?
+    self.configuration = merged
+  rescue Llm::ModelRoutingConfig::InvalidConfigError => e
+    @model_routing_config_json_input = model_routing_config_json_input(value)
+    @model_routing_config_error = e.message
+  end
+
+  def model_routing_config_json
+    return @model_routing_config_json_input if defined?(@model_routing_config_json_input)
+
+    config = model_routing_config
+    config == Llm::ModelRoutingConfig.default ? "" : JSON.pretty_generate(config)
+  end
+
   def llm_config_source
     configuration["llm_config_source"].presence || AgentConfiguration::DEFAULT_LLM_CONFIG_SOURCE
   end
@@ -150,5 +179,18 @@ module AgentLlmConfiguration
 
   def custom_llm_params_json_input(value)
     value.is_a?(String) ? value : ""
+  end
+
+  def model_routing_config_json_input(value)
+    return value if value.is_a?(String)
+    return "" if value.blank?
+
+    JSON.pretty_generate(value)
+  rescue JSON::JSONError
+    value.to_s
+  end
+
+  def formatted_model_routing_config_input(normalized)
+    normalized == Llm::ModelRoutingConfig.default ? "" : JSON.pretty_generate(normalized)
   end
 end

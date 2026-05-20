@@ -39,6 +39,11 @@ module Missions
           description: "Optional provider-specific model params JSON object",
         },
         {
+          name: "model_routing_config",
+          type: :string,
+          description: "Optional multi-model fallback, canary, or A/B routing JSON object",
+        },
+        {
           name: "file_variables",
           type: :array,
           description: "Variable names containing files to attach (multimodal input)",
@@ -59,6 +64,7 @@ module Missions
         "model" => { kind: :id_ref },
         "thinking_effort" => { kind: :enum },
         "custom_llm_params" => { json: true },
+        "model_routing_config" => { json: true },
       }.freeze
       DESIGNER_INSTRUCTIONS = <<~INSTRUCTIONS.strip.freeze
         ## Generate Text (type: "llm")
@@ -82,6 +88,10 @@ module Missions
         - `thinking_effort`: Node-owned reasoning effort. Used only when `llm_config_source` is `node`; otherwise the selected source supplies it.
         - `thinking_budget`: Node-owned optional reasoning budget integer. Used only when `llm_config_source` is `node`.
         - `custom_llm_params`: Node-owned provider-specific params object serialized as JSON. Used only when `llm_config_source` is `node`.
+        - `model_routing_config`: Optional JSON object for multi-model runtime routing.
+          - Fallback example: `{"strategy":"fallback","fallback_models":[{"connector_id":12,"model_id":"gpt-4.1-mini"}]}`
+          - Canary example: `{"strategy":"canary","canary_model":{"connector_id":12,"model_id":"gpt-5.4-mini"},"canary_percent":10}`
+          - A/B example: `{"strategy":"ab_test","comparison_model":{"connector_id":14,"model_id":"claude-sonnet-4.5"}}`
         - `file_variables`: Array of variable names containing file metadata to attach as multimodal input.
           Accepts variables from Input (file/file_array fields), Generate Image (image), or Write File (file) nodes.
           Files from the current branch input are auto-detected and attached even without explicit listing.

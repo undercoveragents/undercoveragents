@@ -34,6 +34,7 @@ module AgentConfigurationValidations
     validate_thinking_effort
     validate_thinking_budget
     validate_custom_llm_params
+    validate_model_routing_config
     validate_input_schema
     validate_builtin_metadata
   end
@@ -85,6 +86,12 @@ module AgentConfigurationValidations
     return if @custom_llm_params_error.blank?
 
     errors.add(:custom_llm_params, @custom_llm_params_error)
+  end
+
+  def validate_model_routing_config
+    return if @model_routing_config_error.blank?
+
+    errors.add(:model_routing_config, @model_routing_config_error)
   end
 
   def llm_connector_must_be_llm_provider

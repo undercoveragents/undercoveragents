@@ -7,6 +7,7 @@
 #
 #  id                     :bigint           not null, primary key
 #  custom_llm_params      :jsonb            not null
+#  model_routing_config   :jsonb            not null
 #  temperature            :float
 #  thinking_budget        :integer
 #  thinking_effort        :string

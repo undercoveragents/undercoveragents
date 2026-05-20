@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# rubocop:disable Metrics/ModuleLength
 module AgentRuntime
   extend ActiveSupport::Concern
 
@@ -147,16 +148,8 @@ module AgentRuntime
   def apply_chat_runtime_config(chat, runtime_config, combined_tools)
     chat.context = runtime_config[:context] if runtime_config.key?(:context)
     chat.with_model(runtime_config[:model_id]) if runtime_config[:model_id].present?
-    Llm::ChatOptions.apply_to_chat(
-      chat:,
-      model_id: runtime_config[:model_id],
-      model_record: runtime_config[:model_record],
-      tools_present: combined_tools.any?,
-      temperature: runtime_config[:temperature],
-      thinking_effort: runtime_config[:thinking_effort],
-      thinking_budget: runtime_config[:thinking_budget],
-      custom_params: runtime_config[:custom_params],
-    )
+    apply_runtime_llm_options(chat, runtime_config, combined_tools)
+    attach_model_routing(chat, runtime_config, combined_tools)
   end
 
   def apply_chat_instructions(chat, options)
@@ -177,6 +170,7 @@ module AgentRuntime
       model_record: Llm::ChatOptions.resolve_model(selected_model_id),
       temperature: select_runtime_temperature(temperature, preference),
       context: select_runtime_context(llm_context, preference),
+      connector: select_runtime_connector(preference),
     }.merge(runtime_llm_options(preference))
   end
 
@@ -214,13 +208,19 @@ module AgentRuntime
 
   def runtime_llm_options(preference)
     if preference&.configured?
-      return preference.llm_runtime_settings.slice(:thinking_effort, :thinking_budget, :custom_params)
+      return preference.llm_runtime_settings.slice(
+        :thinking_effort,
+        :thinking_budget,
+        :custom_params,
+        :model_routing_config,
+      )
     end
 
     {
       thinking_effort:,
       thinking_budget:,
       custom_params: custom_llm_params,
+      model_routing_config:,
     }
   end
 
@@ -240,6 +240,53 @@ module AgentRuntime
     preference.resolve_llm_context
   end
 
+  def select_runtime_connector(preference)
+    return preference.llm_connector if system_preference_runtime?
+
+    llm_connector
+  end
+
+  def resolved_runtime_connector(runtime_config)
+    return runtime_config[:connector] if runtime_config[:connector].present?
+
+    if system_preference_runtime?
+      preference = SystemPreference.current(tenant:)
+      return preference.llm_connector if preference&.configured?
+    end
+
+    llm_connector
+  end
+
+  def apply_runtime_llm_options(chat, runtime_config, combined_tools)
+    Llm::ChatOptions.apply_to_chat(
+      chat:,
+      model_id: runtime_config[:model_id],
+      model_record: runtime_config[:model_record],
+      tools_present: combined_tools.any?,
+      temperature: runtime_config[:temperature],
+      thinking_effort: runtime_config[:thinking_effort],
+      thinking_budget: runtime_config[:thinking_budget],
+      custom_params: runtime_config[:custom_params],
+    )
+  end
+
+  def attach_model_routing(chat, runtime_config, combined_tools)
+    routing_config = runtime_config[:model_routing_config]
+    return if Llm::ModelRoutingConfig.persistable(routing_config).blank?
+
+    chat.configure_model_routing!(
+      primary_connector: resolved_runtime_connector(runtime_config),
+      primary_model_id: runtime_config[:model_id],
+      primary_model_record: runtime_config[:model_record],
+      routing_config:,
+      temperature: runtime_config[:temperature],
+      thinking_effort: runtime_config[:thinking_effort],
+      thinking_budget: runtime_config[:thinking_budget],
+      custom_params: runtime_config[:custom_params],
+      tools_present: combined_tools.any?,
+    )
+  end
+
   def raise_system_preference_error
     raise "Default model is not configured. Please set it in Settings → Preferences."
   end
@@ -248,3 +295,4 @@ module AgentRuntime
     Tools::RuntimeBuilder.build(tool_record, agent: self, parent_chat:)
   end
 end
+# rubocop:enable Metrics/ModuleLength

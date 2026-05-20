@@ -148,6 +148,13 @@ RSpec.describe Agent do
       expect(agent).not_to be_valid
       expect(agent.errors[:custom_llm_params].first).to include("must be valid JSON")
     end
+
+    it "validates model routing config json" do
+      agent.model_routing_config = '{"strategy":"fallback"'
+
+      expect(agent).not_to be_valid
+      expect(agent.errors[:model_routing_config].first).to include("must be valid JSON")
+    end
   end
 
   describe "scopes" do
@@ -272,6 +279,31 @@ RSpec.describe Agent do
       agent = build(:agent)
 
       expect(agent.send(:custom_llm_params_json_input, {})).to eq("")
+    end
+
+    it "normalizes model routing config into configuration" do
+      agent = build(:agent)
+      fallback_connector = create(:connector, :llm_provider, :enabled, tenant: agent.tenant)
+
+      agent.model_routing_config = {
+        "strategy" => "fallback",
+        "fallback_models" => [{ "connector_id" => fallback_connector.id, "model_id" => "gpt-4.1-mini" }],
+      }.to_json
+
+      expect(agent.model_routing_config).to eq(
+        "strategy" => "fallback",
+        "fallback_models" => [{ "connector_id" => fallback_connector.id, "model_id" => "gpt-4.1-mini" }],
+      )
+      expect(agent.model_routing_config_json).to include('"strategy": "fallback"')
+    end
+
+    it "clears model routing config when blank" do
+      agent = build(:agent)
+
+      agent.model_routing_config = ""
+
+      expect(agent.configuration).not_to have_key("model_routing_config")
+      expect(agent.model_routing_config_json).to eq("")
     end
 
     it "normalizes builtin tool keys and input schema" do
@@ -764,6 +796,132 @@ RSpec.describe Agent do
     ensure
       RubyLLM.configure { |config| config.openai_api_key = original_openai_api_key }
     end
+
+    # rubocop:disable RSpec/ExampleLength
+    it "uses the system preference connector when attaching routed models" do
+      model_record = create(:model, model_id: "gpt-4.1", provider: "openai")
+      tenant = create(:tenant)
+      connector = create(:connector, :llm_provider, :enabled, tenant:)
+      create(:system_preference, tenant:, llm_connector: connector, model_id: model_record.model_id)
+      agent = create(
+        :agent,
+        operation: create(:operation, tenant:),
+        llm_connector: nil,
+        model_id: model_record.model_id,
+      )
+      agent.llm_config_source = "system_preference"
+      chat = instance_double(Chat, with_model: nil, configure_model_routing!: nil)
+      allow(chat).to receive(:context=)
+
+      allow(agent).to receive_messages(
+        resolve_runtime_configuration: {
+          model_id: model_record.model_id,
+          model_record:,
+          temperature: nil,
+          context: nil,
+          thinking_effort: nil,
+          thinking_budget: nil,
+          custom_params: {},
+          model_routing_config: { "strategy" => "fallback" },
+          connector: nil,
+        },
+        build_full_instructions: "",
+        tools: [],
+      )
+      allow(Llm::ChatOptions).to receive(:apply_to_chat)
+
+      agent.configure_chat(chat)
+
+      expect(chat).to have_received(:configure_model_routing!).with(hash_including(primary_connector: connector))
+    end
+    # rubocop:enable RSpec/ExampleLength
+
+    it "falls back to the agent connector when no runtime connector is present" do
+      tenant = create(:tenant)
+      connector = create(:connector, :llm_provider, :enabled, tenant:)
+      agent = create(:agent, operation: create(:operation, tenant:), llm_connector: connector)
+
+      expect(agent.send(:resolved_runtime_connector, { connector: nil })).to eq(connector)
+    end
+
+    it "prefers the runtime connector when one is provided" do
+      tenant = create(:tenant)
+      agent_connector = create(:connector, :llm_provider, :enabled, tenant:)
+      runtime_connector = create(:connector, :llm_provider, :enabled, tenant:)
+      agent = create(:agent, operation: create(:operation, tenant:), llm_connector: agent_connector)
+
+      expect(agent.send(:resolved_runtime_connector, { connector: runtime_connector })).to eq(runtime_connector)
+    end
+
+    it "falls back to the agent connector when system preferences are unavailable" do
+      tenant = create(:tenant)
+      connector = create(:connector, :llm_provider, :enabled, tenant:)
+      agent = create(
+        :agent,
+        operation: create(:operation, tenant:),
+        llm_connector: connector,
+        llm_config_source: "system_preference",
+      )
+      allow(SystemPreference).to receive(:current).with(tenant:).and_return(nil)
+
+      expect(agent.send(:resolved_runtime_connector, { connector: nil })).to eq(connector)
+    end
+
+    it "falls back to the agent connector when system preferences are not configured" do
+      tenant = create(:tenant)
+      connector = create(:connector, :llm_provider, :enabled, tenant:)
+      create(:system_preference, tenant:)
+      agent = create(
+        :agent,
+        operation: create(:operation, tenant:),
+        llm_connector: connector,
+        llm_config_source: "system_preference",
+      )
+
+      expect(agent.send(:resolved_runtime_connector, { connector: nil })).to eq(connector)
+    end
+  end
+
+  describe "model routing config helpers" do
+    it "returns the default config when stored routing data is malformed" do
+      agent = build(:agent)
+      agent.configuration["model_routing_config"] = '["bad"]'
+
+      expect(agent.model_routing_config).to eq(Llm::ModelRoutingConfig.default)
+    end
+
+    it "formats non-string routing config JSON inputs for the edit form" do
+      agent = build(:agent)
+
+      expect(agent.send(:model_routing_config_json_input, nil)).to eq("")
+      expect(agent.send(:model_routing_config_json_input, { "strategy" => "fallback" })).to include('"strategy"')
+    end
+
+    it "falls back to to_s when formatting routing config JSON fails" do
+      agent = build(:agent)
+      value = Object.new
+      value.define_singleton_method(:to_json) { |_state = nil| raise JSON::GeneratorError, "boom" }
+
+      expect(agent.send(:model_routing_config_json_input, value)).to eq(value.to_s)
+    end
+
+    it "returns the cached routing JSON input when present" do
+      agent = build(:agent)
+
+      agent.model_routing_config = '{"strategy":"fallback"'
+
+      expect(agent.model_routing_config_json).to eq('{"strategy":"fallback"')
+    end
+
+    it "formats stored non-default routing config when no cached input is set" do
+      agent = build(:agent)
+      agent.configuration["model_routing_config"] = {
+        "strategy" => "fallback",
+        "fallback_models" => [{ "connector_id" => 1, "model_id" => "gpt-4.1-mini" }],
+      }
+
+      expect(agent.model_routing_config_json).to include('"strategy": "fallback"')
+    end
   end
 
   describe "#should_generate_new_friendly_id?" do
@@ -1083,10 +1241,11 @@ RSpec.describe Agent do
   end
 
   describe "private runtime configuration helpers" do
-    def configured_preference_double
+    def configured_preference_double(connector:)
       instance_double(
         SystemPreference,
         configured?: true,
+        llm_connector: connector,
         model_id: "gpt-4.1",
         resolve_llm_context: :ctx,
         temperature: 0.2,
@@ -1094,6 +1253,7 @@ RSpec.describe Agent do
           thinking_effort: "high",
           thinking_budget: 2048,
           custom_params: { "top_p" => 0.8 },
+          model_routing_config: Llm::ModelRoutingConfig.default,
         },
       )
     end
@@ -1113,9 +1273,10 @@ RSpec.describe Agent do
 
     it "uses configured system preferences when runtime values are unset" do
       agent = build(:agent, llm_connector: nil, model_id: nil, llm_config_source: "system_preference")
+      connector = instance_double(Connector)
       model_record = instance_double(Model)
 
-      allow(SystemPreference).to receive(:current).and_return(configured_preference_double)
+      allow(SystemPreference).to receive(:current).and_return(configured_preference_double(connector:))
       allow(Llm::ChatOptions).to receive(:resolve_model).with("gpt-4.1").and_return(model_record)
 
       config = agent.send(
@@ -1130,9 +1291,11 @@ RSpec.describe Agent do
         model_record:,
         temperature: 0.2,
         context: :ctx,
+        connector:,
         thinking_effort: "high",
         thinking_budget: 2048,
         custom_params: { "top_p" => 0.8 },
+        model_routing_config: Llm::ModelRoutingConfig.default,
       )
     end
 

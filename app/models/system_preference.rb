@@ -7,6 +7,7 @@
 #
 #  id                     :bigint           not null, primary key
 #  custom_llm_params      :jsonb            not null
+#  model_routing_config   :jsonb            not null
 #  temperature            :float
 #  thinking_budget        :integer
 #  thinking_effort        :string
@@ -125,6 +126,7 @@ class SystemPreference < ApplicationRecord
       thinking_effort: pref.thinking_effort,
       thinking_budget: pref.thinking_budget,
       custom_llm_params: pref.custom_llm_params,
+      model_routing_config: pref.model_routing_config,
       embedding_connector_id: pref.embedding_connector_id,
       embedding_model_id: pref.embedding_model_id,
       image_connector_id: pref.image_connector_id,

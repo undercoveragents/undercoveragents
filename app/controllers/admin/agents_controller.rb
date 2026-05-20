@@ -124,6 +124,7 @@ module Admin
         agent: [:name, :description, :instructions, :model_id, :temperature, :enabled,
                 :agent_type, :llm_config_source,
                 :llm_connector_id, :thinking_effort, :thinking_budget, :custom_llm_params,
+                :model_routing_config,
                 :input_schema, :edit_context,
                 { assigned_tool_ids: [], subagent_ids: [], skill_catalog_ids: [] },],
       )

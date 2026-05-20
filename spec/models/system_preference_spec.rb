@@ -7,6 +7,7 @@
 #
 #  id                     :bigint           not null, primary key
 #  custom_llm_params      :jsonb            not null
+#  model_routing_config   :jsonb            not null
 #  temperature            :float
 #  thinking_budget        :integer
 #  thinking_effort        :string
@@ -168,6 +169,59 @@ RSpec.describe SystemPreference do
       expect(pref).not_to be_valid
       expect(pref.errors[:custom_llm_params].first).to include("must be valid JSON")
     end
+
+    it "rejects invalid model routing config json" do
+      pref = described_class.new(model_routing_config: '{"strategy":"canary"')
+
+      expect(pref).not_to be_valid
+      expect(pref.errors[:model_routing_config].first).to include("must be valid JSON")
+    end
+
+    it "returns the default routing config when stored routing data is malformed" do
+      pref = described_class.new
+      pref[:model_routing_config] = '["bad"]'
+
+      expect(pref.model_routing_config).to eq(Llm::ModelRoutingConfig.default)
+    end
+
+    it "formats non-string routing config JSON inputs for the edit form" do
+      pref = described_class.new
+
+      expect(pref.send(:model_routing_config_json_input, nil)).to eq("")
+      expect(pref.send(:model_routing_config_json_input, { "strategy" => "fallback" })).to include('"strategy"')
+    end
+
+    it "falls back to to_s when formatting routing config JSON fails" do
+      pref = described_class.new
+      value = Object.new
+      value.define_singleton_method(:to_json) { |_state = nil| raise JSON::GeneratorError, "boom" }
+
+      expect(pref.send(:model_routing_config_json_input, value)).to eq(value.to_s)
+    end
+
+    it "returns the cached routing JSON input when present" do
+      pref = described_class.new
+
+      pref.model_routing_config = '{"strategy":"canary"'
+
+      expect(pref.model_routing_config_json).to eq('{"strategy":"canary"')
+    end
+
+    it "formats stored non-default routing config when no cached input is set" do
+      pref = described_class.new
+      pref[:model_routing_config] = {
+        "strategy" => "ab_test",
+        "comparison_model" => { "connector_id" => 1, "model_id" => "gpt-4.1" },
+      }
+
+      expect(pref.model_routing_config_json).to include('"strategy": "ab_test"')
+    end
+
+    it "formats the default routing config as blank input" do
+      pref = described_class.new
+
+      expect(pref.send(:formatted_model_routing_config_input, Llm::ModelRoutingConfig.default)).to eq("")
+    end
   end
 
   describe ".current" do
@@ -216,6 +270,24 @@ RSpec.describe SystemPreference do
         thinking_effort: "high",
         thinking_budget: 1024,
         custom_llm_params: { "top_p" => 0.8 },
+      )
+    end
+
+    it "returns model routing config when configured" do
+      connector = create(:connector, :llm_provider, :enabled)
+      create(
+        :system_preference,
+        :configured,
+        model_routing_config: {
+          "strategy" => "fallback",
+          "fallback_models" => [{ "connector_id" => connector.id, "model_id" => "gpt-4.1-mini" }],
+        },
+      )
+      described_class.invalidate_cache!
+
+      expect(described_class.current_settings[:model_routing_config]).to eq(
+        "strategy" => "fallback",
+        "fallback_models" => [{ "connector_id" => connector.id, "model_id" => "gpt-4.1-mini" }],
       )
     end
 
