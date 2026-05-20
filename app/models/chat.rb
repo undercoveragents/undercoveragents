@@ -135,17 +135,42 @@ class Chat < ApplicationRecord
     agent&.playground_compatible?
   end
 
-  def ask(*, **kwargs, &)
+  def ask(...)
     setup_duration_tracking unless @duration_tracking_initialized
 
     with_current_chat_context do
-      if kwargs.empty?
-        super(*, &)
-      else
-        super(*, **kwargs, &)
-      end
+      return perform_chat_ask(...) if bypass_model_routing?
+
+      @model_routing_executor.ask(...)
     end
   end
+
+  # rubocop:disable Metrics/ParameterLists
+  def configure_model_routing!(primary_connector:, primary_model_id:, primary_model_record:, routing_config:,
+                               temperature:, thinking_effort:, thinking_budget:, custom_params:, tools_present:)
+    return @model_routing_executor = nil if primary_connector.blank? || primary_model_id.blank?
+
+    primary_route = Llm::ModelRoutingExecutor::Route.new(
+      label: "primary",
+      connector_id: primary_connector.id,
+      connector: primary_connector,
+      model_id: primary_model_id,
+      model_record: primary_model_record,
+      role: "primary",
+    )
+
+    @model_routing_executor = Llm::ModelRoutingExecutor.new(
+      chat: self,
+      primary_route:,
+      routing_config:,
+      temperature:,
+      thinking_effort:,
+      thinking_budget:,
+      custom_params:,
+      tools_present:,
+    )
+  end
+  # rubocop:enable Metrics/ParameterLists
 
   def complete(...)
     @_duration_complete_start = duration_monotonic_now
@@ -234,6 +259,28 @@ class Chat < ApplicationRecord
 
   private
 
+  def perform_ask_without_routing(...)
+    previous = @_bypass_model_routing
+    @_bypass_model_routing = true
+    ask(...)
+  ensure
+    @_bypass_model_routing = previous
+  end
+
+  # RubyLLM::ActiveRecord::ChatMethods#ask is the actual implementation we want
+  # to invoke once routing decides which model should handle the turn.
+  def perform_chat_ask(message = nil, with: nil, &)
+    chat_method = RubyLLM::ActiveRecord::ChatMethods.instance_method(:ask)
+    chat_method.bind_call(self, message, with:, &)
+  end
+
+  def resolve_routing_connector(connector_id)
+    tenant = routing_tenant
+    return if tenant.blank? || connector_id.blank?
+
+    ConnectorLookup.find(connector_id, tenant:)
+  end
+
   def reapply_runtime_instructions(chat)
     return if runtime_instructions.empty?
 
@@ -248,5 +295,27 @@ class Chat < ApplicationRecord
 
   def with_current_chat_context(&)
     Current.set(chat: self, &)
+  end
+
+  def bypass_model_routing?
+    @_bypass_model_routing || @model_routing_executor.blank? || !@model_routing_executor.enabled?
+  end
+
+  # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+  def routing_tenant
+    return agent.operation.tenant if agent&.operation&.tenant.present?
+    return mission.operation.tenant if mission&.operation&.tenant.present?
+    return user.tenant if user&.tenant.present?
+    return parent_chat_tenant if parent_chat_tenant.present?
+
+    nil
+  end
+  # rubocop:enable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
+
+  def parent_chat_tenant
+    parent_agent = parent_chat&.agent
+    return if parent_agent.blank?
+
+    parent_agent.operation&.tenant
   end
 end

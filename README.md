@@ -36,11 +36,23 @@ It is designed for teams that want more than a thin SDK. You can configure agent
 - Builtin product-manual skill catalogs for admin, agents, missions, channels, test suites, skills, tools, and RAG
 - Built-in admin assistant, playground, inspector, API docs, and job dashboard
 - Agent Alpha can now inspect agent chat history and run synchronous debug prompts against agents through the agent-designer runtime tools, using the same persisted chats/messages the inspector shows.
+- Shared multi-model routing for agents, system preferences, and Generate Text mission nodes, including fallback retries, canary rollouts, and A/B comparison metadata capture
 - Rails-native stack with Hotwire, Haml, Tailwind, Solid Queue, and Falcon
 
 ## LLM Providers Support
 
 Undercover Agents is built on [ruby_llm](https://github.com/crmne/ruby_llm), so it supports the providers available through that runtime, including OpenAI, xAI, Anthropic, Gemini, Vertex AI, Bedrock, DeepSeek, Mistral, Ollama, OpenRouter, Perplexity, GPUStack, and any OpenAI-compatible API.
+
+### Multi-Model Routing
+
+Agents, tenant default system preferences, and Mission Generate Text nodes can all store an optional `model_routing_config` JSON object alongside their primary model settings.
+
+- `single` keeps the normal one-model behavior
+- `fallback` retries against one or more alternate connector/model pairs when the primary call fails with provider availability-style errors
+- `canary` sends a percentage of traffic to an alternate model and falls back to the primary model if the canary attempt fails early
+- `ab_test` runs a secondary comparison model and stores its output in assistant message metadata without changing the visible transcript
+
+The current admin UI exposes this as a JSON field so the same routing shape works consistently across agents, preferences, and mission LLM nodes.
 
 ## Core Concepts
 

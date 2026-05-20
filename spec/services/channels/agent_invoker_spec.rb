@@ -72,12 +72,36 @@ RSpec.describe Channels::AgentInvoker do
       end.to raise_error(described_class::InvalidInvocation, "content can't be blank")
     end
 
-    it "raises when the agent model cannot be resolved" do
+    it "creates a minimal model record when the agent model is not preloaded" do
       agent.update!(model_id: "missing-model")
 
       expect do
         described_class.new(channel:, channel_target:).call(content: "Hello", response_mode: "async")
-      end.to raise_error(described_class::InvalidInvocation, "Agent model is unavailable")
+      end.to change(Model, :count).by(1)
+    end
+
+    it "uses the tenant default connector when the agent connector is missing" do
+      connector = create(:connector, :llm_provider, :enabled, tenant:)
+      create(:system_preference, tenant:, llm_connector: connector, model_id: "gpt-4.1")
+      agent.update!(llm_connector: nil, model_id: "system-model")
+
+      expect do
+        described_class.new(channel:, channel_target:).call(content: "Hello", response_mode: "async")
+      end.to change { Model.find_by(model_id: "system-model", provider: connector.provider)&.id }.from(nil)
+    end
+
+    it "skips model initialization when the agent has no model id" do
+      agent.model_id = nil
+
+      expect(described_class.new(channel:, channel_target:).send(:initial_model_record)).to be_nil
+    end
+
+    it "skips model initialization when no connector can be resolved" do
+      agent.llm_connector = nil
+      agent.model_id = "connectorless-model"
+      allow(SystemPreference).to receive(:current).with(tenant:).and_return(nil)
+
+      expect(described_class.new(channel:, channel_target:).send(:initial_model_record)).to be_nil
     end
   end
 end

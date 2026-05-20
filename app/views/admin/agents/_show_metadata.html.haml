@@ -38,6 +38,9 @@
           .detail-label Model
           .detail-value= agent_model_display(agent)
         .detail-item
+          .detail-label Routing
+          .detail-value= agent_model_routing_label(agent)
+        .detail-item
           .detail-label Temperature
           .detail-value
             %span{ class: agent_temperature_color(agent.temperature) }

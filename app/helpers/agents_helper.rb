@@ -128,6 +128,24 @@ module AgentsHelper
     value.present? ? value.to_s : "Automatic"
   end
 
+  def agent_model_routing_label(agent_or_config)
+    config = agent_or_config.is_a?(Agent) ? agent_or_config.model_routing_config : agent_or_config
+    strategy = config.fetch("strategy", Llm::ModelRoutingConfig::DEFAULT_STRATEGY)
+
+    case strategy
+    when "fallback"
+      count = Array(config["fallback_models"]).size
+      count.positive? ? "Fallback (#{count} alternate #{"model".pluralize(count)})" : "Fallback"
+    when "canary"
+      percent = config["canary_percent"].presence || "?"
+      "Canary (#{percent}%)"
+    when "ab_test"
+      "A/B Compare"
+    else
+      "Single Model"
+    end
+  end
+
   def agent_input_parameter_type_label(field_type)
     INPUT_PARAMETER_TYPE_LABELS.fetch(field_type.to_s, field_type.to_s.humanize)
   end

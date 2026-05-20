@@ -12,6 +12,7 @@ module Admin
         llm_config_source: "system_preference",
         llm_connector_id: prefs[:llm_connector_id],
         model_id: prefs[:model_id],
+        model_routing_config: prefs[:model_routing_config],
       }
     end
   end

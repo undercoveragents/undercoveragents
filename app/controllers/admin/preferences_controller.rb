@@ -42,6 +42,7 @@ module Admin
       params.expect(
         system_preference: [
           :llm_connector_id, :model_id, :temperature, :thinking_effort, :thinking_budget, :custom_llm_params,
+          :model_routing_config,
           :embedding_connector_id, :embedding_model_id,
           :image_connector_id, :image_model_id,
         ],

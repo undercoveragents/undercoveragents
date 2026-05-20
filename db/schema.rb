@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_18_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_20_114500) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -332,6 +332,28 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_18_120000) do
     t.index ["status"], name: "index_mission_runs_on_status"
   end
 
+  create_table "mission_triggers", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "cron_expression"
+    t.boolean "enabled", default: true, null: false
+    t.text "last_error"
+    t.bigint "last_mission_run_id"
+    t.datetime "last_triggered_at"
+    t.bigint "mission_id", null: false
+    t.string "name", null: false
+    t.datetime "next_run_at"
+    t.jsonb "payload", default: {}, null: false
+    t.string "timezone", default: "UTC", null: false
+    t.string "trigger_type", null: false
+    t.datetime "updated_at", null: false
+    t.string "webhook_secret_digest"
+    t.string "webhook_secret_prefix"
+    t.index ["last_mission_run_id"], name: "index_mission_triggers_on_last_mission_run_id"
+    t.index ["mission_id", "name"], name: "index_mission_triggers_on_mission_id_and_name", unique: true
+    t.index ["mission_id"], name: "index_mission_triggers_on_mission_id"
+    t.index ["trigger_type", "enabled", "next_run_at"], name: "index_mission_triggers_on_schedule_state"
+  end
+
   create_table "missions", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.text "description"
@@ -497,6 +519,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_18_120000) do
     t.string "image_model_id"
     t.bigint "llm_connector_id"
     t.string "model_id"
+    t.jsonb "model_routing_config", default: {}, null: false
     t.float "temperature"
     t.bigint "tenant_id", null: false
     t.integer "thinking_budget"
@@ -729,6 +752,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_18_120000) do
   add_foreign_key "mission_runs", "channel_targets"
   add_foreign_key "mission_runs", "channels"
   add_foreign_key "mission_runs", "missions"
+  add_foreign_key "mission_triggers", "mission_runs", column: "last_mission_run_id"
+  add_foreign_key "mission_triggers", "missions"
   add_foreign_key "missions", "operations"
   add_foreign_key "operations", "tenants"
   add_foreign_key "rag_flows", "operations"

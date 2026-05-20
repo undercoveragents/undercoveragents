@@ -125,6 +125,26 @@ RSpec.describe AgentsHelper do
     end
   end
 
+  describe "#agent_model_routing_label" do
+    it "renders labels for each routing strategy" do
+      fallback_agent = build(:agent)
+      allow(fallback_agent).to receive(:model_routing_config).and_return(
+        "strategy" => "fallback",
+        "fallback_models" => [{ "model_id" => "a" }, { "model_id" => "b" }],
+      )
+
+      expect(helper.agent_model_routing_label(fallback_agent)).to eq("Fallback (2 alternate models)")
+      expect(helper.agent_model_routing_label("strategy" => "canary", "canary_percent" => 15)).to eq("Canary (15%)")
+      expect(helper.agent_model_routing_label("strategy" => "ab_test")).to eq("A/B Compare")
+      expect(helper.agent_model_routing_label("strategy" => "single")).to eq("Single Model")
+      expect(helper.agent_model_routing_label("strategy" => "canary")).to eq("Canary (?%)")
+    end
+
+    it "renders fallback without an alternate count when no fallback models are configured" do
+      expect(helper.agent_model_routing_label("strategy" => "fallback", "fallback_models" => [])).to eq("Fallback")
+    end
+  end
+
   describe "#agent_subagent_count_label" do
     it "returns singular for one sub-agent" do
       agent = create(:agent)

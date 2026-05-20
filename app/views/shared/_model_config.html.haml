@@ -16,9 +16,11 @@
 
 - required = local_assigns.fetch(:required, true)
 - show_reasoning_settings = local_assigns.fetch(:show_reasoning_settings, false)
+- show_model_routing_settings = local_assigns.fetch(:show_model_routing_settings, false)
 - thinking_effort_value = local_assigns.fetch(:thinking_effort_value, "")
 - thinking_budget_value = local_assigns.fetch(:thinking_budget_value, nil)
 - custom_params_value = local_assigns.fetch(:custom_params_value, "")
+- model_routing_value = local_assigns.fetch(:model_routing_value, "")
 
 .form-grid{ data: { controller: "llm-settings" } }
   .form-group.col-span-full{ data: { controller: "choices", choices_search_value: "true", choices_placeholder_value: "Select an LLM connection\u2026" } }
@@ -70,3 +72,15 @@
               %label.form-label{ for: "#{field_prefix}_custom_llm_params" } Custom Params JSON
               = text_area_tag "#{field_prefix}[custom_llm_params]", custom_params_value, id: "#{field_prefix}_custom_llm_params", rows: 6, class: "form-input form-textarea llm-settings-json-input", placeholder: '{"top_p": 0.9}'
               .form-hint Merge provider-specific request params into the model call as a JSON object.
+
+            - if show_model_routing_settings
+              .form-group.col-span-full
+                %label.form-label{ for: "#{field_prefix}_model_routing_config" } Model Routing JSON
+                = text_area_tag "#{field_prefix}[model_routing_config]", model_routing_value, id: "#{field_prefix}_model_routing_config", rows: 8, class: "form-input form-textarea llm-settings-json-input", placeholder: '{"strategy":"fallback","fallback_models":[{"connector_id":12,"model_id":"gpt-4.1-mini"}]}'
+                .form-hint
+                  Optional multi-model runtime policy. Supported shapes:
+                  %code {"strategy":"fallback","fallback_models":[{"connector_id":12,"model_id":"gpt-4.1-mini"}]}
+                  ,
+                  %code {"strategy":"canary","canary_model":{"connector_id":12,"model_id":"gpt-5.4-mini"},"canary_percent":10}
+                  ,
+                  %code {"strategy":"ab_test","comparison_model":{"connector_id":14,"model_id":"claude-sonnet-4.5"}}

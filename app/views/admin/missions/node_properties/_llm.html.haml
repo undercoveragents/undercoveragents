@@ -76,6 +76,13 @@
           .ms-prop-field.ms-prop-field--dense
             %label.ms-prop-label{ for: "mission-node-custom-llm-params" } Custom Params JSON
             %textarea.ms-prop-textarea.llm-settings-json-input#mission-node-custom-llm-params{ rows: "4", data: { action: "change->mission#updateNodeProp", "prop-key": "custom_llm_params" }, placeholder: '{"top_p": 0.9}' }= presenter.data_raw("custom_llm_params").to_s
+          .ms-prop-field.ms-prop-field--dense.col-span-full
+            %label.ms-prop-label{ for: "mission-node-model-routing-config" } Model Routing JSON
+            %textarea.ms-prop-textarea.llm-settings-json-input#mission-node-model-routing-config{ rows: "6", data: { action: "change->mission#updateNodeProp", "prop-key": "model_routing_config" }, placeholder: '{"strategy":"fallback","fallback_models":[{"connector_id":12,"model_id":"gpt-4.1-mini"}]}' }= presenter.data_raw("model_routing_config").to_s
+            .ms-prop-hint
+              Configure fallback, canary, or A/B routing for this Generate Text node.
+              Fallback example:
+              %code {"strategy":"fallback","fallback_models":[{"connector_id":12,"model_id":"gpt-4.1-mini"}]}
 
   / Tools
   .ms-prop-field
