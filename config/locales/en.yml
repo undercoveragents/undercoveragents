@@ -44,6 +44,7 @@ en:
   test_suite_runs:
     cancelled: "Test run has been cancelled."
   missions:
+    duplicated: "Mission duplicated."
     updated: "Mission updated."
     deleted: "Mission deleted."
     saved: "Mission saved."

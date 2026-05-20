@@ -1,6 +1,7 @@
 en:
   tools:
     created: "Tool created successfully."
+    duplicated: "Tool duplicated successfully."
     updated: "Tool updated successfully."
     widget_updated: "Chat widget updated successfully."
     deleted: "Tool deleted successfully."
@@ -13,4 +14,3 @@ en:
     tools_discovered:
       one: "Discovered %{count} tool from MCP server."
       other: "Discovered %{count} tools from MCP server."
-

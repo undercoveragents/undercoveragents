@@ -319,7 +319,7 @@ RSpec.describe "Agents" do
         expect(response.body).not_to include(description)
       end
 
-      it "keeps delete and edit in separate grouped controls" do
+      it "keeps destructive, duplicate, and edit controls in separate groups" do
         get admin_agent_path(agent)
 
         document = response.parsed_body
@@ -327,8 +327,8 @@ RSpec.describe "Agents" do
           group.css("a, button").map { |node| node.text.squish }
         end
 
-        expect(action_groups).to eq([["Delete"], ["Edit"]])
-        expect(document.css(".page-hero__control-separator").size).to eq(1)
+        expect(action_groups).to eq([["Delete"], ["Duplicate"], ["Edit"]])
+        expect(document.css(".page-hero__control-separator").size).to eq(2)
         expect(document.at_css(".page-hero__action-group a.btn-primary")&.text).to include("Edit")
       end
 
@@ -600,6 +600,67 @@ RSpec.describe "Agents" do
       it "redirects to the agents index" do
         delete admin_agent_path(agent)
         expect(response).to redirect_to(admin_agents_path)
+      end
+    end
+
+    describe "POST /agents/:id/duplicate" do
+      let(:operation) { create(:operation) }
+      let(:tool) { create(:tool, :enabled, :sql_query, operation:) }
+      let(:subagent) { create(:agent, operation:) }
+      let(:skill_catalog) { create(:skill_catalog, operation:) }
+      let!(:agent) do
+        create(
+          :agent,
+          name: "Original Agent",
+          description: "Coordinates tasks",
+          operation:,
+        ).tap do |record|
+          record.update!(
+            input_schema: [{ "variable_name" => "account_id", "field_type" => "string", "label" => "Account ID" }],
+            tool_ids: [tool.id],
+            subagent_ids: [subagent.id],
+            skill_catalog_ids: [skill_catalog.id],
+          )
+        end
+      end
+
+      it "duplicates the agent and redirects to the copied record" do
+        expect do
+          post duplicate_admin_agent_path(agent)
+        end.to change(Agent, :count).by(1)
+
+        duplicate = Agent.order(:id).last
+
+        expect(response).to redirect_to(admin_agent_path(duplicate))
+        expect(flash[:notice]).to eq(I18n.t("agents.duplicated"))
+        expect(duplicate).to have_attributes(
+          name: "Copy of Original Agent",
+          description: agent.description,
+          input_schema: agent.input_schema,
+          tool_ids: agent.tool_ids,
+          subagent_ids: agent.subagent_ids,
+          skill_catalog_ids: agent.skill_catalog_ids,
+          builtin: false,
+        )
+      end
+
+      it "increments the duplicate name when the first copy already exists" do
+        create(:agent, name: "Copy of Original Agent", operation: agent.operation)
+
+        post duplicate_admin_agent_path(agent)
+
+        expect(Agent.order(:id).last.name).to eq("Copy of Original Agent (2)")
+      end
+
+      it "redirects back to the original agent when the duplicate is invalid" do
+        agent.update!(name: "A" * 93)
+
+        expect do
+          post duplicate_admin_agent_path(agent)
+        end.not_to change(Agent, :count)
+
+        expect(response).to redirect_to(admin_agent_path(agent))
+        expect(flash[:alert]).to include("Name is too long")
       end
     end
 

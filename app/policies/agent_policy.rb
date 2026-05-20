@@ -17,6 +17,10 @@ class AgentPolicy < ApplicationPolicy
     operation_mutation_allowed?
   end
 
+  def duplicate?
+    operation_mutation_allowed?
+  end
+
   def destroy?
     operation_mutation_allowed? && !record.builtin?
   end

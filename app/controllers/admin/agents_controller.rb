@@ -9,6 +9,7 @@ module Admin
 
     before_action :set_agent, only: [
       :show, :edit, :edit_instructions, :update, :destroy, :toggle, :restore,
+      :duplicate,
       :add_tool, :remove_tool, :add_capability, :add_subagent, :remove_subagent,
       :add_skill_catalog, :remove_skill_catalog,
     ]
@@ -49,6 +50,24 @@ module Admin
         redirect_to admin_agent_path(@agent), notice: t("agents.updated")
       else
         render_failed_update
+      end
+    end
+
+    def duplicate
+      authorize @agent, :duplicate?
+
+      duplicate = @agent.dup
+      duplicate.configuration = @agent.configuration.deep_dup
+      duplicate.name = duplicate_name_for(@agent.operation.agents, @agent.name)
+      duplicate[:builtin] = false
+      duplicate.builtin = false
+      duplicate.builtin_key = nil
+      duplicate.builtin_source = nil
+
+      if duplicate.save
+        redirect_to admin_agent_path(duplicate), notice: t("agents.duplicated")
+      else
+        redirect_to admin_agent_path(@agent), alert: duplicate.errors.full_messages.to_sentence
       end
     end
 

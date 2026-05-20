@@ -85,6 +85,13 @@ RSpec.describe "Admin::Missions" do
       expect(response).to have_http_status(:ok)
     end
 
+    it "shows the duplicate action in the shared page header" do
+      get edit_admin_mission_path(mission)
+
+      expect(response.body).to include(duplicate_admin_mission_path(mission))
+      expect(response.body).to include("Duplicate")
+    end
+
     it "loads a mission from another operation in the same tenant and adopts its operation" do
       headquarter = default_tenant.headquarter_operation
 
@@ -138,6 +145,49 @@ RSpec.describe "Admin::Missions" do
       end.not_to change(Mission, :count)
 
       expect(response).to have_http_status(:not_found)
+    end
+  end
+
+  describe "POST /admin/missions/:id/duplicate" do
+    before do
+      mission.update!(
+        flow_data: {
+          "nodes" => [{ "id" => "n1", "type" => "input" }],
+          "edges" => [],
+          "global_variables" => [{ "key" => "region", "value" => "eu-west", "type" => "string" }],
+        },
+        flow_undo_history: [{ "nodes" => [{ "id" => "old" }], "edges" => [] }],
+        flow_redo_history: [{ "nodes" => [{ "id" => "future" }], "edges" => [] }],
+      )
+    end
+
+    it "duplicates the mission flow and redirects to the copied details page" do
+      expect do
+        post duplicate_admin_mission_path(mission)
+      end.to change(Mission, :count).by(1)
+
+      duplicate = Mission.order(:id).last
+
+      expect(response).to redirect_to(edit_admin_mission_path(duplicate))
+      expect(flash[:notice]).to eq(I18n.t("missions.duplicated"))
+      expect(duplicate).to have_attributes(
+        name: "Copy of #{mission.name}",
+        description: mission.description,
+        flow_data: mission.flow_data,
+        flow_undo_history: [],
+        flow_redo_history: [],
+      )
+    end
+
+    it "redirects back to the original mission when the duplicate is invalid" do
+      mission.update!(name: "M" * 248)
+
+      expect do
+        post duplicate_admin_mission_path(mission)
+      end.not_to change(Mission, :count)
+
+      expect(response).to redirect_to(edit_admin_mission_path(mission))
+      expect(flash[:alert]).to include("Name is too long")
     end
   end
 

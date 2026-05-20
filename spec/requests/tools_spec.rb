@@ -268,6 +268,7 @@ RSpec.describe "Tools" do
         expect(response.body).to include("Show Tool")
         expect(response.body).to include("SQL Query")
         expect(response.body).to include(edit_widget_admin_tool_path(tool))
+        expect(response.body).to include(duplicate_admin_tool_path(tool))
       end
 
       it "renders successfully when connector is missing" do
@@ -501,6 +502,53 @@ RSpec.describe "Tools" do
       it "redirects to the tools index" do
         delete admin_tool_path(tool)
         expect(response).to redirect_to(admin_tools_path)
+      end
+    end
+
+    describe "POST /tools/:id/duplicate" do
+      let(:operation) { create(:operation) }
+      let!(:tool) do
+        create(
+          :tool,
+          :sql_query,
+          name: "Original Tool",
+          description: "Queries SQL",
+          enabled: true,
+          operation:,
+        )
+      end
+
+      before do
+        post switch_admin_operation_path(operation), headers: { "HTTP_REFERER" => admin_tools_url }
+      end
+
+      it "duplicates the tool and redirects to the copied record" do
+        expect do
+          post duplicate_admin_tool_path(tool)
+        end.to change(Tool, :count).by(1)
+
+        duplicate = Tool.order(:id).last
+
+        expect(response).to redirect_to(admin_tool_path(duplicate))
+        expect(flash[:notice]).to eq(I18n.t("tools.duplicated"))
+        expect(duplicate).to have_attributes(
+          name: "Copy of Original Tool",
+          description: tool.description,
+          enabled: tool.enabled,
+          tool_type: tool.tool_type,
+          configuration: tool.configuration,
+        )
+      end
+
+      it "redirects back to the original tool when the duplicate is invalid" do
+        tool.update!(name: "T" * 93)
+
+        expect do
+          post duplicate_admin_tool_path(tool)
+        end.not_to change(Tool, :count)
+
+        expect(response).to redirect_to(admin_tool_path(tool))
+        expect(flash[:alert]).to include("Name is too long")
       end
     end
 

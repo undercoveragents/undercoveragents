@@ -4,7 +4,7 @@ module Admin
   class MissionsController < BaseController
     include MissionRecordContext
 
-    before_action :set_mission, only: [:designer, :edit, :update, :destroy]
+    before_action :set_mission, only: [:designer, :edit, :update, :duplicate, :destroy]
 
     def index
       authorize Mission
@@ -48,6 +48,22 @@ module Admin
         redirect_to admin_missions_path, notice: t("missions.updated")
       else
         render :edit, status: :unprocessable_content
+      end
+    end
+
+    def duplicate
+      authorize @mission, :duplicate?
+
+      duplicate = @mission.dup
+      duplicate.name = duplicate_name_for(@mission.operation.missions, @mission.name)
+      duplicate.flow_data = @mission.flow_data.deep_dup
+      duplicate.flow_undo_history = []
+      duplicate.flow_redo_history = []
+
+      if duplicate.save
+        redirect_to edit_admin_mission_path(duplicate), notice: t("missions.duplicated")
+      else
+        redirect_to edit_admin_mission_path(@mission), alert: duplicate.errors.full_messages.to_sentence
       end
     end
 

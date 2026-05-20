@@ -9,6 +9,7 @@ module Admin
       :show,
       :edit,
       :edit_instructions,
+      :duplicate,
       :update,
       :destroy,
       :toggle,
@@ -79,6 +80,20 @@ module Admin
       redirect_to admin_tool_path(@tool), notice: t("tools.updated")
     rescue ActiveRecord::RecordInvalid
       render_failed_update
+    end
+
+    def duplicate
+      authorize @tool, :duplicate?
+
+      duplicate = @tool.dup
+      duplicate.configuration = @tool.configuration.deep_dup
+      duplicate.name = duplicate_name_for(@tool.operation.tools, @tool.name)
+
+      if duplicate.save
+        redirect_to admin_tool_path(duplicate), notice: t("tools.duplicated")
+      else
+        redirect_to admin_tool_path(@tool), alert: duplicate.errors.full_messages.to_sentence
+      end
     end
 
     def update_widget

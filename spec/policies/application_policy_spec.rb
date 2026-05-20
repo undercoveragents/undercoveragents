@@ -79,6 +79,12 @@ RSpec.describe ApplicationPolicy do
     end
   end
 
+  describe "#duplicate?" do
+    it "denies duplicate" do
+      expect(policy.duplicate?).to be(false)
+    end
+  end
+
   describe "tenant-aware helpers" do
     let(:tenant) { create(:tenant) }
     let(:admin) { create(:user, :admin, tenant:) }

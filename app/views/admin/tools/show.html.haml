@@ -1,6 +1,7 @@
 - content_for(:title, "#{@tool.name} — #{APP_NAME}")
 - content_for(:head) { tag.meta(name: "turbo-cache-control", content: "no-cache") }
 - actions = []
+- actions << policy_page_hero_action(@tool, :duplicate?, label: "Duplicate", url: duplicate_admin_tool_path(@tool), icon: "fa-solid fa-copy", style: :secondary, method: :post)
 - actions << policy_page_hero_action(@tool, :update?, label: "Edit", url: edit_admin_tool_path(@tool), icon: "fa-solid fa-pen", style: :secondary)
 - actions << policy_page_hero_action(@tool, :destroy?, label: "Delete", url: admin_tool_path(@tool), icon: "fa-solid fa-trash", style: :danger_outline, method: :delete, data: { controller: "confirm", confirm_title_value: "Delete Tool", confirm_message_value: "Are you sure you want to delete this tool? This action cannot be undone." })
 = render_page_hero(title: "Tool", variant: :compact, title_icon: tool_type_icon(@tool), record_title: @tool.name, back_link: { label: "Back to Tools", url: admin_tools_path }, meta: [tool_status_badge(@tool), tag.span(tool_type_label(@tool), class: "badge badge-neutral")], actions:)

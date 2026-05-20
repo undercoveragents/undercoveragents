@@ -7,6 +7,7 @@ class ApplicationPolicy
     :new?,
     :update?,
     :edit?,
+    :duplicate?,
     :destroy?,
     :toggle?,
     :restore?,
@@ -55,6 +56,10 @@ class ApplicationPolicy
   end
 
   def destroy?
+    false
+  end
+
+  def duplicate?
     false
   end
 
