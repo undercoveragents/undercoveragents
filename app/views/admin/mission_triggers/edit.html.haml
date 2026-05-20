@@ -1,0 +1,6 @@
+- content_for(:title, "Edit Automation Trigger — #{@mission.name} — #{APP_NAME}")
+- actions = mission_trigger_edit_actions(mission: @mission, mission_trigger: @mission_trigger)
+= render_page_hero(title: "Edit Automation Trigger", variant: :compact, title_icon: mission_trigger_icon(@mission_trigger), record_title: @mission_trigger.name, back_link: { label: "Back to Automation", url: admin_mission_mission_triggers_path(@mission) }, meta: mission_trigger_status_badges(@mission_trigger), actions:)
+
+= render "webhook_secret_notice", mission_trigger: @mission_trigger
+= render "form", mission: @mission, mission_trigger: @mission_trigger

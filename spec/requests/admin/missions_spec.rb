@@ -300,7 +300,11 @@ RSpec.describe "Admin::Missions" do
       document = response.parsed_body
       quick_links = document.css(".admin-panel-sidebar .ms-props-actions a.ms-props-btn")
 
-      expect(quick_links.pluck("href")).to contain_exactly(admin_missions_path, edit_admin_mission_path(mission))
+      expect(quick_links.pluck("href")).to contain_exactly(
+        admin_missions_path,
+        admin_mission_mission_triggers_path(mission),
+        edit_admin_mission_path(mission),
+      )
       expect(quick_links.pluck("data-turbo-frame")).to all(eq("app-content-frame"))
     end
 

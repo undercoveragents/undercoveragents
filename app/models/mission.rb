@@ -36,6 +36,8 @@ class Mission < ApplicationRecord
 
   belongs_to :operation
   has_many :mission_runs, dependent: :destroy
+  has_many :automation_triggers, as: :schedulable, dependent: :destroy
+  has_many :mission_triggers, class_name: "MissionTrigger", as: :schedulable, dependent: :destroy
   has_many :test_suites, dependent: :destroy
   has_many :api_client_missions, dependent: :destroy
   has_many :api_clients, through: :api_client_missions

@@ -212,6 +212,204 @@ RSpec.describe RuntimeRecords::Registry do
     end
   end
 
+  describe "automation trigger definition" do
+    let(:definition) { described_class.fetch("automation_trigger") }
+    let(:admin_user) { create(:user, :admin, tenant:) }
+    let(:manager) { RuntimeRecords::Manager.new(context.with(user: admin_user)) }
+    let(:mission) { create(:mission, operation:) }
+    let(:rag_flow) { create(:rag_flow, operation:) }
+
+    it "scopes automation triggers to the current tenant and operation" do
+      visible = create(:automation_trigger, target: mission)
+      hidden_operation = create(:automation_trigger, target: create(:mission, operation: create(:operation, tenant:)))
+      hidden_tenant = create(:automation_trigger,
+                             target: create(:mission, operation: create(:operation, tenant: create(:tenant))),)
+
+      expect(definition.scope_for(context)).to contain_exactly(visible)
+      expect(definition.scope_for(context)).not_to include(hidden_operation, hidden_tenant)
+    end
+
+    it "scopes automation triggers by operation when no tenant context is present" do
+      visible = create(:automation_trigger, target: mission)
+      hidden_operation = create(:automation_trigger, target: create(:mission, operation: create(:operation, tenant:)))
+
+      expect(definition.scope_for(context.with(tenant: nil))).to contain_exactly(visible)
+      expect(definition.scope_for(context.with(tenant: nil))).not_to include(hidden_operation)
+    end
+
+    it "resolves target from context.mission field and uses its operation" do
+      create(:automation_trigger, target: mission)
+
+      result = definition.scope_for(context.with(mission:))
+
+      expect(result).to be_a(ActiveRecord::Relation)
+    end
+
+    it "returns mission paths for index, new, and edit" do
+      trigger = create(:automation_trigger, target: mission)
+      mission_context = context.with(
+        ui_context: { "current_object" => { "class_name" => "Mission", "id" => mission.id } },
+      )
+      trigger_context = context.with(
+        ui_context: { "current_object" => { "class_name" => "AutomationTrigger", "id" => trigger.id } },
+      )
+      helpers = Rails.application.routes.url_helpers
+
+      expect(definition.path_for("index", record: nil, context: mission_context))
+        .to eq(helpers.admin_mission_automation_triggers_path(mission))
+      expect(definition.path_for("new", record: nil, context: mission_context))
+        .to eq(helpers.new_admin_mission_automation_trigger_path(mission))
+      expect(definition.path_for("index", record: nil, context: trigger_context))
+        .to eq(helpers.admin_mission_automation_triggers_path(mission))
+      expect(definition.path_for("edit", record: trigger, context:))
+        .to eq(helpers.edit_admin_mission_automation_trigger_path(mission, trigger))
+      expect(definition.path_for("index", record: trigger, context:))
+        .to eq(helpers.admin_mission_automation_triggers_path(mission))
+    end
+
+    it "returns rag-flow paths for index, new, and edit" do
+      rag_trigger = create(:automation_trigger, target: rag_flow)
+      rag_flow_context = context.with(
+        ui_context: { "current_object" => { "class_name" => "RagFlow", "id" => rag_flow.id } },
+      )
+      helpers = Rails.application.routes.url_helpers
+
+      expect(definition.path_for("index", record: nil, context: rag_flow_context))
+        .to eq(helpers.admin_rag_flow_automation_triggers_path(rag_flow))
+      expect(definition.path_for("new", record: nil, context: rag_flow_context))
+        .to eq(helpers.new_admin_rag_flow_automation_trigger_path(rag_flow))
+      expect(definition.path_for("edit", record: rag_trigger, context:))
+        .to eq(helpers.edit_admin_rag_flow_automation_trigger_path(rag_flow, rag_trigger))
+    end
+
+    it "raises for missing or invalid context", :aggregate_failures do
+      expect { definition.base_attributes_for(context.with(operation: nil)) }
+        .to raise_error(ArgumentError, "No current operation is available for automation triggers.")
+
+      expect { definition.path_for("index", record: nil, context:) }
+        .to raise_error(ArgumentError, "Automation trigger page 'index' requires a mission or RAG flow context.")
+
+      expect { definition.path_for("show", record: nil, context:) }
+        .to raise_error(ArgumentError, "Unknown page 'show' for automation_trigger. Use index, new, or edit.")
+
+      expect { definition.path_for("edit", record: nil, context:) }
+        .to raise_error(ArgumentError, "Automation trigger page 'edit' requires a record.")
+    end
+
+    it "raises for unsupported schedulable types", :aggregate_failures do
+      unsupported_trigger = create(:automation_trigger, target: mission)
+      allow(unsupported_trigger).to receive(:schedulable).and_return(operation)
+
+      expect { definition.path_for("edit", record: unsupported_trigger, context:) }
+        .to raise_error(ArgumentError, /Unsupported automation target/)
+      expect { definition.path_for("index", record: unsupported_trigger, context:) }
+        .to raise_error(ArgumentError, /Unsupported automation target/)
+    end
+
+    it "raises when context identifier is blank or unrecognized", :aggregate_failures do
+      blank_id_context = context.with(
+        ui_context: { "current_object" => { "class_name" => "Mission", "id" => nil } },
+      )
+      expect { definition.path_for("index", record: nil, context: blank_id_context) }
+        .to raise_error(ArgumentError, "Automation trigger page 'index' requires a mission or RAG flow context.")
+
+      unknown_context = context.with(
+        ui_context: { "current_object" => { "class_name" => "Agent", "id" => "1" } },
+      )
+      expect { definition.path_for("index", record: nil, context: unknown_context) }
+        .to raise_error(ArgumentError, "Automation trigger page 'index' requires a mission or RAG flow context.")
+
+      nonexistent_trigger_context = context.with(
+        ui_context: { "current_object" => { "class_name" => "AutomationTrigger", "id" => 0 } },
+      )
+      expect { definition.path_for("index", record: nil, context: nonexistent_trigger_context) }
+        .to raise_error(ArgumentError, "Automation trigger page 'index' requires a mission or RAG flow context.")
+    end
+
+    it "raises for invalid or missing target on create", :aggregate_failures do
+      expect do
+        manager.create(
+          resource: "automation_trigger",
+          attributes: { name: "Bad", trigger_type: "schedule", target_type: "channel", target_id: 1 },
+        )
+      end.to raise_error(ArgumentError, "Unsupported automation target 'channel'.")
+
+      expect do
+        manager.create(resource: "automation_trigger", attributes: { name: "Missing", trigger_type: "schedule" })
+      end.to raise_error(
+        ArgumentError,
+        "Provide target_type and target_id, or run this from a mission or RAG flow page.",
+      )
+
+      expect do
+        manager.create(
+          resource: "automation_trigger",
+          attributes: { name: "Missing", trigger_type: "schedule", target_type: "mission", target_id: "missing" },
+        )
+      end.to raise_error(ActiveRecord::RecordNotFound, "Mission 'missing' was not found.")
+    end
+
+    it "creates automation triggers for mission and rag-flow targets" do
+      mission_context = context.with(
+        user: admin_user,
+        ui_context: { "current_object" => { "class_name" => "Mission", "id" => mission.id } },
+      )
+
+      mission_result = RuntimeRecords::Manager.new(mission_context).create(
+        resource: "automation_trigger",
+        attributes: {
+          name: "Mission Schedule",
+          trigger_type: "schedule",
+          cron_expression: "0 * * * *",
+          timezone: "UTC",
+        },
+      )
+      rag_result = manager.create(
+        resource: "automation_trigger",
+        attributes: {
+          name: "RAG Webhook",
+          trigger_type: "webhook",
+          target_type: "rag_flow",
+          target_id: rag_flow.id,
+        },
+      )
+
+      expect(mission_result.record.schedulable).to eq(mission)
+      expect(rag_result.record.schedulable).to eq(rag_flow)
+    end
+
+    it "updates an automation trigger name without changing target" do
+      rag_trigger = create(:automation_trigger, target: rag_flow)
+      mission_trigger = create(:automation_trigger, target: mission)
+
+      updated_rag = manager.update(
+        resource: "automation_trigger",
+        record_id: rag_trigger.id,
+        attributes: { name: "RAG Webhook Updated", target_type: "rag_flow", target_id: rag_flow.id },
+      )
+      updated_mission = manager.update(
+        resource: "automation_trigger",
+        record_id: mission_trigger.id,
+        attributes: { name: "Mission Schedule Renamed" },
+      )
+
+      expect(updated_rag.record.reload.name).to eq("RAG Webhook Updated")
+      expect(updated_mission.record.reload.name).to eq("Mission Schedule Renamed")
+    end
+
+    it "raises when trying to change an automation trigger's target" do
+      rag_trigger = create(:automation_trigger, target: rag_flow)
+
+      expect do
+        manager.update(
+          resource: "automation_trigger",
+          record_id: rag_trigger.id,
+          attributes: { target_type: "mission", target_id: mission.id },
+        )
+      end.to raise_error(ArgumentError, "Automation trigger target cannot be changed once the trigger exists.")
+    end
+  end
+
   describe "skill catalog definition" do
     let(:definition) { described_class.fetch("skill_catalog") }
 

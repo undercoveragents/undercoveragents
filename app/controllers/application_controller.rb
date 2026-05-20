@@ -112,6 +112,11 @@ class ApplicationController < ActionController::Base
   end
   helper_method :scoped_rag_flows
 
+  def scoped_automation_triggers
+    current_operation ? AutomationTrigger.where(operation: current_operation) : AutomationTrigger.none
+  end
+  helper_method :scoped_automation_triggers
+
   def scoped_operations
     current_tenant ? current_tenant.operations : Operation.none
   end
@@ -151,6 +156,13 @@ class ApplicationController < ActionController::Base
     MissionRun.where(mission_id: current_tenant.missions.select(:id))
   end
   helper_method :tenant_scoped_mission_runs
+
+  def tenant_scoped_automation_triggers
+    return AutomationTrigger.none unless current_tenant
+
+    AutomationTrigger.joins(:operation).where(operations: { tenant_id: current_tenant.id })
+  end
+  helper_method :tenant_scoped_automation_triggers
 
   def tenant_scoped_chats
     return Chat.none unless current_tenant

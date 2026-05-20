@@ -1,0 +1,6 @@
+- content_for(:title, "Edit Automation Trigger — #{@schedulable.name} — #{APP_NAME}")
+- actions = automation_trigger_edit_actions(schedulable: @schedulable, automation_trigger: @automation_trigger)
+= render_page_hero(title: "Edit Automation Trigger", variant: :compact, title_icon: automation_trigger_icon(@automation_trigger), record_title: @automation_trigger.name, back_link: { label: "Back to Automation", url: automation_trigger_collection_path(@schedulable) }, meta: automation_trigger_status_badges(@automation_trigger), actions:)
+
+= render "webhook_secret_notice", automation_trigger: @automation_trigger
+= render "form", schedulable: @schedulable, automation_trigger: @automation_trigger

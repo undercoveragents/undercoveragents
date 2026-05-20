@@ -25,13 +25,14 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
     [
       "Supported kinds: `agent_types`, `capabilities`, `models`, `default_models`, " \
       "`tool_types`, `tools`, `agents`, `missions`, `channels`, `clients`, `skill_catalogs`, " \
-      "`skills`, `rag_flows`, `connectors`, `test_suites`",
+      "`skills`, `rag_flows`, `automation_triggers`, `connectors`, `test_suites`",
       "take at most one narrow discovery step",
       "trailing `<child_result>` JSON block with `status`, `record_ids`, `warnings`, and `blockers`",
       "at most one follow-up step",
       "use `web_search` to find relevant public URLs",
       "call `web_fetch` for only the smallest number of highly relevant pages needed to answer",
       "Connector creation is out of scope",
+      "manage_record(resource: \"automation_trigger\"",
     ]
   end
 
@@ -187,8 +188,8 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
 
       expect(definition.capability_configs.keys).to eq(["chat_title_generator"])
       expect(definition.tool_keys).to eq(
-        ["resources.list_resources", "web.web_search", "web.web_fetch"],
-      )
+    ["manage_record", "resources.list_resources", "web.web_search", "web.web_fetch"],
+  )
       expect(definition.subagent_keys).to eq(expected_subagents)
     end
 

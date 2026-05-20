@@ -64,6 +64,7 @@ gem "pundit"
 
 # Friendly URLs
 gem "friendly_id", "~> 5.5"
+gem "fugit"
 
 # Charts & data grouping
 gem "chartkick"

@@ -52,7 +52,7 @@ module RuntimeRecords
         action: :delete,
         definition:,
         record:,
-        path: definition.path_for("index", record: nil, context: @context),
+        path: definition.path_for("index", record:, context: @context),
       )
     end
 

@@ -31,7 +31,7 @@ class RagRun < ApplicationRecord
   # A run is considered stale when it has been running/pending without a heartbeat
   # update for longer than this duration — indicates the worker process likely crashed.
   STALE_TIMEOUT = 5.minutes
-  TRIGGERED_BY_OPTIONS = ["manual", "scheduled"].freeze
+  TRIGGERED_BY_OPTIONS = ["manual", "scheduled", "webhook"].freeze
   CANCEL_NOT_PERFORMED = false
   CANCEL_PERFORMED = true
   enum :status, {

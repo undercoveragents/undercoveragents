@@ -51,6 +51,7 @@ class RagFlow < ApplicationRecord
           class_name: "RagStep", inverse_of: :rag_flow, dependent: :destroy
 
   has_many :rag_runs, dependent: :destroy, inverse_of: :rag_flow
+  has_many :automation_triggers, as: :schedulable, dependent: :destroy
 
   scope :enabled, -> { where(enabled: true) }
   scope :ordered, -> { order(:name) }

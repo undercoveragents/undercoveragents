@@ -1,0 +1,70 @@
+- content_for(:title, "Automation — #{@schedulable.name} — #{APP_NAME}")
+- schedule_trigger = AutomationTrigger.new(operation: @schedulable.operation, schedulable: @schedulable, trigger_type: "schedule", enabled: true, timezone: "UTC")
+- webhook_trigger = AutomationTrigger.new(operation: @schedulable.operation, schedulable: @schedulable, trigger_type: "webhook", enabled: true, timezone: "UTC")
+- actions = []
+- actions << policy_page_hero_action(schedule_trigger, :create?, label: "New Schedule", url: automation_trigger_new_path(@schedulable, type: :schedule), icon: "fa-solid fa-clock", style: :secondary)
+- actions << policy_page_hero_action(webhook_trigger, :create?, label: "New Webhook", url: automation_trigger_new_path(@schedulable, type: :webhook), icon: "fa-solid fa-link", style: :primary)
+= render_page_hero(title: "Automation", variant: :compact, title_icon: "fa-solid fa-clock", record_title: @schedulable.name, back_link: { label: "Back to #{automation_trigger_schedulable_label(@schedulable)}", url: automation_trigger_parent_path(@schedulable) }, actions:)
+
+- if @automation_triggers.any?
+  .card-grid.card-grid--entities
+    - @automation_triggers.each do |automation_trigger|
+      .card.entity-card
+        .card-body.entity-card__body
+          .entity-card__header
+            .entity-card__identity
+              .entity-card__icon
+                %i{ class: automation_trigger_icon(automation_trigger) }
+              .entity-card__identity-copy
+                %h3.entity-card__title.text-text-primary= automation_trigger.name
+                %p.entity-card__subtitle= automation_trigger.trigger_schedule? ? "Cron automation" : "External webhook trigger"
+            .entity-card__status.flex.items-center.gap-2
+              - automation_trigger_status_badges(automation_trigger).each do |badge|
+                = badge
+
+          - if automation_trigger.trigger_schedule?
+            %p.entity-card__description
+              %strong Cron:
+              %code= automation_trigger.cron_expression
+              %span •
+              %span= automation_trigger.timezone
+            %p.entity-card__description= automation_trigger_next_run_label(automation_trigger)
+          - else
+            %p.entity-card__description.break-all
+              %strong URL:
+              %code= automation_trigger_webhook_url(automation_trigger)
+            %p.entity-card__description
+              %strong Secret:
+              %code= automation_trigger.masked_webhook_secret
+
+          .entity-card__footer.justify-between.items-start.gap-4
+            .space-y-1
+              %span.entity-card__timestamp
+                %i.fa-solid.fa-clock
+                = automation_trigger_last_activity(automation_trigger)
+              - if automation_trigger.last_result_record.present? && automation_trigger_last_result_path(automation_trigger).present?
+                = link_to automation_trigger_last_result_path(automation_trigger), class: "text-xs text-accent no-underline hover:underline", data: { turbo_frame: "app-content-frame" } do
+                  %i.fa-solid.fa-satellite-dish.mr-1
+                  View last run
+              - if automation_trigger.last_error.present?
+                %p.text-xs.text-danger-500= automation_trigger.last_error
+            .flex.flex-wrap.items-center.justify-end.gap-2
+              - if automation_trigger.trigger_webhook?
+                = link_to automation_trigger_regenerate_secret_path(automation_trigger), class: "btn btn-secondary btn-sm", data: { turbo_method: :post, controller: "confirm", confirm_title_value: "Regenerate Webhook Secret", confirm_message_value: "Generate a new webhook secret? Existing callers will stop working until they update their secret." } do
+                  %i.fa-solid.fa-rotate.mr-1
+                  Regenerate Secret
+              = link_to automation_trigger_edit_path(automation_trigger), class: "btn btn-secondary btn-sm", data: { turbo_frame: "app-content-frame" } do
+                %i.fa-solid.fa-pen.mr-1
+                Edit
+              = link_to automation_trigger_member_path(automation_trigger), class: "btn btn-danger-outline btn-sm", data: { turbo_method: :delete, controller: "confirm", confirm_title_value: "Delete Automation Trigger", confirm_message_value: "Delete #{automation_trigger.name}? Scheduled runs and webhook access will stop immediately." } do
+                %i.fa-solid.fa-trash.mr-1
+                Delete
+- else
+  = render_page_empty_state(title: "No automation triggers yet", body: "Add a schedule or webhook to run this #{automation_trigger_schedulable_label(@schedulable).downcase} automatically.") do
+    = link_to automation_trigger_new_path(@schedulable, type: :schedule), class: "btn btn-secondary", data: { turbo_frame: "app-content-frame" } do
+      %i.fa-solid.fa-clock.mr-1
+      New Schedule
+    -# spacer between sibling buttons
+    = link_to automation_trigger_new_path(@schedulable, type: :webhook), class: "btn btn-primary", data: { turbo_frame: "app-content-frame" } do
+      %i.fa-solid.fa-link.mr-1
+      New Webhook

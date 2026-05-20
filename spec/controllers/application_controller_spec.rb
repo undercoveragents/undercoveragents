@@ -105,6 +105,10 @@ RSpec.describe ApplicationController do
       expect(controller.send(:scoped_rag_flows)).to be_empty
     end
 
+    it "returns empty scoped_automation_triggers when no operation is selected" do
+      expect(controller.send(:scoped_automation_triggers)).to be_empty
+    end
+
     it "returns empty tenant-owned relations when no tenant is selected" do
       expect(controller.send(:scoped_operations)).to be_empty
       expect(controller.send(:scoped_connectors)).to be_empty
@@ -134,7 +138,25 @@ RSpec.describe ApplicationController do
     it "returns empty tenant-derived activity relations when no tenant is selected" do
       expect(controller.send(:tenant_scoped_test_suites)).to be_empty
       expect(controller.send(:tenant_scoped_mission_runs)).to be_empty
+      expect(controller.send(:tenant_scoped_automation_triggers)).to be_empty
       expect(controller.send(:tenant_scoped_chats)).to be_empty
+    end
+
+    it "returns current-operation and tenant automation trigger relations" do
+      tenant = create(:tenant).tap(&:ensure_core_resources!)
+      other_tenant = create(:tenant).tap(&:ensure_core_resources!)
+      operation = tenant.default_operation
+      visible_trigger = create(:automation_trigger, target: create(:mission, operation:))
+      hidden_operation_trigger = create(:automation_trigger,
+                                        target: create(:mission, operation: tenant.headquarter_operation),)
+      hidden_tenant_trigger = create(:automation_trigger,
+                                     target: create(:mission, operation: other_tenant.default_operation),)
+
+      allow(controller).to receive_messages(current_tenant: tenant, current_operation: operation)
+
+      expect(controller.send(:scoped_automation_triggers)).to contain_exactly(visible_trigger)
+      expect(controller.send(:tenant_scoped_automation_triggers)).to include(visible_trigger, hidden_operation_trigger)
+      expect(controller.send(:tenant_scoped_automation_triggers)).not_to include(hidden_tenant_trigger)
     end
   end
 

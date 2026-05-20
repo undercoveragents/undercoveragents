@@ -145,10 +145,54 @@ RSpec.describe ListResourcesTool do
       expect(result).to include("Available resource kinds:")
       expect(result).to include(
         "Core: agent_types, capabilities, models, default_models, tool_types, tools, agents, missions, " \
-        "channels, clients, skill_catalogs, skills, rag_flows, connectors, test_suites",
+        "channels, clients, skill_catalogs, skills, rag_flows, automation_triggers, connectors, test_suites",
       )
       expect(result).not_to include("Plugin-defined:")
       expect(result).to include("Use connector_id when kind includes \"models\".")
+    end
+
+    it "lists automation triggers for the current operation" do
+      mission = create(:mission, operation: tenant.default_operation)
+      create(:automation_trigger, :schedule, target: mission, name: "Nightly Sync", cron_expression: "0 2 * * *")
+
+      result = tool.execute(kind: "automation_triggers")
+
+      expect(result).to include("## Automation Triggers")
+      expect(result).to include("Nightly Sync")
+      expect(result).to include("Mission: #{mission.name}")
+      expect(result).to include("0 2 * * * (UTC)")
+    end
+
+    it "returns no-triggers message when there are no automation triggers for the operation" do
+      result = tool.execute(kind: "automation_triggers")
+
+      expect(result).to eq("No automation triggers available.")
+    end
+
+    it "returns no-triggers message when scoped_operation is nil" do
+      result = described_class.new(nil).execute(kind: "automation_triggers")
+
+      expect(result).to eq("No automation triggers available.")
+    end
+
+    it "shows Unknown for triggers whose schedulable has been deleted" do
+      mission = create(:mission, operation: tenant.default_operation)
+      trigger = create(:automation_trigger, :schedule, target: mission, name: "Orphaned", cron_expression: "0 3 * * *")
+      trigger.update_columns(schedulable_id: 0) # rubocop:disable Rails/SkipsModelValidations
+
+      result = tool.execute(kind: "automation_triggers")
+
+      expect(result).to include("Unknown")
+    end
+
+    it "shows webhook detail for webhook-type automation triggers" do
+      mission = create(:mission, operation: tenant.default_operation)
+      create(:automation_trigger, :webhook, target: mission, name: "Deploy Hook")
+
+      result = tool.execute(kind: "automation_triggers")
+
+      expect(result).to include("Deploy Hook")
+      expect(result).to include("webhook")
     end
 
     it "includes the current page object and selected references in the no-arg discovery response" do

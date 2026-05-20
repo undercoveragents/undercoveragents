@@ -69,6 +69,8 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       get "swagger", to: "docs#show", as: :swagger, defaults: { format: :json }
+      post "automation_webhooks/:id", to: "automation_webhooks#create", as: :automation_webhook
+      post "mission_webhooks/:id", to: "automation_webhooks#create", as: :mission_webhook
 
       post "channels/:channel_slug/targets/:target_slug/invocations",
            to: "channel_invocations#create",
@@ -81,6 +83,14 @@ Rails.application.routes.draw do
 
   # ── Admin ──
   namespace :admin do
+    concern :automatable do
+      resources :automation_triggers, path: "automation", except: [:show] do
+        member do
+          post :regenerate_secret
+        end
+      end
+    end
+
     # Dashboard
     root "dashboard#show"
 
@@ -134,6 +144,13 @@ Rails.application.routes.draw do
         post :undo_flow, to: "mission_flows#undo_flow"
         post :redo_flow, to: "mission_flows#redo_flow"
         get :node_properties, to: "mission_flows#node_properties"
+      end
+
+      concerns :automatable
+      resources :mission_triggers, path: "automation", controller: "automation_triggers", except: [:show] do
+        member do
+          post :regenerate_secret
+        end
       end
     end
 
@@ -207,6 +224,7 @@ Rails.application.routes.draw do
         patch :toggle
         post :execute
       end
+      concerns :automatable
       resources :steps, controller: "rag/steps", only: [:edit, :update, :destroy], param: :stage
       resources :runs, controller: "rag/runs", only: [:index, :show] do
         member do

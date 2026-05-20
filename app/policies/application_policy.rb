@@ -12,6 +12,7 @@ class ApplicationPolicy
     :toggle?,
     :restore?,
     :restore_defaults?,
+    :regenerate_secret?,
     :discover_schema?,
     :edit_visibility?,
     :update_visibility?,

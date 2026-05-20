@@ -57,6 +57,16 @@ module RuntimeRecords
     "evaluation_model_id",
     "evaluation_temperature",
   ].freeze
+  AUTOMATION_TRIGGER_PERMITTED_ATTRIBUTES = [
+    "name",
+    "trigger_type",
+    "enabled",
+    "cron_expression",
+    "timezone",
+    "payload",
+    "target_type",
+    "target_id",
+  ].freeze
 
   class Registry
     Definition = Data.define(
@@ -103,6 +113,7 @@ module RuntimeRecords
 
     class << self
       include RegistryAgentResources
+      include RegistryAutomationTriggerResources
       include RegistryChannelAttributes
       include RegistryChannelResources
       include RegistryMissionResources
@@ -129,12 +140,17 @@ module RuntimeRecords
       end
 
       def register_defaults!
-        register_mission unless definitions.key?("mission")
-        register_agent unless definitions.key?("agent")
-        register_skill_catalog unless definitions.key?("skill_catalog")
-        register_test_suite unless definitions.key?("test_suite")
-        register_channel unless definitions.key?("channel")
-        register_tool unless definitions.key?("tool")
+        {
+          "mission" => :register_mission,
+          "agent" => :register_agent,
+          "skill_catalog" => :register_skill_catalog,
+          "test_suite" => :register_test_suite,
+          "channel" => :register_channel,
+          "tool" => :register_tool,
+          "automation_trigger" => :register_automation_trigger,
+        }.each do |key, method_name|
+          send(method_name) unless definitions.key?(key)
+        end
       end
     end
   end

@@ -29,7 +29,14 @@
 class Operation < ApplicationRecord
   extend FriendlyId
 
-  attr_writer :agent_count, :mission_count, :tool_count, :skill_catalog_count, :rag_flow_count
+  attr_writer(
+    :agent_count,
+    :mission_count,
+    :tool_count,
+    :skill_catalog_count,
+    :rag_flow_count,
+    :automation_trigger_count,
+  )
 
   friendly_id :name, use: :slugged
 
@@ -42,6 +49,7 @@ class Operation < ApplicationRecord
   has_many :tools, dependent: :restrict_with_error
   has_many :skill_catalogs, dependent: :restrict_with_error
   has_many :rag_flows, dependent: :restrict_with_error
+  has_many :automation_triggers, dependent: :restrict_with_error
 
   scope :ordered, -> { order(:name) }
   scope :headquarter_first, -> { order(Arel.sql("CASE WHEN name = 'Headquarter' THEN 0 ELSE 1 END"), :name) }
@@ -72,6 +80,7 @@ class Operation < ApplicationRecord
         tools: Tool.where(operation_id: operation_ids).group(:operation_id).count,
         skill_catalogs: SkillCatalog.where(operation_id: operation_ids).group(:operation_id).count,
         rag_flows: RagFlow.where(operation_id: operation_ids).group(:operation_id).count,
+        automation_triggers: AutomationTrigger.where(operation_id: operation_ids).group(:operation_id).count,
       }
     end
 
@@ -81,6 +90,7 @@ class Operation < ApplicationRecord
       operation.tool_count = grouped_counts[:tools].fetch(operation.id, 0)
       operation.skill_catalog_count = grouped_counts[:skill_catalogs].fetch(operation.id, 0)
       operation.rag_flow_count = grouped_counts[:rag_flows].fetch(operation.id, 0)
+      operation.automation_trigger_count = grouped_counts[:automation_triggers].fetch(operation.id, 0)
     end
   end
 
@@ -142,7 +152,12 @@ class Operation < ApplicationRecord
       mission_count.zero? &&
       tool_count.zero? &&
       skill_catalog_count.zero? &&
-      rag_flow_count.zero?
+      rag_flow_count.zero? &&
+      automation_trigger_count.zero?
+  end
+
+  def automation_trigger_count
+    preloaded_count(@automation_trigger_count, automation_triggers)
   end
 
   private
