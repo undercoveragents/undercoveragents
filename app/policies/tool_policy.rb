@@ -17,7 +17,7 @@ class ToolPolicy < ApplicationPolicy
     operation_mutation_allowed?
   end
 
-  def duplicate?
+  def clone?
     operation_mutation_allowed?
   end
 

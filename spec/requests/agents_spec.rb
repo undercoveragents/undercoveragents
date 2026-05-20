@@ -319,16 +319,18 @@ RSpec.describe "Agents" do
         expect(response.body).not_to include(description)
       end
 
-      it "keeps destructive, duplicate, and edit controls in separate groups" do
+      it "keeps destructive, clone, and edit controls in separate groups" do
         get admin_agent_path(agent)
 
         document = response.parsed_body
         action_groups = document.css(".page-hero__action-group").map do |group|
           group.css("a, button").map { |node| node.text.squish }
         end
+        clone_button = document.at_css("button[data-confirm-title-value='Clone Agent']")
 
-        expect(action_groups).to eq([["Delete"], ["Duplicate"], ["Edit"]])
+        expect(action_groups).to eq([["Delete"], ["Clone"], ["Edit"]])
         expect(document.css(".page-hero__control-separator").size).to eq(2)
+        expect(clone_button&.[]("data-controller")).to eq("confirm")
         expect(document.at_css(".page-hero__action-group a.btn-primary")&.text).to include("Edit")
       end
 
@@ -603,7 +605,7 @@ RSpec.describe "Agents" do
       end
     end
 
-    describe "POST /agents/:id/duplicate" do
+    describe "POST /agents/:id/clone" do
       let(:operation) { create(:operation) }
       let(:tool) { create(:tool, :enabled, :sql_query, operation:) }
       let(:subagent) { create(:agent, operation:) }
@@ -624,17 +626,17 @@ RSpec.describe "Agents" do
         end
       end
 
-      it "duplicates the agent and redirects to the copied record" do
+      it "clones the agent and redirects to the copied record" do
         expect do
-          post duplicate_admin_agent_path(agent)
+          post clone_admin_agent_path(agent)
         end.to change(Agent, :count).by(1)
 
-        duplicate = Agent.order(:id).last
+        clone = Agent.order(:id).last
 
-        expect(response).to redirect_to(admin_agent_path(duplicate))
-        expect(flash[:notice]).to eq(I18n.t("agents.duplicated"))
-        expect(duplicate).to have_attributes(
-          name: "Copy of Original Agent",
+        expect(response).to redirect_to(admin_agent_path(clone))
+        expect(flash[:notice]).to eq(I18n.t("agents.cloned"))
+        expect(clone).to have_attributes(
+          name: "Clone of Original Agent",
           description: agent.description,
           input_schema: agent.input_schema,
           tool_ids: agent.tool_ids,
@@ -644,19 +646,19 @@ RSpec.describe "Agents" do
         )
       end
 
-      it "increments the duplicate name when the first copy already exists" do
-        create(:agent, name: "Copy of Original Agent", operation: agent.operation)
+      it "increments the clone name when the first clone already exists" do
+        create(:agent, name: "Clone of Original Agent", operation: agent.operation)
 
-        post duplicate_admin_agent_path(agent)
+        post clone_admin_agent_path(agent)
 
-        expect(Agent.order(:id).last.name).to eq("Copy of Original Agent (2)")
+        expect(Agent.order(:id).last.name).to eq("Clone of Original Agent (2)")
       end
 
-      it "redirects back to the original agent when the duplicate is invalid" do
+      it "redirects back to the original agent when the clone is invalid" do
         agent.update!(name: "A" * 93)
 
         expect do
-          post duplicate_admin_agent_path(agent)
+          post clone_admin_agent_path(agent)
         end.not_to change(Agent, :count)
 
         expect(response).to redirect_to(admin_agent_path(agent))

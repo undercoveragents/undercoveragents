@@ -83,7 +83,7 @@ class Agent < ApplicationRecord
 
   amoeba do
     enable
-    prepend name: "Copy of "
+    prepend name: "Clone of "
 
     override lambda { |original, copy|
       copy.configuration = original.configuration.deep_dup

@@ -9,7 +9,7 @@ module Admin
 
     before_action :set_agent, only: [
       :show, :edit, :edit_instructions, :update, :destroy, :toggle, :restore,
-      :duplicate,
+      :clone_record,
       :add_tool, :remove_tool, :add_capability, :add_subagent, :remove_subagent,
       :add_skill_catalog, :remove_skill_catalog,
     ]
@@ -53,21 +53,15 @@ module Admin
       end
     end
 
-    def duplicate
-      authorize @agent, :duplicate?
+    def clone_record
+      authorize @agent, :clone?
 
-      duplicate = @agent.dup
-      duplicate.configuration = @agent.configuration.deep_dup
-      duplicate.name = duplicate_name_for(@agent.operation.agents, @agent.name)
-      duplicate[:builtin] = false
-      duplicate.builtin = false
-      duplicate.builtin_key = nil
-      duplicate.builtin_source = nil
+      result = Admin::CloneRecordService.call(@agent)
 
-      if duplicate.save
-        redirect_to admin_agent_path(duplicate), notice: t("agents.duplicated")
+      if result.success?
+        redirect_to admin_agent_path(result.record), notice: t("agents.cloned")
       else
-        redirect_to admin_agent_path(@agent), alert: duplicate.errors.full_messages.to_sentence
+        redirect_to admin_agent_path(@agent), alert: result.errors.full_messages.to_sentence
       end
     end
 

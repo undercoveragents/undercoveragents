@@ -9,7 +9,7 @@ module Admin
       :show,
       :edit,
       :edit_instructions,
-      :duplicate,
+      :clone_record,
       :update,
       :destroy,
       :toggle,
@@ -82,17 +82,15 @@ module Admin
       render_failed_update
     end
 
-    def duplicate
-      authorize @tool, :duplicate?
+    def clone_record
+      authorize @tool, :clone?
 
-      duplicate = @tool.dup
-      duplicate.configuration = @tool.configuration.deep_dup
-      duplicate.name = duplicate_name_for(@tool.operation.tools, @tool.name)
+      result = Admin::CloneRecordService.call(@tool)
 
-      if duplicate.save
-        redirect_to admin_tool_path(duplicate), notice: t("tools.duplicated")
+      if result.success?
+        redirect_to admin_tool_path(result.record), notice: t("tools.cloned")
       else
-        redirect_to admin_tool_path(@tool), alert: duplicate.errors.full_messages.to_sentence
+        redirect_to admin_tool_path(@tool), alert: result.errors.full_messages.to_sentence
       end
     end
 

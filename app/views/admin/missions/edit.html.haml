@@ -2,7 +2,6 @@
 - form_id = "mission-form"
 - back_link = { label: "Back to Missions", url: admin_missions_path }
 - actions = []
-- actions << policy_page_hero_action(@mission, :duplicate?, label: "Duplicate", url: duplicate_admin_mission_path(@mission), icon: "fa-solid fa-copy", style: :secondary, method: :post)
 - actions << policy_page_hero_action(@mission, :designer?, label: "Open Designer", url: designer_admin_mission_path(@mission), icon: "fa-solid fa-diagram-project", style: :secondary)
 - actions << page_hero_form_action(label: "Save Changes", form_id:)
 = render_page_hero(title: "Edit Mission", variant: :compact, title_icon: "fa-solid fa-diagram-project", record_title: @mission.name, back_link:, actions:)

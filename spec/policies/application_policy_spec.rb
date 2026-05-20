@@ -79,9 +79,9 @@ RSpec.describe ApplicationPolicy do
     end
   end
 
-  describe "#duplicate?" do
-    it "denies duplicate" do
-      expect(policy.duplicate?).to be(false)
+  describe "#clone?" do
+    it "denies clone" do
+      expect(policy.clone?).to be(false)
     end
   end
 

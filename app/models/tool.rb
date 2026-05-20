@@ -56,7 +56,7 @@ class Tool < ApplicationRecord
   # JSONB configuration is copied naturally.
   amoeba do
     enable
-    prepend name: "Copy of "
+    prepend name: "Clone of "
   end
 
   def configurator

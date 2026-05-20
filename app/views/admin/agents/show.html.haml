@@ -2,7 +2,7 @@
 - content_for(:title, "#{@agent.name} — #{APP_NAME}")
 - actions = []
 - actions << policy_page_hero_action(@agent, :restore?, label: "Restore Default", url: restore_admin_agent_path(@agent), icon: "fa-solid fa-rotate-left", style: :secondary, method: :post, data: { controller: "confirm", confirm_title_value: "Restore Built-in Agent", confirm_message_value: "Restore this built-in agent to its default definition? Your custom changes will be replaced." }) if @agent.builtin?
-- actions << policy_page_hero_action(@agent, :duplicate?, label: "Duplicate", url: duplicate_admin_agent_path(@agent), icon: "fa-solid fa-copy", style: :secondary, method: :post)
+- actions << policy_page_hero_action(@agent, :clone?, label: "Clone", url: clone_admin_agent_path(@agent), icon: "fa-solid fa-copy", style: :secondary, method: :post, data: { controller: "confirm", confirm_title_value: "Clone Agent", confirm_message_value: "Create a cloned copy of #{@agent.name}? The clone will include the current configuration, tools, sub-agents, and skill catalogs.", confirm_confirm_label_value: "Clone", confirm_confirm_icon_value: "fa-solid fa-copy" })
 - actions << policy_page_hero_action(@agent, :update?, label: "Edit", url: edit_admin_agent_path(@agent), icon: "fa-solid fa-pen", style: :secondary)
 - actions << policy_page_hero_action(@agent, :destroy?, label: "Delete", url: admin_agent_path(@agent), icon: "fa-solid fa-trash", style: :danger_outline, method: :delete, data: { controller: "confirm", confirm_title_value: "Delete Agent", confirm_message_value: "Are you sure you want to delete this agent? This action cannot be undone." })
 = render_page_hero(title: "Agent", variant: :compact, title_icon: "fa-solid fa-user-secret", record_title: @agent.name, actions:)

@@ -4,7 +4,7 @@ module Admin
   class MissionsController < BaseController
     include MissionRecordContext
 
-    before_action :set_mission, only: [:designer, :edit, :update, :duplicate, :destroy]
+    before_action :set_mission, only: [:designer, :edit, :update, :clone_record, :destroy]
 
     def index
       authorize Mission
@@ -51,19 +51,15 @@ module Admin
       end
     end
 
-    def duplicate
-      authorize @mission, :duplicate?
+    def clone_record
+      authorize @mission, :clone?
 
-      duplicate = @mission.dup
-      duplicate.name = duplicate_name_for(@mission.operation.missions, @mission.name)
-      duplicate.flow_data = @mission.flow_data.deep_dup
-      duplicate.flow_undo_history = []
-      duplicate.flow_redo_history = []
+      result = Admin::CloneRecordService.call(@mission)
 
-      if duplicate.save
-        redirect_to edit_admin_mission_path(duplicate), notice: t("missions.duplicated")
+      if result.success?
+        redirect_to designer_admin_mission_path(result.record), notice: t("missions.cloned")
       else
-        redirect_to edit_admin_mission_path(@mission), alert: duplicate.errors.full_messages.to_sentence
+        redirect_to designer_admin_mission_path(@mission), alert: result.errors.full_messages.to_sentence
       end
     end
 

@@ -113,7 +113,7 @@ Rails.application.routes.draw do
     # Build section — missions, agents, tools, rag_flows, test_suites
     resources :missions do
       member do
-        post :duplicate
+        post :clone, action: :clone_record
         get :designer
         patch :save_flow, to: "mission_flows#save_flow"
         get :flow_data_json, to: "mission_flows#flow_data_json"
@@ -143,7 +143,7 @@ Rails.application.routes.draw do
         post :restore_defaults
       end
       member do
-        post :duplicate
+        post :clone, action: :clone_record
         get :edit_instructions
         patch :toggle
         post :restore
@@ -188,7 +188,7 @@ Rails.application.routes.draw do
 
     resources :tools do
       member do
-        post :duplicate
+        post :clone, action: :clone_record
         get :edit_instructions
         get :edit_widget
         patch :update_widget

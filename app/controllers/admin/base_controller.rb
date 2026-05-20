@@ -3,7 +3,6 @@
 module Admin
   class BaseController < ApplicationController
     ADMIN_REFERER_PATTERN = %r{\A(?:https?://[^/]+)?/admin(?:[/?]|\z)}
-    DUPLICATE_NAME_PREFIX = "Copy of "
 
     layout "admin"
 
@@ -25,19 +24,6 @@ module Admin
       return if request.referer.to_s.match?(ADMIN_REFERER_PATTERN)
 
       Operation.set_current_operation(session, current_tenant&.default_operation)
-    end
-
-    def duplicate_name_for(scope, source_name)
-      base_name = "#{DUPLICATE_NAME_PREFIX}#{source_name}"
-      candidate = base_name
-      suffix = 2
-
-      while scope.exists?(["LOWER(name) = ?", candidate.downcase])
-        candidate = "#{base_name} (#{suffix})"
-        suffix += 1
-      end
-
-      candidate
     end
   end
 end

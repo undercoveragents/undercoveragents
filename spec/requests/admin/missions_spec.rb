@@ -85,11 +85,10 @@ RSpec.describe "Admin::Missions" do
       expect(response).to have_http_status(:ok)
     end
 
-    it "shows the duplicate action in the shared page header" do
+    it "does not show the clone action in the edit page header" do
       get edit_admin_mission_path(mission)
 
-      expect(response.body).to include(duplicate_admin_mission_path(mission))
-      expect(response.body).to include("Duplicate")
+      expect(response.body).not_to include(clone_admin_mission_path(mission))
     end
 
     it "loads a mission from another operation in the same tenant and adopts its operation" do
@@ -148,7 +147,7 @@ RSpec.describe "Admin::Missions" do
     end
   end
 
-  describe "POST /admin/missions/:id/duplicate" do
+  describe "POST /admin/missions/:id/clone" do
     before do
       mission.update!(
         flow_data: {
@@ -161,17 +160,17 @@ RSpec.describe "Admin::Missions" do
       )
     end
 
-    it "duplicates the mission flow and redirects to the copied details page" do
+    it "clones the mission flow and redirects to the cloned designer" do
       expect do
-        post duplicate_admin_mission_path(mission)
+        post clone_admin_mission_path(mission)
       end.to change(Mission, :count).by(1)
 
-      duplicate = Mission.order(:id).last
+      clone = Mission.order(:id).last
 
-      expect(response).to redirect_to(edit_admin_mission_path(duplicate))
-      expect(flash[:notice]).to eq(I18n.t("missions.duplicated"))
-      expect(duplicate).to have_attributes(
-        name: "Copy of #{mission.name}",
+      expect(response).to redirect_to(designer_admin_mission_path(clone))
+      expect(flash[:notice]).to eq(I18n.t("missions.cloned"))
+      expect(clone).to have_attributes(
+        name: "Clone of #{mission.name}",
         description: mission.description,
         flow_data: mission.flow_data,
         flow_undo_history: [],
@@ -179,14 +178,14 @@ RSpec.describe "Admin::Missions" do
       )
     end
 
-    it "redirects back to the original mission when the duplicate is invalid" do
-      mission.update!(name: "M" * 248)
+    it "redirects back to the original mission designer when the clone is invalid" do
+      mission.update!(name: "M" * 247)
 
       expect do
-        post duplicate_admin_mission_path(mission)
+        post clone_admin_mission_path(mission)
       end.not_to change(Mission, :count)
 
-      expect(response).to redirect_to(edit_admin_mission_path(mission))
+      expect(response).to redirect_to(designer_admin_mission_path(mission))
       expect(flash[:alert]).to include("Name is too long")
     end
   end
@@ -238,6 +237,14 @@ RSpec.describe "Admin::Missions" do
       expect(hero.at_css(".page-hero__record-title")&.text).to include(mission.name)
       expect(document.at_css(".page-hero__action-group")).to be_nil
       expect(document.at_css("#mission-designer-root")).to be_present
+    end
+
+    it "shows the clone action in the mission properties tab with confirmation" do
+      get designer_admin_mission_path(mission)
+
+      expect(response.body).to include(clone_admin_mission_path(mission))
+      expect(response.body).to include("Clone Mission")
+      expect(response.body).to include("data-confirm-title-value=\"Clone Mission\"")
     end
 
     it "renders mission tabs inside the shared admin sidebar shell", :aggregate_failures do

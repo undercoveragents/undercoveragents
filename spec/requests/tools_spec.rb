@@ -268,7 +268,8 @@ RSpec.describe "Tools" do
         expect(response.body).to include("Show Tool")
         expect(response.body).to include("SQL Query")
         expect(response.body).to include(edit_widget_admin_tool_path(tool))
-        expect(response.body).to include(duplicate_admin_tool_path(tool))
+        expect(response.body).to include(clone_admin_tool_path(tool))
+        expect(response.body).to include("data-confirm-title-value=\"Clone Tool\"")
       end
 
       it "renders successfully when connector is missing" do
@@ -505,7 +506,7 @@ RSpec.describe "Tools" do
       end
     end
 
-    describe "POST /tools/:id/duplicate" do
+    describe "POST /tools/:id/clone" do
       let(:operation) { create(:operation) }
       let!(:tool) do
         create(
@@ -522,17 +523,17 @@ RSpec.describe "Tools" do
         post switch_admin_operation_path(operation), headers: { "HTTP_REFERER" => admin_tools_url }
       end
 
-      it "duplicates the tool and redirects to the copied record" do
+      it "clones the tool and redirects to the copied record" do
         expect do
-          post duplicate_admin_tool_path(tool)
+          post clone_admin_tool_path(tool)
         end.to change(Tool, :count).by(1)
 
-        duplicate = Tool.order(:id).last
+        clone = Tool.order(:id).last
 
-        expect(response).to redirect_to(admin_tool_path(duplicate))
-        expect(flash[:notice]).to eq(I18n.t("tools.duplicated"))
-        expect(duplicate).to have_attributes(
-          name: "Copy of Original Tool",
+        expect(response).to redirect_to(admin_tool_path(clone))
+        expect(flash[:notice]).to eq(I18n.t("tools.cloned"))
+        expect(clone).to have_attributes(
+          name: "Clone of Original Tool",
           description: tool.description,
           enabled: tool.enabled,
           tool_type: tool.tool_type,
@@ -540,11 +541,11 @@ RSpec.describe "Tools" do
         )
       end
 
-      it "redirects back to the original tool when the duplicate is invalid" do
+      it "redirects back to the original tool when the clone is invalid" do
         tool.update!(name: "T" * 93)
 
         expect do
-          post duplicate_admin_tool_path(tool)
+          post clone_admin_tool_path(tool)
         end.not_to change(Tool, :count)
 
         expect(response).to redirect_to(admin_tool_path(tool))

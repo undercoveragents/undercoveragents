@@ -1,7 +1,7 @@
 en:
   tools:
     created: "Tool created successfully."
-    duplicated: "Tool duplicated successfully."
+    cloned: "Tool cloned successfully."
     updated: "Tool updated successfully."
     widget_updated: "Chat widget updated successfully."
     deleted: "Tool deleted successfully."
