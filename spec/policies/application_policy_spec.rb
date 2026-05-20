@@ -79,6 +79,12 @@ RSpec.describe ApplicationPolicy do
     end
   end
 
+  describe "#clone?" do
+    it "denies clone" do
+      expect(policy.clone?).to be(false)
+    end
+  end
+
   describe "tenant-aware helpers" do
     let(:tenant) { create(:tenant) }
     let(:admin) { create(:user, :admin, tenant:) }

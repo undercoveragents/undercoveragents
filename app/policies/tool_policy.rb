@@ -17,6 +17,10 @@ class ToolPolicy < ApplicationPolicy
     operation_mutation_allowed?
   end
 
+  def clone?
+    operation_mutation_allowed?
+  end
+
   def destroy?
     operation_mutation_allowed?
   end

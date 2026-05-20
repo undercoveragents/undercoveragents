@@ -15,6 +15,7 @@ en:
               cyclic_reference: "would create a cyclic reference"
   agents:
     created: "Agent created successfully."
+    cloned: "Agent cloned successfully."
     updated: "Agent updated successfully."
     deleted: "Agent deleted successfully."
     enabled: "Agent enabled."

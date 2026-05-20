@@ -207,6 +207,48 @@ RSpec.describe RuntimeRecords::Manager do
     end
   end
 
+  describe "#clone" do
+    it "clones a mission onto the default designer page with reset history", :aggregate_failures do
+      mission = create(
+        :mission,
+        operation:,
+        name: "Original Mission",
+        flow_data: { "nodes" => [{ "id" => "node-1" }] },
+        flow_undo_history: [{ "nodes" => [] }],
+        flow_redo_history: [{ "nodes" => [] }],
+      )
+
+      result = manager.clone(resource: "mission", record_id: mission.id)
+
+      expect(result.record).to be_persisted
+      expect(result.record.name).to eq("Clone of Original Mission")
+      expect(result.record.flow_data).to eq(mission.flow_data)
+      expect(result.record.flow_undo_history).to eq([])
+      expect(result.record.flow_redo_history).to eq([])
+      expect(result.path).to eq(Rails.application.routes.url_helpers.designer_admin_mission_path(result.record))
+    end
+
+    it "rejects clone requests for unsupported resources" do
+      skill_catalog = create(:skill_catalog, operation:, name: "Support")
+
+      expect do
+        manager.clone(resource: "skill_catalog", record_id: skill_catalog.id)
+      end.to raise_error(ArgumentError, "Clone is not supported for skill catalogs.")
+    end
+
+    it "raises record invalid when the clone service returns an unsaved clone" do
+      mission = create(:mission, operation:, name: "Original Mission")
+      invalid_clone = build(:mission, operation:, name: "")
+      invalid_clone.valid?
+      clone_result = Admin::CloneRecordService::Result.new(invalid_clone)
+      allow(Admin::CloneRecordService).to receive(:call).with(mission).and_return(clone_result)
+
+      expect do
+        manager.clone(resource: "mission", record_id: mission.id)
+      end.to raise_error(ActiveRecord::RecordInvalid)
+    end
+  end
+
   describe "#update" do
     it "normalizes Agent Designer reasoning-off updates for DeepSeek agents" do
       create(:model, model_id: "deepseek-v4-flash", provider: "deepseek", capabilities: ["reasoning"])

@@ -9,6 +9,7 @@ module Admin
 
     before_action :set_agent, only: [
       :show, :edit, :edit_instructions, :update, :destroy, :toggle, :restore,
+      :clone_record,
       :add_tool, :remove_tool, :add_capability, :add_subagent, :remove_subagent,
       :add_skill_catalog, :remove_skill_catalog,
     ]
@@ -49,6 +50,18 @@ module Admin
         redirect_to admin_agent_path(@agent), notice: t("agents.updated")
       else
         render_failed_update
+      end
+    end
+
+    def clone_record
+      authorize @agent, :clone?
+
+      result = Admin::CloneRecordService.call(@agent)
+
+      if result.success?
+        redirect_to admin_agent_path(result.record), notice: t("agents.cloned")
+      else
+        redirect_to admin_agent_path(@agent), alert: result.errors.full_messages.to_sentence
       end
     end
 

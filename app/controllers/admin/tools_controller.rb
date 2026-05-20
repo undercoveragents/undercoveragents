@@ -9,6 +9,7 @@ module Admin
       :show,
       :edit,
       :edit_instructions,
+      :clone_record,
       :update,
       :destroy,
       :toggle,
@@ -79,6 +80,18 @@ module Admin
       redirect_to admin_tool_path(@tool), notice: t("tools.updated")
     rescue ActiveRecord::RecordInvalid
       render_failed_update
+    end
+
+    def clone_record
+      authorize @tool, :clone?
+
+      result = Admin::CloneRecordService.call(@tool)
+
+      if result.success?
+        redirect_to admin_tool_path(result.record), notice: t("tools.cloned")
+      else
+        redirect_to admin_tool_path(@tool), alert: result.errors.full_messages.to_sentence
+      end
     end
 
     def update_widget

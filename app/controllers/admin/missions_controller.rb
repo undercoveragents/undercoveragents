@@ -4,7 +4,7 @@ module Admin
   class MissionsController < BaseController
     include MissionRecordContext
 
-    before_action :set_mission, only: [:designer, :edit, :update, :destroy]
+    before_action :set_mission, only: [:designer, :edit, :update, :clone_record, :destroy]
 
     def index
       authorize Mission
@@ -48,6 +48,18 @@ module Admin
         redirect_to admin_missions_path, notice: t("missions.updated")
       else
         render :edit, status: :unprocessable_content
+      end
+    end
+
+    def clone_record
+      authorize @mission, :clone?
+
+      result = Admin::CloneRecordService.call(@mission)
+
+      if result.success?
+        redirect_to designer_admin_mission_path(result.record), notice: t("missions.cloned")
+      else
+        redirect_to designer_admin_mission_path(@mission), alert: result.errors.full_messages.to_sentence
       end
     end
 

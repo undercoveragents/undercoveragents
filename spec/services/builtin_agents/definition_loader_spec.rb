@@ -37,7 +37,7 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
 
   def expected_agent_alpha_delegation_fragments
     [
-      "create a mission, create an agent, create a tool, create a channel, " \
+      "create or clone a mission, create or clone an agent, create or clone a tool, create a channel, " \
       "create a skill catalog, create a skill, create a test suite, or create a test, delegate directly",
       "Do NOT call `list_resources` first for creation requests",
       "explicitly asks for an inventory, list, or availability check before creation",

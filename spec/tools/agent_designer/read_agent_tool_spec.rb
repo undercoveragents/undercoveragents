@@ -28,6 +28,7 @@ RSpec.describe AgentDesigner::ReadAgentTool do
       "Use {{task}} to help.",
       "## Editable Attribute Keys",
       "`assigned_tool_ids`",
+      "manage_record(action: \"clone\", resource: \"agent\"",
       "Capability configuration goes through `manage_capability`",
     ]
   end

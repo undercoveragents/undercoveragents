@@ -85,6 +85,12 @@ RSpec.describe "Admin::Missions" do
       expect(response).to have_http_status(:ok)
     end
 
+    it "does not show the clone action in the edit page header" do
+      get edit_admin_mission_path(mission)
+
+      expect(response.body).not_to include(clone_admin_mission_path(mission))
+    end
+
     it "loads a mission from another operation in the same tenant and adopts its operation" do
       headquarter = default_tenant.headquarter_operation
 
@@ -141,6 +147,49 @@ RSpec.describe "Admin::Missions" do
     end
   end
 
+  describe "POST /admin/missions/:id/clone" do
+    before do
+      mission.update!(
+        flow_data: {
+          "nodes" => [{ "id" => "n1", "type" => "input" }],
+          "edges" => [],
+          "global_variables" => [{ "key" => "region", "value" => "eu-west", "type" => "string" }],
+        },
+        flow_undo_history: [{ "nodes" => [{ "id" => "old" }], "edges" => [] }],
+        flow_redo_history: [{ "nodes" => [{ "id" => "future" }], "edges" => [] }],
+      )
+    end
+
+    it "clones the mission flow and redirects to the cloned designer" do
+      expect do
+        post clone_admin_mission_path(mission)
+      end.to change(Mission, :count).by(1)
+
+      clone = Mission.order(:id).last
+
+      expect(response).to redirect_to(designer_admin_mission_path(clone))
+      expect(flash[:notice]).to eq(I18n.t("missions.cloned"))
+      expect(clone).to have_attributes(
+        name: "Clone of #{mission.name}",
+        description: mission.description,
+        flow_data: mission.flow_data,
+        flow_undo_history: [],
+        flow_redo_history: [],
+      )
+    end
+
+    it "redirects back to the original mission designer when the clone is invalid" do
+      mission.update!(name: "M" * 247)
+
+      expect do
+        post clone_admin_mission_path(mission)
+      end.not_to change(Mission, :count)
+
+      expect(response).to redirect_to(designer_admin_mission_path(mission))
+      expect(flash[:alert]).to include("Name is too long")
+    end
+  end
+
   describe "GET /admin/missions/:id/designer" do
     def activity_bar_descriptor(child)
       return "assistant" if child["data-sidebar-tab"] == "assistant"
@@ -188,6 +237,14 @@ RSpec.describe "Admin::Missions" do
       expect(hero.at_css(".page-hero__record-title")&.text).to include(mission.name)
       expect(document.at_css(".page-hero__action-group")).to be_nil
       expect(document.at_css("#mission-designer-root")).to be_present
+    end
+
+    it "shows the clone action in the mission properties tab with confirmation" do
+      get designer_admin_mission_path(mission)
+
+      expect(response.body).to include(clone_admin_mission_path(mission))
+      expect(response.body).to include("Clone Mission")
+      expect(response.body).to include("data-confirm-title-value=\"Clone Mission\"")
     end
 
     it "renders mission tabs inside the shared admin sidebar shell", :aggregate_failures do

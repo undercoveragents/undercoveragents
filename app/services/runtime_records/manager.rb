@@ -56,6 +56,32 @@ module RuntimeRecords
       )
     end
 
+    def clone(resource:, record_id:)
+      definition = Registry.fetch(resource)
+      unless definition.clone_supported
+        raise ArgumentError, "Clone is not supported for #{definition.label.downcase.pluralize}."
+      end
+
+      record = find_record!(definition, record_id)
+      authorize!(record, :clone?)
+
+      clone_result = Admin::CloneRecordService.call(record)
+      raise ActiveRecord::RecordInvalid, clone_result.record unless clone_result.success?
+
+      cloned_record = clone_result.record
+
+      Result.new(
+        action: :clone,
+        definition:,
+        record: cloned_record,
+        path: definition.path_for(
+          definition.default_page_for(record: cloned_record, context: @context),
+          record: cloned_record,
+          context: @context,
+        ),
+      )
+    end
+
     def navigation_path(resource:, page:, record_id: nil)
       definition = Registry.fetch(resource)
       record = record_id.present? ? find_record!(definition, record_id) : nil

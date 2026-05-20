@@ -24,3 +24,4 @@ Use this skill for general questions about tools in the platform.
 - Explain tools as operational abilities, not as long-form reference material.
 - If a user is asking about setup, start with the owning operation and any required connector.
 - If a user is asking about runtime behavior, move from assignment to recent tool activity.
+- Tool show pages support a Clone action for creating a new tool in the same operation when the user wants to reuse an existing configuration as a starting point.

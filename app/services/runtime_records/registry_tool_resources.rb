@@ -12,6 +12,7 @@ module RuntimeRecords
         permitted_attributes: RuntimeRecords::TOOL_PERMITTED_ATTRIBUTES,
         scope_resolver: method(:tool_scope),
         base_attributes: method(:tool_base_attributes),
+        clone_supported: true,
         default_page: "show",
         page_resolver: method(:tool_page_path),
         create_handler: method(:tool_create),

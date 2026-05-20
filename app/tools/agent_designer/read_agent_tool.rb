@@ -53,7 +53,7 @@ module AgentDesigner
         input_schema_section(agent),
         custom_params_section(agent),
         instructions_section(agent),
-        editable_fields_section,
+        editable_fields_section(agent),
       ].compact.join("\n\n")
     rescue ActiveRecord::RecordNotFound => e
       "Error: #{e.message}"
@@ -156,13 +156,14 @@ module AgentDesigner
       "## Instructions\n```text\n#{rendered_instructions}\n```"
     end
 
-    def editable_fields_section
+    def editable_fields_section(agent)
       [
         "## Editable Attribute Keys",
         *AgentDesigner::READ_AGENT_EDITABLE_FIELDS.map { |field| "- `#{field}`" },
         "- Array and hash fields replace the full stored value on update, so reread first and send the " \
         "complete desired value when changing `input_schema`, `assigned_tool_ids`, `subagent_ids`, " \
         "`skill_catalog_ids`, or `custom_llm_params`.",
+        "- Use `manage_record(action: \"clone\", resource: \"agent\", record_id: #{agent.id})` to clone this agent.",
         "- Capability configuration goes through `manage_capability`, not `manage_record`.",
         "- Builtin runtime tools and builtin metadata are read-only in `manage_record`.",
       ].join("\n")

@@ -30,3 +30,4 @@ Use this skill for general questions about what missions are and why someone wou
 - Explain missions as workflows the team can revisit, improve, and debug over time.
 - If a user wants a single conversational behavior, an agent may be enough.
 - If the user wants a repeatable operating flow, a mission is usually the stronger fit.
+- Mission designer properties include a Clone action that copies the workflow into a new mission in the same operation while resetting undo and redo history on the clone.

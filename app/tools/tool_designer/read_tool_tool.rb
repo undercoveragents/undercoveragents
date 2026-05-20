@@ -27,6 +27,7 @@ module ToolDesigner
         assignments_section(tool),
         state_section(tool),
         configuration_section(tool),
+        admin_actions_section(tool),
         ToolDesigner::TypeCatalog.new(tool.tool_type).render,
       ].compact.join("\n\n")
     rescue ActiveRecord::RecordNotFound => e
@@ -75,6 +76,15 @@ module ToolDesigner
     def configuration_section(tool)
       configuration = tool.configuration.presence || {}
       "## Current Configuration\n```json\n#{JSON.pretty_generate(configuration)}\n```"
+    end
+
+    def admin_actions_section(tool)
+      [
+        "## Admin Actions",
+        "- Use `manage_record(action: \"clone\", resource: \"tool\", record_id: #{tool.id})` to clone this tool.",
+        "- Use `manage_tool_action` for discovery and visibility changes instead of editing " \
+        "action-managed state directly.",
+      ].join("\n")
     end
 
     def assigned_agents(tool)

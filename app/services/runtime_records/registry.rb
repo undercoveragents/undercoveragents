@@ -64,13 +64,14 @@ module RuntimeRecords
       :permitted_attributes,
       :scope_resolver,
       :base_attributes,
+      :clone_supported,
       :default_page,
       :page_resolver,
       :create_handler,
       :update_handler,
     ) do
       def initialize(**attributes)
-        super(create_handler: nil, update_handler: nil, **attributes)
+        super(clone_supported: false, create_handler: nil, update_handler: nil, **attributes)
       end
 
       def scope_for(context)

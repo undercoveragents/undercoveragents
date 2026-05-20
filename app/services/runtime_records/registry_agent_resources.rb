@@ -12,6 +12,7 @@ module RuntimeRecords
         permitted_attributes: RuntimeRecords::AGENT_PERMITTED_ATTRIBUTES,
         scope_resolver: method(:agent_scope),
         base_attributes: method(:agent_base_attributes),
+        clone_supported: true,
         default_page: "show",
         page_resolver: method(:agent_page_path),
         create_handler: nil,

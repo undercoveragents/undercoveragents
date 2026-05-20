@@ -12,6 +12,7 @@ module RuntimeRecords
         permitted_attributes: ["name", "description"],
         scope_resolver: method(:mission_scope),
         base_attributes: method(:mission_base_attributes),
+        clone_supported: true,
         default_page: "designer",
         page_resolver: method(:mission_page_path),
         create_handler: nil,
