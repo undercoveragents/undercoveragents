@@ -32,7 +32,6 @@ RSpec.describe AgentDesigner::ReadAgentTool do
       "`assigned_tool_ids`",
       "manage_record(action: \"clone\", resource: \"agent\"",
       "`model_routing_config`",
-      "manage_record(action: \"clone\", resource: \"agent\"",
       "Capability configuration goes through `manage_capability`",
     ]
   end

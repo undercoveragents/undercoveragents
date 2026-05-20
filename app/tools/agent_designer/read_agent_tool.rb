@@ -85,7 +85,7 @@ module AgentDesigner
         input_schema_section(agent),
         custom_params_section(agent),
         instructions_section(agent),
-        editable_fields_section,
+        editable_fields_section(agent),
       ]
     end
 
