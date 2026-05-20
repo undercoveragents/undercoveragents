@@ -75,6 +75,23 @@ RSpec.describe WebSearch::HttpClient do
         client.fetch_text("https://example.com/network-timeout", max_bytes: 50, allowed_content_types: ["text/html"])
       end.to raise_error(WebSearch::Error, /Network request failed/)
     end
+
+    it "supports custom headers and can disable range requests" do
+      stub_request(:get, "https://example.com/api/search")
+        .with(headers: { "X-Test-Token" => "secret-token", "Accept" => "application/json" })
+        .to_return(status: 200, body: "{\"ok\":true}", headers: { "Content-Type" => "application/json" })
+
+      client.fetch_text(
+        "https://example.com/api/search",
+        max_bytes: 200,
+        allowed_content_types: ["application/json"],
+        headers: { "X-Test-Token" => "secret-token" },
+        range_request: false,
+      )
+
+      expect(a_request(:get, "https://example.com/api/search")
+        .with { |request| request.headers["Range"].blank? }).to have_been_made.once
+    end
   end
 
   describe "private helpers" do
@@ -114,6 +131,10 @@ RSpec.describe WebSearch::HttpClient do
       client.send(:http_client_for, URI("https://example.com"))
 
       expect(http).not_to have_received(:write_timeout=)
+    end
+
+    it "falls back to a generic accept header when no content types are provided" do
+      expect(client.send(:accept_header_for, [])).to eq("*/*")
     end
   end
 end

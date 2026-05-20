@@ -1,0 +1,16 @@
+.detail-grid
+  .detail-item
+    .detail-label Provider
+    .detail-value Brave Search
+
+  .detail-item
+    .detail-label API Key
+    .detail-value
+      - if connector.api_key_configured?
+        %span.inline-flex.items-center.gap-1.px-2.rounded-full.text-xs.font-medium.text-success-500{ class: "py-0.5 bg-success-500/10" }
+          %i.fa-solid.fa-lock.text-xs
+          Configured
+      - else
+        %span.inline-flex.items-center.gap-1.px-2.rounded-full.text-xs.font-medium.text-warning-500{ class: "py-0.5 bg-warning-500/10" }
+          %i.fa-solid.fa-lock-open.text-xs
+          Not configured

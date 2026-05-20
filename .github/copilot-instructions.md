@@ -324,7 +324,7 @@ Each node class under `app/models/missions/nodes/` is **self-contained** — all
 
 Builtin/internal agents are normal `Agent` records synchronized from TOML definitions, not `RubyLLM::Agent` subclasses.
 
-- Shared builtin web research is split between the runtime tool keys `web.web_search` and `web.web_fetch`, exposed to Agent Alpha and the designer builtins. Keep search provider implementations plugin-backed, use `web_search` only to discover relevant public URLs, and use `web_fetch` only for the smallest number of specific public pages needed. Both paths must validate hosts through `WebSearch::Safety`, cap downloaded bytes, and return focused snippets instead of whole-page dumps.
+- Shared builtin web research is split between the runtime tool keys `web.web_search` and `web.web_fetch`, exposed to Agent Alpha and the designer builtins. Keep search provider implementations plugin-backed, use `web_search` only to discover relevant public URLs, and use `web_fetch` only for the smallest number of specific public pages needed. Provider-specific secrets must stay in encrypted connector-backed config owned by the relevant plugin; for example Brave Search uses its own connector plugin for the API key while DuckDuckGo remains unauthenticated. Both paths must validate hosts through `WebSearch::Safety`, cap downloaded bytes, and return focused snippets instead of whole-page dumps.
 
 - The admin agent UI is split deliberately: `GET /admin/agents/new` and `GET /admin/agents/:id/edit` own configuration only, `GET /admin/agents/:id/edit_instructions` owns system instructions only, and input-parameter add/edit/remove flows live on the agent show page through the shared schema-fields dialog.
 

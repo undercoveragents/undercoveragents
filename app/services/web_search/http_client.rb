@@ -12,14 +12,21 @@ module WebSearch
     OPEN_TIMEOUT = 5
     READ_TIMEOUT = 8
 
-    def fetch_text(uri_or_url, max_bytes:, allowed_content_types:, redirects_remaining: REDIRECT_LIMIT)
+    def fetch_text(uri_or_url, max_bytes:, allowed_content_types:, redirects_remaining: REDIRECT_LIMIT,
+                   **request_options)
       uri = uri_or_url.is_a?(URI::Generic) ? uri_or_url : Safety.validate_public_url!(uri_or_url)
-      payload = perform_request(uri, max_bytes:, allowed_content_types:)
+      payload = perform_request(
+        uri,
+        max_bytes:,
+        allowed_content_types:,
+        headers: request_options.fetch(:headers, {}),
+        range_request: request_options.fetch(:range_request, true),
+      )
 
       finalize_response(
         uri:,
         payload:,
-        request_options: { max_bytes:, allowed_content_types: },
+        request_options: { max_bytes:, allowed_content_types: }.merge(request_options),
         redirects_remaining:,
       )
     rescue Net::OpenTimeout, Net::ReadTimeout, IOError, OpenSSL::SSL::SSLError, SocketError => e
@@ -28,10 +35,12 @@ module WebSearch
 
     private
 
-    def perform_request(uri, max_bytes:, allowed_content_types:)
+    def perform_request(uri, max_bytes:, allowed_content_types:, headers:, range_request:)
       payload = { body: +"", truncated: false, response: nil }
 
-      http_client_for(uri).request(request_for(uri, max_bytes:, allowed_content_types:)) do |http_response|
+      request = request_for(uri, max_bytes:, allowed_content_types:, headers:, range_request:)
+
+      http_client_for(uri).request(request) do |http_response|
         payload[:response] = http_response
         next if redirect_response?(http_response)
 
@@ -51,20 +60,18 @@ module WebSearch
       end
     end
 
-    def request_for(uri, max_bytes:, allowed_content_types:)
+    def request_for(uri, max_bytes:, allowed_content_types:, headers:, range_request:)
       Net::HTTP::Get.new(uri.request_uri).tap do |request|
         request["User-Agent"] = USER_AGENT
         request["Accept"] = accept_header_for(allowed_content_types)
-        request["Range"] = "bytes=0-#{max_bytes - 1}"
+        request["Range"] = "bytes=0-#{max_bytes - 1}" if range_request
+        headers.each { |key, value| request[key] = value }
       end
     end
 
     def accept_header_for(allowed_content_types)
-      if allowed_content_types.include?("text/plain")
-        "text/html,application/xhtml+xml,text/plain;q=0.9"
-      else
-        "text/html,application/xhtml+xml"
-      end
+      types = Array(allowed_content_types).compact_blank
+      types.present? ? types.join(",") : "*/*"
     end
 
     def ensure_supported_content_type!(response, allowed_content_types)

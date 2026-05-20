@@ -43,12 +43,19 @@ RSpec.describe "Connectors" do
       get new_admin_connector_path
       expect(response.body).to include("SQL Database")
       expect(response.body).to include("LLM Provider")
+      expect(response.body).to include("Brave Search")
     end
 
     it "shows LLM Provider form when type=llm_provider" do
       get new_admin_connector_path(type: "llm_provider")
       expect(response.body).to include("Provider")
       expect(response.body).to include("LLM Provider")
+    end
+
+    it "shows Brave Search form when type=brave_search" do
+      get new_admin_connector_path(type: "brave_search")
+      expect(response.body).to include("Brave Search Configuration")
+      expect(response.body).to include("API Key")
     end
 
     it "shows MCP Server form when type=mcp_server" do
@@ -254,6 +261,28 @@ RSpec.describe "Connectors" do
       end
     end
 
+    context "with Brave Search connector" do
+      let(:valid_params) do
+        {
+          connector_type: "brave_search",
+          connector: { name: "Brave Search", description: "Authenticated web search" },
+          brave_search: { api_key: "brave-secret-key" },
+        }
+      end
+
+      it "creates a new Brave Search connector" do
+        expect { post admin_connectors_path, params: valid_params }
+          .to change(Connector, :count).by(1)
+          .and change(Connectors::BraveSearch, :count).by(1)
+      end
+
+      it "saves the encrypted api key" do
+        post admin_connectors_path, params: valid_params
+
+        expect(Connectors::BraveSearch.last.api_key).to eq("brave-secret-key")
+      end
+    end
+
     context "with an unknown connector_type" do
       it "builds a connector without type-specific params and attempts to save" do
         post admin_connectors_path, params: {
@@ -342,6 +371,18 @@ RSpec.describe "Connectors" do
         expect(response.body).to include("HTTP Version")
         expect(response.body).to include("Custom Headers")
         expect(response.body).to include("OAuth")
+      end
+    end
+
+    context "with a Brave Search connector" do
+      let(:brave_connector) { create(:connectors_brave_search, name: "Brave Search Connector") }
+
+      it "displays the Brave Search details" do
+        get admin_connector_path(brave_connector)
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("Brave Search Connector")
+        expect(response.body).to include("Brave Search")
+        expect(response.body).to include("Configured")
       end
     end
   end
