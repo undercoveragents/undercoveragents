@@ -1,3 +1,23 @@
+<%
+def worktree_test_database_name(prefix)
+  suffix = if ENV["CI"]
+    "ci"
+  else
+    root = `git rev-parse --show-toplevel 2>/dev/null`.strip
+    name = File.basename(root.to_s)
+      .downcase
+      .gsub(/[^a-z0-9]+/, "_")
+      .gsub(/\A_+|_+\z/, "")
+
+    name.empty? ? "default" : name
+  end
+
+  "#{prefix}_#{suffix}"
+rescue StandardError
+  prefix
+end
+%>
+
 # PostgreSQL. Versions 9.3 and up are supported.
 #
 # Install the pg driver:
@@ -38,10 +58,10 @@ development:
 test:
   primary:
     <<: *default
-    database: undercover_agents_test
+    database: <%= worktree_test_database_name("undercover_agents_test") %>
   queue:
     <<: *default
-    database: undercover_agents_test_queue
+    database: <%= worktree_test_database_name("undercover_agents_test_queue") %>
     migrations_paths: db/queue_migrate
 
 # As with config/credentials.yml, you never want to store sensitive information,
