@@ -3,25 +3,8 @@
 require "rails_helper"
 
 RSpec.describe SafeWebSearchTool do
-  let(:client) { instance_double(WebSearch::Client) }
-  let(:tool) { described_class.new(client:) }
-
-  def page_result
-    WebSearch::Client::PageResult.new(
-      url: "https://guides.rubyonrails.org/",
-      title: "Rails Guides",
-      description: "Official docs",
-      snippets: ["Important snippet"],
-      links: [
-        WebSearch::Client::RelatedLink.new(
-          text: "Getting Started",
-          url: "https://guides.rubyonrails.org/getting_started.html",
-        ),
-      ],
-      content_type: "text/html",
-      truncated: true,
-    )
-  end
+  let(:service) { instance_double(WebSearch::SearchService) }
+  let(:tool) { described_class.new(service:) }
 
   describe "#name" do
     it "returns the runtime tool name" do
@@ -31,36 +14,36 @@ RSpec.describe SafeWebSearchTool do
 
   describe "#execute" do
     it "formats search results" do
-      result = WebSearch::Client::SearchResult.new(
+      result = WebSearch::SearchResult.new(
         title: "Rails Guides",
         url: "https://guides.rubyonrails.org/",
         display_url: "guides.rubyonrails.org",
         snippet: "Official Rails documentation.",
       )
-      allow(client).to receive(:search).with(query: "rails guide", page: 2, max_results: 3).and_return([result])
+      allow(service).to receive(:search).with(query: "rails guide", page: 2, max_results: 3).and_return([result])
 
-      response = tool.execute(action: "search", query: "rails guide", page: 2, max_results: 3)
+      response = tool.execute(query: "rails guide", page: 2, max_results: 3)
 
       expect(response).to include("Search query: rails guide")
       expect(response).to include("Page: 2")
       expect(response).to include("1. Rails Guides")
       expect(response).to include("URL: https://guides.rubyonrails.org/")
-      expect(response).to include('call safe_web_search with action="read"')
+      expect(response).to include("call web_fetch")
     end
 
     it "formats empty search results" do
-      allow(client).to receive(:search).with(query: "rails guide", page: nil, max_results: nil).and_return([])
+      allow(service).to receive(:search).with(query: "rails guide", page: nil, max_results: nil).and_return([])
 
-      response = tool.execute(action: "search", query: "rails guide")
+      response = tool.execute(query: "rails guide")
 
       expect(response).to include("Results: 0")
       expect(response).to include("No public search results were returned.")
     end
 
     it "omits optional search-result lines when display metadata is blank" do
-      allow(client).to receive(:search).and_return(
+      allow(service).to receive(:search).and_return(
         [
-          WebSearch::Client::SearchResult.new(
+          WebSearch::SearchResult.new(
             title: "Plain Result",
             url: "https://example.com",
             display_url: nil,
@@ -69,69 +52,26 @@ RSpec.describe SafeWebSearchTool do
         ],
       )
 
-      response = tool.execute(action: "search", query: "plain")
+      response = tool.execute(query: "plain")
 
       expect(response).to include("Plain Result")
       expect(response).not_to include("Site:")
       expect(response).not_to include("Snippet:")
     end
 
-    it "formats page reads and flattened URL inputs" do
-      allow(client).to receive(:read)
-        .with(
-          urls: [
-            "https://guides.rubyonrails.org/",
-            "https://guides.rubyonrails.org/getting_started.html",
-          ],
-          focus: "defaults",
-        )
-        .and_return([page_result])
+    it "uses the provider override when requested" do
+      provider_service = instance_double(WebSearch::SearchService, search: [])
+      allow(WebSearch::SearchService).to receive(:new).with(provider: "duckduckgo").and_return(provider_service)
 
-      response = tool.execute(
-        action: "read",
-        url: "https://guides.rubyonrails.org/",
-        urls: ["https://guides.rubyonrails.org/getting_started.html"],
-        focus: "defaults",
-      )
+      tool.execute(query: "rails", provider: "duckduckgo")
 
-      expect(response).to include("Focus: defaults")
-      expect(response).to include("Pages read: 1")
-      expect(response).to include("Title: Rails Guides")
-      expect(response).to include("Fetched only the initial capped page content.")
-      expect(response).to include("- Getting Started: https://guides.rubyonrails.org/getting_started.html")
+      expect(provider_service).to have_received(:search).with(query: "rails", page: nil, max_results: nil)
     end
 
-    it "formats page reads with no snippets or links" do
-      allow(client).to receive(:read).and_return(
-        [
-          WebSearch::Client::PageResult.new(
-            url: "https://example.com",
-            title: "",
-            description: "",
-            snippets: [],
-            links: [],
-            content_type: "text/html",
-            truncated: false,
-          ),
-        ],
-      )
+    it "surfaces service failures" do
+      allow(service).to receive(:search).and_raise(WebSearch::Error, "boom")
 
-      response = tool.execute(action: "read", url: "https://example.com")
-
-      expect(response).to include("Relevant snippets: none extracted.")
-      expect(response).not_to include("Related same-site links:")
-    end
-
-    it "returns a clear error for unsupported actions" do
-      expect(tool.execute(action: "unknown")).to include("Unknown action")
-    end
-
-    it "surfaces safety and client failures" do
-      allow(client).to receive(:search).and_raise(WebSearch::Client::Error, "boom")
-      expect(tool.execute(action: "search", query: "rails")).to eq("Web search failed: boom")
-
-      allow(client).to receive(:read).and_raise(WebSearch::Safety::Error, "unsafe")
-      expect(tool.execute(action: "read", url: "https://example.com")).to eq("Web search failed: unsafe")
+      expect(tool.execute(query: "rails")).to eq("Web search failed: boom")
     end
   end
 end

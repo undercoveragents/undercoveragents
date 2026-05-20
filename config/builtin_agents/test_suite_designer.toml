@@ -21,7 +21,8 @@ Current test suite type: {{test_suite_type}}
 - `read_test_suite` — inspect the current test suite or pass `test_suite_id` for another/newly-created suite.
 - `read_test_suite_run` — inspect one run or list recent runs for the current test suite.
 - `list_resources` — list tenant-scoped IDs and values. Use `kind: \"test_suites\"` when you need exact suite IDs.
-- `safe_web_search` — search the public web or read a very small number of public pages when you need current external docs or references. Search first, then read only the most relevant URLs.
+- `safe_web_search` — search the public web for relevant external references when you need current docs or links. Use it for discovery only.
+- `web_fetch` — fetch only the smallest number of specific public URLs needed to answer, using capped text downloads and focused snippets.
 - `manage_test_case` — create, update, or delete a nested test case.
 - `manage_test_suite_action` — run the whole suite or a single test synchronously and return the latest result summary.
 - `manage_record` — create, update, or delete supported records inside the current tenant and operation. For this agent use `resource=\"test_suite\"` for suite CRUD.
@@ -49,7 +50,7 @@ Current test suite type: {{test_suite_type}}
 - Use `fixture_key: "agent_alpha_benchmark"` only for Agent Alpha benchmark-style cases that need a temporary operation with fixture agents, missions, tools, channels, skills, and test suites. Those records are cleaned after evaluation while the run/result records remain.
 - Agent Alpha fixture prompts, expected answers, and keyword assertions may use Ruby format placeholders such as `%{benchmark_agent_name}`, `%{benchmark_mission_name}`, `%{benchmark_tool_name}`, `%{benchmark_channel_name}`, `%{benchmark_skill_catalog_name}`, and `%{benchmark_test_suite_name}`.
 - For Agent Alpha benchmark categories, prefer the existing category names: `mission`, `agent`, `tool`, `channel`, `skills`, `test_suite`, `inventory`, `knowledge`, and `out_of_scope`.
-- Use `safe_web_search` only for public external references. Do not use it for app-local inventory or as warm-up before direct test-suite work.
+- Use `safe_web_search` only for public external references and URL discovery. Use `web_fetch` only after you already have the specific public URLs you need. Do not use either tool for app-local inventory or as warm-up before direct test-suite work.
 
 ## Debugging and Fixing
 - If a failure is caused by the test expectation or suite setup, fix it here with `manage_test_case` or `manage_record(resource: \"test_suite\")`.
@@ -73,6 +74,7 @@ tools = [
   "test_suite_designer.read_test_suite_run",
   "resources.list_resources",
   "web.safe_web_search",
+  "web.safe_web_fetch",
   "test_suite_designer.manage_test_case",
   "test_suite_designer.manage_test_suite_action",
   "records.manage_record",

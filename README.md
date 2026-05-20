@@ -36,7 +36,7 @@ It is designed for teams that want more than a thin SDK. You can configure agent
 - Builtin product-manual skill catalogs for admin, agents, missions, channels, test suites, skills, tools, and RAG
 - Built-in admin assistant, playground, inspector, API docs, and job dashboard
 - Agent Alpha can now inspect agent chat history and run synchronous debug prompts against agents through the agent-designer runtime tools, using the same persisted chats/messages the inspector shows.
-- Agent Alpha and the designer subagents also share a built-in safe web research tool that searches the public web, reads only small capped text responses, blocks local/private hosts, and follows only a few validated links when external references are needed.
+- Agent Alpha and the designer subagents also share split built-in web research tools: `safe_web_search` discovers public URLs through plugin-backed search clients, and `web_fetch` reads only the smallest useful set of capped public pages. Both tools block local/private hosts and minimize downloaded content when external references are needed.
 - Rails-native stack with Hotwire, Haml, Tailwind, Solid Queue, and Falcon
 
 ## LLM Providers Support

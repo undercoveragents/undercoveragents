@@ -17,6 +17,8 @@ RSpec.describe BuiltinTools::Registrations do
 
     expect(BuiltinTools::Registry.definition_for("web.safe_web_search")&.runtime_name)
       .to eq("safe_web_search")
+    expect(BuiltinTools::Registry.definition_for("web.safe_web_fetch")&.runtime_name)
+      .to eq("web_fetch")
     expect(BuiltinTools::Registry.definition_for("agent_designer.manage_agent_action")&.runtime_name)
       .to eq("manage_agent_action")
     expect(BuiltinTools::Registry.definition_for("agent_designer.read_agent_chat")&.runtime_name)

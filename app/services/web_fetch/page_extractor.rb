@@ -4,7 +4,7 @@ require "nokogiri"
 require "public_suffix"
 require "uri"
 
-module WebSearch
+module WebFetch
   class PageExtractor
     LINK_LIMIT = 6
     SNIPPET_LIMIT = 6
@@ -24,26 +24,40 @@ module WebSearch
     def call
       return extract_plain_text_page if @response.content_type == "text/plain"
 
-      document = Nokogiri::HTML5(@response.body)
-      document.css(REMOVED_HTML_SELECTORS).remove
-      root = document.at_css("main, article, [role='main']") || document.at_css("body") || document
-      build_html_page(document, root)
+      extract_html_page
     end
 
     private
+
+    def extract_html_page
+      document = Nokogiri::HTML5(@response.body)
+      document.css(REMOVED_HTML_SELECTORS).remove
+      root = document_root(document)
+
+      PageResult.new(
+        url: @response.uri,
+        title: normalize_text(document.at_css("title")&.text),
+        description: normalize_text(document.at_css("meta[name='description']")&.[]("content")),
+        snippets: select_snippets(text_blocks_from(root), fallback_text: normalize_text(root.text)),
+        links: extract_related_links(root, base_url: @response.uri),
+        content_type: @response.content_type.presence || "text/html",
+        truncated: @response.truncated,
+      )
+    end
+
+    def document_root(document)
+      document.at_css("main, article, [role='main']") || document.at_css("body") || document
+    end
 
     def extract_plain_text_page
       blocks = @response.body.to_s.split(/\n{2,}/).map.with_index do |text, index|
         cleaned = normalize_text(text)
         next if cleaned.length < TEXT_MIN_LENGTH
 
-        {
-          text: truncate_block(cleaned),
-          score: score_text(cleaned, index:, heading: index.zero?),
-        }
+        { text: truncate_block(cleaned), score: score_text(cleaned, index:, heading: index.zero?) }
       end.compact
 
-      WebSearch::Client::PageResult.new(
+      PageResult.new(
         url: @response.uri,
         title: "",
         description: "",
@@ -62,17 +76,12 @@ module WebSearch
         next if text.length < TEXT_MIN_LENGTH || seen[text]
 
         seen[text] = true
-        {
-          text: truncate_block(text),
-          score: score_text(text, index:, heading: node.name.start_with?("h")),
-        }
+        { text: truncate_block(text), score: score_text(text, index:, heading: node.name.start_with?("h")) }
       end.compact
     end
 
     def select_snippets(blocks, fallback_text:)
-      chosen = blocks.sort_by { |block| [-block[:score], block[:text].length] }
-                     .pluck(:text)
-                     .first(SNIPPET_LIMIT)
+      chosen = blocks.sort_by { |block| [-block[:score], block[:text].length] }.pluck(:text).first(SNIPPET_LIMIT)
       return chosen if chosen.any?
 
       fallback = normalize_text(fallback_text)
@@ -91,20 +100,6 @@ module WebSearch
       score + [text.length / 120, 6].min
     end
 
-    def build_html_page(document, root)
-      blocks = text_blocks_from(root)
-
-      WebSearch::Client::PageResult.new(
-        url: @response.uri,
-        title: normalize_text(document.at_css("title")&.text),
-        description: normalize_text(document.at_css("meta[name='description']")&.[]("content")),
-        snippets: select_snippets(blocks, fallback_text: normalize_text(root.text)),
-        links: extract_related_links(root, base_url: @response.uri),
-        content_type: @response.content_type.presence || "text/html",
-        truncated: @response.truncated,
-      )
-    end
-
     def extract_related_links(root, base_url:)
       base_uri = URI.parse(base_url)
       seen = {}
@@ -117,10 +112,7 @@ module WebSearch
         next if absolute_url.blank? || seen[absolute_url]
 
         seen[absolute_url] = true
-        {
-          link: WebSearch::Client::RelatedLink.new(text:, url: absolute_url),
-          score: score_text(text, index: 0, heading: false),
-        }
+        { link: RelatedLink.new(text:, url: absolute_url), score: score_text(text, index: 0, heading: false) }
       end
 
       ranked_links.sort_by { |entry| -entry[:score] }.pluck(:link).first(LINK_LIMIT)

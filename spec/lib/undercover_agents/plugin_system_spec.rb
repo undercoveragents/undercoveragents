@@ -91,6 +91,7 @@ RSpec.describe UndercoverAgents::PluginSystem do
       allow(CapabilityPlugin).to receive(:reset!)
       allow(ToolPlugin).to receive(:reset!)
       allow(ChannelPlugin).to receive(:reset!)
+      allow(WebSearch::SearchClientRegistry).to receive(:reset!)
 
       described_class.reload_manifests!(Rails.application.config, Rails.root.join("plugins"))
 
@@ -100,6 +101,7 @@ RSpec.describe UndercoverAgents::PluginSystem do
       expect(CapabilityPlugin).to have_received(:reset!)
       expect(ToolPlugin).to have_received(:reset!)
       expect(ChannelPlugin).to have_received(:reset!)
+      expect(WebSearch::SearchClientRegistry).to have_received(:reset!)
       expect(loader).to have_received(:load_all!).with(configure_paths: false)
       expect(described_class).to have_received(:register_step_types!)
       expect(described_class).to have_received(:register_connector_types!)
@@ -124,6 +126,7 @@ RSpec.describe UndercoverAgents::PluginSystem do
       hide_const("CapabilityPlugin")
       hide_const("ToolPlugin")
       hide_const("ChannelPlugin")
+      hide_const("WebSearch::SearchClientRegistry")
 
       expect do
         described_class.reload_manifests!(Rails.application.config, Rails.root.join("plugins"))

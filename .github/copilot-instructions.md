@@ -324,7 +324,7 @@ Each node class under `app/models/missions/nodes/` is **self-contained** — all
 
 Builtin/internal agents are normal `Agent` records synchronized from TOML definitions, not `RubyLLM::Agent` subclasses.
 
-- Shared builtin web research goes through the runtime tool key `web.safe_web_search`, exposed to Agent Alpha and the designer builtins. Keep it limited to public external references only: validate hosts through `WebSearch::Safety`, follow only a few safe redirects, cap downloaded bytes, and return focused snippets plus same-site links instead of whole-page dumps.
+- Shared builtin web research is split between the runtime tool keys `web.safe_web_search` and `web.safe_web_fetch`, exposed to Agent Alpha and the designer builtins. Keep search provider implementations plugin-backed, use `safe_web_search` only to discover relevant public URLs, and use `web_fetch` only for the smallest number of specific public pages needed. Both paths must validate hosts through `WebSearch::Safety`, cap downloaded bytes, and return focused snippets instead of whole-page dumps.
 
 - The admin agent UI is split deliberately: `GET /admin/agents/new` and `GET /admin/agents/:id/edit` own configuration only, `GET /admin/agents/:id/edit_instructions` owns system instructions only, and input-parameter add/edit/remove flows live on the agent show page through the shared schema-fields dialog.
 

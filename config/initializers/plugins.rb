@@ -44,6 +44,7 @@ if Rails.env.development?
       next unless defined?(UndercoverAgents::PluginSystem)
 
       if UndercoverAgents::PluginSystem.registry.empty?
+        WebSearch::SearchClientRegistry.reset! if defined?(WebSearch::SearchClientRegistry)
         UndercoverAgents::PluginSystem.load!(Rails.application.config, plugin_root)
       end
 

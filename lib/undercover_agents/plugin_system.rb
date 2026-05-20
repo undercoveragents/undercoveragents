@@ -35,6 +35,7 @@ module UndercoverAgents
         CapabilityPlugin.reset! if defined?(CapabilityPlugin)
         ToolPlugin.reset! if defined?(ToolPlugin)
         ChannelPlugin.reset! if defined?(ChannelPlugin)
+        WebSearch::SearchClientRegistry.reset! if defined?(WebSearch::SearchClientRegistry)
         # :nocov:
 
         Loader.new(app_config, plugins_path, registry).load_all!(configure_paths: false)

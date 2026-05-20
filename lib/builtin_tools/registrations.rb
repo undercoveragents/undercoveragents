@@ -107,7 +107,7 @@ module BuiltinTools
       Registry.register(
         "web.safe_web_search",
         name: "Safe Web Search",
-        description: "Safely search the public web and read a very small number of focused public pages.",
+        description: "Safely search the public web through a plugin-backed search client.",
         visible_in_headquarter: true,
         runtime_name: "safe_web_search",
         icon: "fa-solid fa-globe",
@@ -115,17 +115,40 @@ module BuiltinTools
         tool_call_presentation: tool_call_presentation(
           running_messages: [
             "Searching the public web…",
-            "Fetching focused public page snippets…",
-            "Collecting the smallest useful external context…",
+            "Using the configured public search client…",
+            "Collecting relevant public URLs…",
           ],
           complete_messages: [
-            "Web research completed.",
-            "Focused public snippets are ready.",
-            "External context collected safely.",
+            "Web search completed.",
+            "Relevant public URLs are ready.",
+            "Search results collected safely.",
           ],
           group_title: WEB_RESEARCH_GROUP_TITLE,
         ),
       ) { |**| SafeWebSearchTool.new }
+
+      Registry.register(
+        "web.safe_web_fetch",
+        name: "Safe Web Fetch",
+        description: "Safely fetch a very small number of public pages and return focused snippets.",
+        visible_in_headquarter: true,
+        runtime_name: "web_fetch",
+        icon: "fa-solid fa-file-lines",
+        compaction_policy: :replace_on_assistant_reply,
+        tool_call_presentation: tool_call_presentation(
+          running_messages: [
+            "Fetching focused public pages…",
+            "Downloading only capped text content…",
+            "Extracting the smallest useful page snippets…",
+          ],
+          complete_messages: [
+            "Web fetch completed.",
+            "Focused public snippets are ready.",
+            "Page fetch completed safely.",
+          ],
+          group_title: WEB_RESEARCH_GROUP_TITLE,
+        ),
+      ) { |**| WebFetchTool.new }
     end
 
     def register_mission_designer_tools
