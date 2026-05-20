@@ -70,6 +70,7 @@ class Client < ApplicationRecord
 
   def settings_payload
     logo_url = (Rails.application.routes.url_helpers.rails_blob_path(logo, only_path: true) if logo.attached?)
+    message_action_settings = effective_message_action_settings
 
     {
       id:,
@@ -78,6 +79,7 @@ class Client < ApplicationRecord
       welcome_message:,
       footer:,
       labels: effective_label_settings,
+      **message_action_payload_attributes(message_action_settings),
       agent_id:,
       agent_name: agent&.name,
       logo_url:,
@@ -88,7 +90,13 @@ class Client < ApplicationRecord
     "client/#{tenant.id}/default_settings"
   end
 
+  def self.build_settings_payload(tenant)
+    client = tenant.clients.where(default: true).includes(:agent).order(:id).first
+    client&.settings_payload
+  end
+
   private_class_method :cache_key
+  private_class_method :build_settings_payload
 
   ALLOWED_TAGS = [
     "p", "br", "strong", "em", "b", "i", "u", "s", "a", "ul", "ol", "li",
@@ -100,9 +108,15 @@ class Client < ApplicationRecord
 
   private
 
-  def self.build_settings_payload(tenant)
-    client = tenant.clients.where(default: true).includes(:agent).order(:id).first
-    client&.settings_payload
+  def message_action_payload_attributes(settings)
+    {
+      message_actions: self.class.normalized_message_actions_payload(settings),
+      message_actions_visibility: settings["message_actions_visibility"],
+      copy_assistant_response_enabled: settings["copy_assistant_response_enabled"],
+      copy_user_message_enabled: settings["copy_user_message_enabled"],
+      assistant_feedback_enabled: settings["assistant_feedback_enabled"],
+      retry_assistant_message_enabled: settings["retry_assistant_message_enabled"],
+    }
   end
 
   def sanitize_rich_fields
@@ -139,6 +153,4 @@ class Client < ApplicationRecord
   def invalidate_cache
     self.class.invalidate_settings_cache!(tenant)
   end
-
-  private_class_method :build_settings_payload
 end

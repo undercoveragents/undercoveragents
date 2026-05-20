@@ -286,6 +286,93 @@
   opacity: 0.7;
 }
 
+.shared-chat__message-actions {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  min-height: 1.75rem;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.shared-chat__message--user .shared-chat__message-actions {
+  justify-content: flex-end;
+  margin-top: 0.35rem;
+}
+
+.shared-chat__assistant-panel > .shared-chat__message-actions {
+  margin-top: -0.1rem;
+}
+
+.shared-chat__message-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border: 1px solid var(--shared-chat-border, var(--border-default, var(--color-border-default)));
+  border-radius: 999px;
+  background-color: color-mix(
+    in srgb,
+    var(--shared-chat-surface-card, var(--surface-card, var(--color-surface-card))) 90%,
+    transparent
+  );
+  color: var(--shared-chat-text-muted, var(--text-muted, var(--color-text-muted)));
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--shared-chat-accent, var(--accent, var(--color-brand-600)));
+    border-color: color-mix(
+      in srgb,
+      var(--shared-chat-accent, var(--accent, var(--color-brand-600))) 42%,
+      var(--shared-chat-border, var(--border-default, var(--color-border-default)))
+    );
+    background-color: var(--shared-chat-surface-hover, var(--surface-hover, var(--color-surface-hover)));
+    transform: translateY(-1px);
+    outline: none;
+  }
+
+  &.is-selected {
+    color: white;
+    border-color: var(--shared-chat-accent, var(--accent, var(--color-brand-600)));
+    background-color: var(--shared-chat-accent, var(--accent, var(--color-brand-600)));
+  }
+
+  &.is-selected[data-feedback-value="negative"] {
+    border-color: var(--shared-chat-danger, var(--color-danger-500));
+    background-color: var(--shared-chat-danger, var(--color-danger-500));
+  }
+
+  &.is-busy {
+    opacity: 0.65;
+    cursor: wait;
+  }
+
+  i {
+    font-size: 0.85rem;
+  }
+}
+
+.shared-chat--message-actions-hover .shared-chat__message-actions {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-2px);
+}
+
+.shared-chat--message-actions-hover .shared-chat__message:hover .shared-chat__message-actions,
+.shared-chat--message-actions-hover .shared-chat__message:focus-within .shared-chat__message-actions,
+.shared-chat--message-actions-hover .shared-chat__message-actions.is-open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.shared-chat__feedback-dialog .dialog-content {
+  width: min(100%, 32rem);
+}
+
 :is(.ms-chat-panel.shared-chat--application, .shared-chat--playground) {
   --shared-chat-compact-font-size: var(--shared-chat-font-size);
   --shared-chat-compact-line-height: 1.55;

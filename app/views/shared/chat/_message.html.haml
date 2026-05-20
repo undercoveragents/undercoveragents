@@ -9,6 +9,7 @@
         .shared-chat__assistant-content.shared-chat__message-content.markdown-body{ data: { controller: "markdown-render", markdown_render_content_value: message.content } }
       = render "shared/chat/tool_calls", tool_calls: message.tool_calls, message: message, chat: local_assigns[:chat] if message.tool_calls.any?
       %time.shared-chat__message-time{ datetime: message.created_at.iso8601, data: { controller: "local-time" } }
+      = render "shared/chat/message_actions", message:, chat: local_assigns[:chat], component: local_assigns[:component] if local_assigns[:component]&.message_actions_for?(message)
   - else
     .shared-chat__bubble.shared-chat__bubble--user
       - if message.attachments_attachments.any?
@@ -30,3 +31,4 @@
       - if display_content.present?
         .shared-chat__message-content= chat_message_display_html(message)
       %time.shared-chat__message-time{ datetime: message.created_at.iso8601, data: { controller: "local-time" } }
+    = render "shared/chat/message_actions", message:, chat: local_assigns[:chat], component: local_assigns[:component] if local_assigns[:component]&.message_actions_for?(message)

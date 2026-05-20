@@ -26,6 +26,21 @@
         .detail-item
           .detail-label Created
           .detail-value= channel.created_at.strftime("%B %d, %Y at %H:%M")
+        .detail-item
+          .detail-label Message Actions Visibility
+          .detail-value= channel.settings_payload.dig(:message_actions, :visibility).to_s.humanize
+        .detail-item
+          .detail-label Copy Response
+          .detail-value= channel.settings_payload.dig(:message_actions, :copy_assistant_response) ? "Enabled" : "Disabled"
+        .detail-item
+          .detail-label Copy Message
+          .detail-value= channel.settings_payload.dig(:message_actions, :copy_user_message) ? "Enabled" : "Disabled"
+        .detail-item
+          .detail-label Assistant Feedback
+          .detail-value= channel.settings_payload.dig(:message_actions, :assistant_feedback) ? "Enabled" : "Disabled"
+        .detail-item
+          .detail-label Try Again
+          .detail-value= channel.settings_payload.dig(:message_actions, :retry_assistant_message) ? "Enabled" : "Disabled"
 
   .card
     .card-header

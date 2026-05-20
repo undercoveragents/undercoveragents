@@ -7,4 +7,4 @@
     - if component.empty_state_body.present?
       %p= component.empty_state_body
 - else
-  = render partial: "shared/chat/message_entries", locals: { messages:, chat: }
+  = render partial: "shared/chat/message_entries", locals: { messages:, chat:, component: }

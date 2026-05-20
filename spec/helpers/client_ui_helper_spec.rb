@@ -16,4 +16,16 @@ RSpec.describe ClientUiHelper do
       expect(helper.current_client_label(:new_chat_label)).to eq("New chat")
     end
   end
+
+  describe "#current_client_message_actions" do
+    it "falls back to defaults when no current client settings are available" do
+      helper.define_singleton_method(:resolved_current_client_settings) { nil }
+
+      expect(helper.current_client_message_actions).to include(
+        "visibility" => "hover",
+        "copy_assistant_response" => true,
+        "copy_user_message" => true,
+      )
+    end
+  end
 end

@@ -1,0 +1,51 @@
+- actions = component.message_actions
+- action_bar_data = {}
+- if message.assistant? && (actions.assistant_feedback || actions.retry_assistant_message)
+  - action_bar_data[:controller] = "chat-message-actions"
+  - action_bar_data[:chat_message_actions_feedback_url_value] = chat_message_feedback_path(chat:, message:, component:)
+  - action_bar_data[:chat_message_actions_ui_context_selector_value] = chat_message_actions_ui_context_selector(component) if chat_message_actions_ui_context_selector(component).present?
+  - action_bar_data[:chat_message_actions_retry_url_value] = chat_message_retry_path(chat:, message:, component:) if actions.retry_assistant_message
+
+.shared-chat__message-actions{ data: action_bar_data }
+  - if message.assistant?
+    - if actions.copy_assistant_response
+      %button.shared-chat__message-action-button{ type: "button", title: "Copy response", aria: { label: "Copy response" }, data: { controller: "clipboard", clipboard_text_value: chat_message_copy_text(message), action: "click->clipboard#copy" } }
+        %i.fa-regular.fa-copy{ aria: { hidden: true } }
+        %span.sr-only Copy response
+    - if actions.assistant_feedback
+      %button.shared-chat__message-action-button{ type: "button", title: "Thumbs up", aria: { label: "Thumbs up" }, data: { action: "click->chat-message-actions#submitPositiveFeedback", chat_message_actions_target: "positiveButton" } }
+        %i.fa-regular.fa-thumbs-up{ aria: { hidden: true } }
+        %span.sr-only Thumbs up
+      %button.shared-chat__message-action-button{ type: "button", title: "Thumbs down", aria: { label: "Thumbs down" }, data: { action: "click->chat-message-actions#openNegativeFeedback", chat_message_actions_target: "negativeButton" } }
+        %i.fa-regular.fa-thumbs-down{ aria: { hidden: true } }
+        %span.sr-only Thumbs down
+    - if actions.retry_assistant_message
+      %button.shared-chat__message-action-button{ type: "button", title: "Try again", aria: { label: "Try again" }, data: { action: "click->chat-message-actions#retry" } }
+        %i.fa-solid.fa-rotate-right{ aria: { hidden: true } }
+        %span.sr-only Try again
+  - elsif actions.copy_user_message
+    %button.shared-chat__message-action-button{ type: "button", title: "Copy message", aria: { label: "Copy message" }, data: { controller: "clipboard", clipboard_text_value: chat_message_copy_text(message), action: "click->clipboard#copy" } }
+      %i.fa-regular.fa-copy{ aria: { hidden: true } }
+      %span.sr-only Copy message
+
+  - if message.assistant? && actions.assistant_feedback
+    %dialog.dialog.shared-chat__feedback-dialog{ data: { chat_message_actions_target: "dialog", action: "click->chat-message-actions#backdropClick close->chat-message-actions#closeFeedback" } }
+      .dialog-content
+        .dialog-header
+          %h3.dialog-title Share feedback
+          %button.dialog-close{ type: "button", data: { action: "click->chat-message-actions#closeFeedback" } }
+            %i.fa-solid.fa-times
+        .dialog-body
+          %p.form-hint.text-danger-500.hidden{ data: { chat_message_actions_target: "error" } }
+          .form-group
+            %label.form-label{ for: "message-feedback-category-#{message.id}" } Problem category
+            %select.form-input.form-select{ id: "message-feedback-category-#{message.id}", data: { chat_message_actions_target: "category" } }
+              %option{ value: "" } Select a category (optional)
+              - chat_message_feedback_categories.each do |category|
+                %option{ value: category }= category.humanize
+          .form-group
+            %label.form-label{ for: "message-feedback-comment-#{message.id}" } Additional details
+            %textarea.form-input{ id: "message-feedback-comment-#{message.id}", rows: 4, placeholder: "Tell us what went wrong (optional)", data: { chat_message_actions_target: "comment" } }
+          .flex.items-center.justify-end.gap-3.pt-2
+            %button.btn.btn-secondary{ type: "button", data: { action: "click->chat-message-actions#closeFeedback" } } Cancel
+            %button.btn.btn-primary{ type: "button", data: { action: "click->chat-message-actions#submitNegativeFeedback" } } Submit feedback

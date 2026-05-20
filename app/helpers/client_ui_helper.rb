@@ -8,6 +8,27 @@ module ClientUiHelper
     client_settings&.dig(:labels, label_key).presence || default_client_labels(client_settings).fetch(label_key)
   end
 
+  def current_client_message_actions
+    client_settings = resolved_current_client_settings
+    raw_actions = if client_settings.is_a?(Hash)
+                    client_settings[:message_actions] || client_settings["message_actions"] || {}
+                  else
+                    {}
+                  end
+
+    if raw_actions.is_a?(Hash) && (raw_actions.key?(:visibility) || raw_actions.key?("visibility"))
+      return raw_actions.deep_stringify_keys.slice(
+        "visibility",
+        "copy_assistant_response",
+        "copy_user_message",
+        "assistant_feedback",
+        "retry_assistant_message",
+      )
+    end
+
+    ClientConfiguration.normalized_message_actions_payload(raw_actions)
+  end
+
   def client_chat_delete_button_data
     {
       controller: "confirm",

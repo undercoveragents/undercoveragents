@@ -23,6 +23,11 @@ RSpec.describe "Admin::AgentAlphaMessages", :unauthenticated do
       title: "#{agent_alpha.name} — Existing",
     )
   end
+  let(:source_user_message) { create(:message, :user, chat:, content: "Retry this Agent Alpha request") }
+  let!(:assistant_message) do
+    source_user_message
+    create(:message, :assistant, chat:, content: "Initial Agent Alpha response")
+  end
 
   before do
     sign_in(user)
@@ -277,6 +282,76 @@ RSpec.describe "Admin::AgentAlphaMessages", :unauthenticated do
       end.not_to have_enqueued_job(ChatResponseJob)
 
       expect(response).to have_http_status(:unprocessable_content)
+    end
+  end
+
+  describe "POST /admin/agent_alpha/messages/:message_id/retry" do
+    it "re-enqueues the previous user turn with the current page context" do
+      mission = create(:mission, operation: user.tenant.default_operation)
+      source_user_message
+      token = page_context_token_for(designer_admin_mission_path(mission))
+
+      post message_retry_admin_agent_alpha_path(message_id: assistant_message.id), params: { ui_context_token: token }
+
+      enqueued = ActiveJob::Base.queue_adapter.enqueued_jobs.last
+      expect(enqueued[:args][0]).to eq(chat.id)
+      expect(enqueued[:args][1]).to eq("Retry this Agent Alpha request")
+      expect_enqueued_runtime_context_for(mission)
+    end
+
+    it "re-enqueues without runtime context when no page token is provided" do
+      source_user_message
+
+      post message_retry_admin_agent_alpha_path(message_id: assistant_message.id)
+
+      enqueued = ActiveJob::Base.queue_adapter.enqueued_jobs.last
+      expect(response).to have_http_status(:ok)
+      expect(enqueued[:args][0]).to eq(chat.id)
+      expect(enqueued[:args][1]).to eq("Retry this Agent Alpha request")
+      expect(enqueued[:args][3]).to include("tenant_id" => chat.send(:response_job_tenant_id))
+    end
+
+    it "returns unprocessable content when Agent Alpha is not configured" do
+      allow(SystemPreference).to receive(:llm_configured?).and_return(false)
+
+      post message_retry_admin_agent_alpha_path(message_id: assistant_message.id)
+
+      expect(response).to have_http_status(:unprocessable_content)
+    end
+
+    it "returns unprocessable content when no earlier user turn exists" do
+      other_chat = create(:chat, :application_context, user:, agent: agent_alpha, model: model_record)
+      lonely_assistant = create(:message, :assistant, chat: other_chat, content: "Nothing to retry")
+
+      post message_retry_admin_agent_alpha_path(message_id: lonely_assistant.id)
+
+      expect(response).to have_http_status(:unprocessable_content)
+    end
+  end
+
+  describe "POST /admin/agent_alpha/messages/:message_id/feedback" do
+    it "stores assistant feedback" do
+      expect do
+        post message_feedback_admin_agent_alpha_path(message_id: assistant_message.id),
+             params: { feedback: { value: "positive" } }
+      end.to change(MessageFeedback, :count).by(1)
+
+      feedback = MessageFeedback.last
+      expect(response).to have_http_status(:no_content)
+      expect(feedback).to have_attributes(
+        message: assistant_message,
+        chat:,
+        user:,
+        value: "positive",
+      )
+    end
+
+    it "returns validation errors for invalid feedback" do
+      post message_feedback_admin_agent_alpha_path(message_id: assistant_message.id),
+           params: { feedback: { value: "negative", category: "bogus" } }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body["errors"]).to include("Category is not included in the list")
     end
   end
 end

@@ -55,6 +55,8 @@ Rails.application.routes.draw do
     resource :messages, only: [:create]
     member do
       post :cancel
+      post "messages/:message_id/retry", to: "messages#retry", as: :message_retry
+      post "messages/:message_id/feedback", to: "messages#feedback", as: :message_feedback
     end
     collection do
       get :more
@@ -89,6 +91,8 @@ Rails.application.routes.draw do
     # Persistent Agent Alpha panel
     resource :agent_alpha, only: [:show], controller: "agent_alphas" do
       resource :messages, only: [:create], controller: "agent_alpha_messages"
+      post "messages/:message_id/retry", to: "agent_alpha_messages#retry", as: :message_retry
+      post "messages/:message_id/feedback", to: "agent_alpha_messages#feedback", as: :message_feedback
       get :references, to: "agent_alpha_references#index"
       member { post :cancel }
     end
@@ -248,6 +252,8 @@ Rails.application.routes.draw do
         resource :messages, only: [:create]
         member do
           post :cancel
+          post "messages/:message_id/retry", to: "messages#retry", as: :message_retry
+          post "messages/:message_id/feedback", to: "messages#feedback", as: :message_feedback
         end
         collection do
           get :more

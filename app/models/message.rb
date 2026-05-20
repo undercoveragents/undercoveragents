@@ -47,8 +47,9 @@ class Message < ApplicationRecord
 
   acts_as_message tool_calls_foreign_key: :message_id
 
-  has_many_attached :attachments
   enum :role, { user: "user", assistant: "assistant", tool: "tool", system: "system" }
+  has_many_attached :attachments
+  has_many :message_feedbacks, dependent: :destroy
   # Re-declare to add counter_cache (overrides ruby_llm gem's declaration)
   belongs_to :chat, class_name: "Chat",
                     inverse_of: :messages, counter_cache: true

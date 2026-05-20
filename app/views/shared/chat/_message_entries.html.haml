@@ -2,4 +2,4 @@
   - if entry[:kind] == :tool_group_message
     = render partial: "shared/chat/tool_group_message", locals: { group_title: entry[:group_title], items: entry[:items], status: entry[:status] }
   - else
-    = render "shared/chat/message", message: entry[:message], chat: local_assigns[:chat]
+    = render "shared/chat/message", message: entry[:message], chat: local_assigns[:chat], component: local_assigns[:component]

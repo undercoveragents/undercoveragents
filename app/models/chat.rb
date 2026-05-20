@@ -82,6 +82,7 @@ class Chat < ApplicationRecord
   belongs_to :parent_chat, class_name: "Chat", optional: true,
                            counter_cache: :child_chats_count
   belongs_to :user, optional: true
+  has_many :message_feedbacks, dependent: :destroy
   has_many :child_chats, class_name: "Chat", foreign_key: :parent_chat_id,
                          dependent: :nullify, inverse_of: :parent_chat
 

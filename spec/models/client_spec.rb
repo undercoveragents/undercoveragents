@@ -163,6 +163,56 @@ RSpec.describe Client do
     end
   end
 
+  describe "message action configuration" do
+    it "persists message action settings in configuration" do
+      client = build(:client, name: "Acme")
+      client.message_actions_visibility = "always"
+      client.copy_user_message_enabled = false
+
+      expect(client.message_actions_visibility).to eq("always")
+      expect(client.copy_user_message_enabled).to be(false)
+      expect(client.configuration).to include(
+        "message_actions" => include(
+          "message_actions_visibility" => "always",
+          "copy_user_message_enabled" => false,
+        ),
+      )
+    end
+
+    it "keeps stored message action overrides and ignores unknown keys" do
+      client = build(:client, name: "Acme")
+      client.configuration = {
+        "message_actions" => {
+          "message_actions_visibility" => "",
+          "copy_user_message_enabled" => false,
+          "unknown" => true,
+        },
+      }
+
+      expect(client.message_actions_visibility).to eq("")
+      expect(client.copy_user_message_enabled).to be(false)
+      expect(client.send(:effective_message_action_settings)).not_to have_key("unknown")
+    end
+
+    it "validates message action visibility values" do
+      client = build(:client, message_actions_visibility: "sometimes")
+
+      expect(client).not_to be_valid
+      expect(client.errors[:message_actions_visibility]).to include("must be one of: always, hover")
+    end
+
+    it "accepts non-blank primitive overrides and rejects nil overrides" do
+      client = build(:client)
+      custom_value = Object.new
+      def custom_value.respond_to?(*)
+        false
+      end
+
+      expect(client.send(:persist_message_action_override?, "copy_user_message_enabled", custom_value)).to be(true)
+      expect(client.send(:persist_message_action_override?, "copy_user_message_enabled", nil)).to be(false)
+    end
+  end
+
   describe ".default_labels" do
     it "exposes the configuration-backed attribute names" do
       expect(described_class.configuration_attribute_names).to include(:title, :welcome_message, :new_chat_label)
