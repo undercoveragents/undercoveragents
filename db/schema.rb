@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_20_114500) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_20_140000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -110,6 +110,32 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_114500) do
     t.index ["agent_id"], name: "index_archival_memories_on_agent_id"
     t.index ["tags"], name: "index_archival_memories_on_tags", using: :gin
     t.index ["user_id"], name: "index_archival_memories_on_user_id"
+  end
+
+  create_table "automation_triggers", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "cron_expression"
+    t.boolean "enabled", default: true, null: false
+    t.text "last_error"
+    t.bigint "last_result_record_id"
+    t.string "last_result_record_type"
+    t.datetime "last_triggered_at"
+    t.string "name", null: false
+    t.datetime "next_run_at"
+    t.bigint "operation_id", null: false
+    t.jsonb "payload", default: {}, null: false
+    t.bigint "schedulable_id", null: false
+    t.string "schedulable_type", null: false
+    t.string "timezone", default: "UTC", null: false
+    t.string "trigger_type", null: false
+    t.datetime "updated_at", null: false
+    t.string "webhook_secret_digest"
+    t.string "webhook_secret_prefix"
+    t.index ["last_result_record_type", "last_result_record_id"], name: "index_automation_triggers_on_last_result_record"
+    t.index ["operation_id"], name: "index_automation_triggers_on_operation_id"
+    t.index ["schedulable_type", "schedulable_id", "name"], name: "index_automation_triggers_on_schedulable_and_name", unique: true
+    t.index ["schedulable_type", "schedulable_id"], name: "index_automation_triggers_on_schedulable"
+    t.index ["trigger_type", "enabled", "next_run_at"], name: "index_automation_triggers_on_schedule_state"
   end
 
   create_table "channel_conversations", force: :cascade do |t|
@@ -330,28 +356,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_114500) do
     t.index ["mission_id", "status"], name: "index_mission_runs_on_mission_id_and_status"
     t.index ["mission_id"], name: "index_mission_runs_on_mission_id"
     t.index ["status"], name: "index_mission_runs_on_status"
-  end
-
-  create_table "mission_triggers", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.string "cron_expression"
-    t.boolean "enabled", default: true, null: false
-    t.text "last_error"
-    t.bigint "last_mission_run_id"
-    t.datetime "last_triggered_at"
-    t.bigint "mission_id", null: false
-    t.string "name", null: false
-    t.datetime "next_run_at"
-    t.jsonb "payload", default: {}, null: false
-    t.string "timezone", default: "UTC", null: false
-    t.string "trigger_type", null: false
-    t.datetime "updated_at", null: false
-    t.string "webhook_secret_digest"
-    t.string "webhook_secret_prefix"
-    t.index ["last_mission_run_id"], name: "index_mission_triggers_on_last_mission_run_id"
-    t.index ["mission_id", "name"], name: "index_mission_triggers_on_mission_id_and_name", unique: true
-    t.index ["mission_id"], name: "index_mission_triggers_on_mission_id"
-    t.index ["trigger_type", "enabled", "next_run_at"], name: "index_mission_triggers_on_schedule_state"
   end
 
   create_table "missions", force: :cascade do |t|
@@ -720,6 +724,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_114500) do
   add_foreign_key "api_clients", "tenants"
   add_foreign_key "archival_memories", "agents"
   add_foreign_key "archival_memories", "users"
+  add_foreign_key "automation_triggers", "operations"
   add_foreign_key "channel_conversations", "channel_identities"
   add_foreign_key "channel_conversations", "channel_targets"
   add_foreign_key "channel_conversations", "channels"
@@ -752,8 +757,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_114500) do
   add_foreign_key "mission_runs", "channel_targets"
   add_foreign_key "mission_runs", "channels"
   add_foreign_key "mission_runs", "missions"
-  add_foreign_key "mission_triggers", "mission_runs", column: "last_mission_run_id"
-  add_foreign_key "mission_triggers", "missions"
   add_foreign_key "missions", "operations"
   add_foreign_key "operations", "tenants"
   add_foreign_key "rag_flows", "operations"
