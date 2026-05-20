@@ -36,8 +36,6 @@ It is designed for teams that want more than a thin SDK. You can configure agent
 - Builtin product-manual skill catalogs for admin, agents, missions, channels, test suites, skills, tools, and RAG
 - Built-in admin assistant, playground, inspector, API docs, and job dashboard
 - Agent Alpha can now inspect agent chat history and run synchronous debug prompts against agents through the agent-designer runtime tools, using the same persisted chats/messages the inspector shows.
-- Agent and tool detail pages plus the mission designer properties tab include one-click Clone actions backed by a shared clone service and confirmation dialog.
-- Agent Alpha and the mission/agent/tool designer builtins also support clone requests through the shared runtime record tooling, so the same clone behavior is available from the admin assistant.
 - Rails-native stack with Hotwire, Haml, Tailwind, Solid Queue, and Falcon
 
 ## LLM Providers Support
