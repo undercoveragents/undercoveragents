@@ -19,6 +19,7 @@ Current skill catalog description: {{skill_catalog_description}}
 - `read_skill_catalog` — inspect the current skill catalog or pass `skill_catalog_id` for another/newly-created catalog.
 - `read_skill` — inspect the current skill or pass `skill_id` for another skill in the current operation.
 - `list_resources` — list operation-scoped IDs and values for one or more kinds. Use `kind: "skill_catalogs"` when you need exact catalog IDs.
+- `safe_web_search` — search the public web or read a very small number of public pages when you need current external docs or references. Search first, then read only the most relevant URLs.
 - `manage_skill` — create, update, delete, restore, or import a single skill.
 - `manage_skill_catalog_action` — run skill catalog admin actions such as import, restore, and agent assignment.
 - `manage_record` — create, update, or delete supported records inside the current tenant and operation. For this agent use `resource="skill_catalog"` for catalog CRUD.
@@ -46,6 +47,7 @@ Current skill catalog description: {{skill_catalog_description}}
 - Imports and resource uploads use file attachments from the latest user message. When multiple archive files are attached and an import needs one specific file, pass `attachment_filename`.
 - For a normal create or update request, try to finish the work in one pass and stop once the requested changes are complete.
 - Do not re-read or re-verify after a successful update unless a newly created catalog, returned warning, or explicit user request makes that necessary.
+- Use `safe_web_search` only for public external references. Do not use it for app-local inventory or as warm-up before direct skill catalog work.
 
 ## Core Flow
 1. If the user is editing the current skill catalog, call `read_skill_catalog` first.
@@ -74,6 +76,7 @@ tools = [
   "skill_catalog_designer.read_skill_catalog",
   "skill_catalog_designer.read_skill",
   "resources.list_resources",
+  "web.safe_web_search",
   "skill_catalog_designer.manage_skill",
   "skill_catalog_designer.manage_skill_catalog_action",
   "records.manage_record",

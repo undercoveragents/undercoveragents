@@ -29,6 +29,7 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
       "take at most one narrow discovery step",
       "trailing `<child_result>` JSON block with `status`, `record_ids`, `warnings`, and `blockers`",
       "at most one follow-up step",
+      "use `safe_web_search`",
       "Connector creation is out of scope",
     ]
   end
@@ -76,6 +77,7 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
       "agent_designer.read_agent_chat",
       "agent_designer.debug_agent",
       "resources.list_resources",
+      "web.safe_web_search",
       "agent_designer.manage_capability",
       "records.manage_record",
       "navigation.navigate_to_page",
@@ -119,7 +121,7 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
         subagent_keys: [],
         skill_catalog_keys: ["undercover-agents-missions"],
       )
-      expect(definition.tool_keys).to include("resources.list_resources")
+      expect(definition.tool_keys).to include("resources.list_resources", "web.safe_web_search")
       expect(definition.tool_keys).to include("mission_designer.validate_flow")
       expect(definition.tool_keys).to include("mission_designer.run_debug", "mission_designer.read_run")
       expect(definition.tool_keys).to include("records.manage_record", "navigation.navigate_to_page")
@@ -142,7 +144,7 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
       ]
 
       expect(definition.capability_configs.keys).to eq(["chat_title_generator"])
-      expect(definition.tool_keys).to eq(["resources.list_resources"])
+      expect(definition.tool_keys).to eq(["resources.list_resources", "web.safe_web_search"])
       expect(definition.subagent_keys).to eq(expected_subagents)
     end
 
@@ -174,6 +176,7 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
       expect(definition.tool_keys).to include(
         "tool_designer.read_tool",
         "resources.list_resources",
+        "web.safe_web_search",
         "tool_designer.tool_type_info",
         "tool_designer.manage_tool_action",
       )
@@ -197,6 +200,7 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
         "channel_designer.read_channel",
         "channel_designer.manage_channel_action",
         "resources.list_resources",
+        "web.safe_web_search",
         "records.manage_record",
         "navigation.navigate_to_page",
       )
@@ -227,6 +231,7 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
         "skill_catalog_designer.manage_skill",
         "skill_catalog_designer.manage_skill_catalog_action",
         "resources.list_resources",
+        "web.safe_web_search",
         "records.manage_record",
         "navigation.navigate_to_page",
       )
@@ -266,6 +271,7 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
         "test_suite_designer.manage_test_case",
         "test_suite_designer.manage_test_suite_action",
         "resources.list_resources",
+        "web.safe_web_search",
         "records.manage_record",
         "navigation.navigate_to_page",
       )

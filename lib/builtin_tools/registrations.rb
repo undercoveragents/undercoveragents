@@ -15,6 +15,7 @@ module BuiltinTools
     SKILL_CATALOG_DESIGNER_GROUP_TITLE = "Working on the skill catalog"
     TEST_SUITE_DESIGNER_GROUP_TITLE = "Working on test suites"
     TOOL_DESIGNER_GROUP_TITLE = "Working on the tool configuration"
+    WEB_RESEARCH_GROUP_TITLE = "Researching the web"
 
     module_function
 
@@ -22,6 +23,7 @@ module BuiltinTools
       Registry.definitions.clear
 
       register_resource_tools
+      register_web_tools
       register_mission_designer_tools
       register_agent_designer_tools
       register_channel_designer_tools
@@ -99,6 +101,31 @@ module BuiltinTools
           current_agent: tool_context[:agent],
         )
       end
+    end
+
+    def register_web_tools
+      Registry.register(
+        "web.safe_web_search",
+        name: "Safe Web Search",
+        description: "Safely search the public web and read a very small number of focused public pages.",
+        visible_in_headquarter: true,
+        runtime_name: "safe_web_search",
+        icon: "fa-solid fa-globe",
+        compaction_policy: :replace_on_assistant_reply,
+        tool_call_presentation: tool_call_presentation(
+          running_messages: [
+            "Searching the public web…",
+            "Fetching focused public page snippets…",
+            "Collecting the smallest useful external context…",
+          ],
+          complete_messages: [
+            "Web research completed.",
+            "Focused public snippets are ready.",
+            "External context collected safely.",
+          ],
+          group_title: WEB_RESEARCH_GROUP_TITLE,
+        ),
+      ) { |**| SafeWebSearchTool.new }
     end
 
     def register_mission_designer_tools

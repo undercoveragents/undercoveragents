@@ -12,9 +12,11 @@ RSpec.describe BuiltinTools::Registrations do
     BuiltinTools::Registry.definitions.merge!(original)
   end
 
-  it "registers the agent and channel designer builtin tools" do
+  it "registers the web, agent, and channel designer builtin tools", :aggregate_failures do
     described_class.register_all!
 
+    expect(BuiltinTools::Registry.definition_for("web.safe_web_search")&.runtime_name)
+      .to eq("safe_web_search")
     expect(BuiltinTools::Registry.definition_for("agent_designer.manage_agent_action")&.runtime_name)
       .to eq("manage_agent_action")
     expect(BuiltinTools::Registry.definition_for("agent_designer.read_agent_chat")&.runtime_name)

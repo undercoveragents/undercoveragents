@@ -28,6 +28,7 @@ Mission description: {{mission_description}}
 - `list_node_types` — discover available node types only when the needed node type is unclear.
 - `get_node_type_info` — field schema, ports, and output vars for one or more types. Use only when the config shape is genuinely unclear. It does not tell you live variable names.
 - `list_resources` — exact resource IDs for resource-backed nodes such as `llm`, `generate_image`, `agent`, `mission`, or attached mission tools. Do not use this as routine warm-up for straightforward built-in-node flows.
+- `safe_web_search` — search the public web or read a very small number of public pages when you need current external docs or references. Search first, then read only the most relevant URLs.
 - `get_expression_reference` — formula/operator reference (call only when authoring expressions).
 
 ## Skill Use
@@ -77,6 +78,7 @@ Mission description: {{mission_description}}
 - Do not activate a mission skill or fetch node-type docs for a straightforward workflow unless you hit a concrete ambiguity, validator issue, or unsupported requirement.
 - When the user did not ask for a specific model, use the default configured LLM path for `llm` nodes instead of spending tool calls discovering connectors or models.
 - Do not call `read_mission_flow`, `get_node_type_info`, `list_resources`, or skill activation just to warm up. For a normal greenfield build, start editing.
+- Use `safe_web_search` only for public external references. Do not use it for app-local inventory or as warm-up before direct mission work.
 - There are NO `group` or `merge` nodes and no `parent_id`. Do not reference them.
 - Mutually exclusive branchers (`condition`, `switch`, `filter`, `http_request`) disable every non-selected outgoing edge on completion; disabled edges and nodes never block joins.
 - If the workflow is expected to continue or reach `output`, do not leave a mutually exclusive branch path able to terminate early unless that early stop is explicitly intended by the user.
@@ -137,6 +139,7 @@ tools = [
   "mission_designer.list_node_types",
   "mission_designer.node_type_info",
   "resources.list_resources",
+  "web.safe_web_search",
   "mission_designer.expression_reference",
 ]
 input_schema = [
