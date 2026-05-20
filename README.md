@@ -35,7 +35,6 @@ It is designed for teams that want more than a thin SDK. You can configure agent
 - Plugin-first architecture for connectors, tools, channels, capabilities, web-search clients, and RAG modules
 - Builtin product-manual skill catalogs for admin, agents, missions, channels, test suites, skills, tools, and RAG
 - Built-in admin assistant, playground, inspector, API docs, and job dashboard
-- Client chat channels can customize per-message action icons, including copy/retry controls and optional assistant feedback with hover-or-always visibility
 - Agent Alpha can now inspect agent chat history and run synchronous debug prompts against agents through the agent-designer runtime tools, using the same persisted chats/messages the inspector shows.
 - Rails-native stack with Hotwire, Haml, Tailwind, Solid Queue, and Falcon
 
