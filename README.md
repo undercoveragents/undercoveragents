@@ -32,7 +32,7 @@ It is designed for teams that want more than a thin SDK. You can configure agent
 
 - Multi-tenant by design, with workspace-style Operations inside each tenant
 - Visual mission designer for orchestrating prompts, APIs, tools, control flow, and outputs
-- Plugin-first architecture for connectors, tools, channels, capabilities, and RAG modules
+- Plugin-first architecture for connectors, tools, channels, capabilities, web-search clients, and RAG modules
 - Builtin product-manual skill catalogs for admin, agents, missions, channels, test suites, skills, tools, and RAG
 - Built-in admin assistant, playground, inspector, API docs, and job dashboard
 - Agent Alpha can now inspect agent chat history and run synchronous debug prompts against agents through the agent-designer runtime tools, using the same persisted chats/messages the inspector shows.

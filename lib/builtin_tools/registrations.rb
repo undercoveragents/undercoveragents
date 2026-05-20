@@ -15,6 +15,7 @@ module BuiltinTools
     SKILL_CATALOG_DESIGNER_GROUP_TITLE = "Working on the skill catalog"
     TEST_SUITE_DESIGNER_GROUP_TITLE = "Working on test suites"
     TOOL_DESIGNER_GROUP_TITLE = "Working on the tool configuration"
+    WEB_RESEARCH_GROUP_TITLE = "Researching the web"
 
     module_function
 
@@ -22,6 +23,7 @@ module BuiltinTools
       Registry.definitions.clear
 
       register_resource_tools
+      register_web_tools
       register_mission_designer_tools
       register_agent_designer_tools
       register_channel_designer_tools
@@ -99,6 +101,54 @@ module BuiltinTools
           current_agent: tool_context[:agent],
         )
       end
+    end
+
+    def register_web_tools
+      Registry.register(
+        "web.web_search",
+        name: "Web Search",
+        description: "Safely search the public web through a plugin-backed search client.",
+        visible_in_headquarter: true,
+        runtime_name: "web_search",
+        icon: "fa-solid fa-globe",
+        compaction_policy: :replace_on_assistant_reply,
+        tool_call_presentation: tool_call_presentation(
+          running_messages: [
+            "Searching the public web…",
+            "Using the configured public search client…",
+            "Collecting relevant public URLs…",
+          ],
+          complete_messages: [
+            "Web search completed.",
+            "Relevant public URLs are ready.",
+            "Search results collected safely.",
+          ],
+          group_title: WEB_RESEARCH_GROUP_TITLE,
+        ),
+      ) { |**| WebSearchTool.new }
+
+      Registry.register(
+        "web.web_fetch",
+        name: "Web Fetch",
+        description: "Safely fetch a very small number of public pages and return focused snippets.",
+        visible_in_headquarter: true,
+        runtime_name: "web_fetch",
+        icon: "fa-solid fa-file-lines",
+        compaction_policy: :replace_on_assistant_reply,
+        tool_call_presentation: tool_call_presentation(
+          running_messages: [
+            "Fetching focused public pages…",
+            "Downloading only capped text content…",
+            "Extracting the smallest useful page snippets…",
+          ],
+          complete_messages: [
+            "Web fetch completed.",
+            "Focused public snippets are ready.",
+            "Page fetch completed safely.",
+          ],
+          group_title: WEB_RESEARCH_GROUP_TITLE,
+        ),
+      ) { |**| WebFetchTool.new }
     end
 
     def register_mission_designer_tools

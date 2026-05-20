@@ -29,6 +29,8 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
       "take at most one narrow discovery step",
       "trailing `<child_result>` JSON block with `status`, `record_ids`, `warnings`, and `blockers`",
       "at most one follow-up step",
+      "use `web_search` to find relevant public URLs",
+      "call `web_fetch` for only the smallest number of highly relevant pages needed to answer",
       "Connector creation is out of scope",
     ]
   end
@@ -76,6 +78,8 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
       "agent_designer.read_agent_chat",
       "agent_designer.debug_agent",
       "resources.list_resources",
+      "web.web_search",
+      "web.web_fetch",
       "agent_designer.manage_capability",
       "records.manage_record",
       "navigation.navigate_to_page",
@@ -86,6 +90,37 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
       "subagent_ids",
       "read_agent_chat",
       "debug_agent",
+    )
+  end
+
+  def expect_channel_designer_attributes(definition)
+    expect(definition).to have_attributes(
+      agent_type: "channel_designer",
+      llm_config_source: "system_preference",
+      subagent_keys: [],
+      skill_catalog_keys: ["undercover-agents-admin", "undercover-agents-channels"],
+    )
+    expect(definition.tool_keys).to include(
+      "channel_designer.read_channel",
+      "channel_designer.manage_channel_action",
+      "resources.list_resources",
+      "web.web_search",
+      "web.web_fetch",
+      "records.manage_record",
+      "navigation.navigate_to_page",
+    )
+    expect(definition.input_schema.pluck("variable_name")).to contain_exactly(
+      "channel_name",
+      "channel_type",
+      "channel_title",
+    )
+  end
+
+  def expect_channel_designer_instructions(definition)
+    expect(definition.instructions).to include(
+      "resource=\"channel\"",
+      "page: \"preview\"",
+      "list_resources(kind: \"channels\")",
     )
   end
 
@@ -119,7 +154,11 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
         subagent_keys: [],
         skill_catalog_keys: ["undercover-agents-missions"],
       )
-      expect(definition.tool_keys).to include("resources.list_resources")
+      expect(definition.tool_keys).to include(
+        "resources.list_resources",
+        "web.web_search",
+        "web.web_fetch",
+      )
       expect(definition.tool_keys).to include("mission_designer.validate_flow")
       expect(definition.tool_keys).to include("mission_designer.run_debug", "mission_designer.read_run")
       expect(definition.tool_keys).to include("records.manage_record", "navigation.navigate_to_page")
@@ -142,7 +181,9 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
       ]
 
       expect(definition.capability_configs.keys).to eq(["chat_title_generator"])
-      expect(definition.tool_keys).to eq(["resources.list_resources"])
+      expect(definition.tool_keys).to eq(
+        ["resources.list_resources", "web.web_search", "web.web_fetch"],
+      )
       expect(definition.subagent_keys).to eq(expected_subagents)
     end
 
@@ -174,6 +215,8 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
       expect(definition.tool_keys).to include(
         "tool_designer.read_tool",
         "resources.list_resources",
+        "web.web_search",
+        "web.web_fetch",
         "tool_designer.tool_type_info",
         "tool_designer.manage_tool_action",
       )
@@ -187,29 +230,8 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
     it "loads channel_designer metadata from the TOML definition", :aggregate_failures do
       definition = definitions.fetch("channel_designer")
 
-      expect(definition).to have_attributes(
-        agent_type: "channel_designer",
-        llm_config_source: "system_preference",
-        subagent_keys: [],
-        skill_catalog_keys: ["undercover-agents-admin", "undercover-agents-channels"],
-      )
-      expect(definition.tool_keys).to include(
-        "channel_designer.read_channel",
-        "channel_designer.manage_channel_action",
-        "resources.list_resources",
-        "records.manage_record",
-        "navigation.navigate_to_page",
-      )
-      expect(definition.input_schema.pluck("variable_name")).to contain_exactly(
-        "channel_name",
-        "channel_type",
-        "channel_title",
-      )
-      expect(definition.instructions).to include(
-        "resource=\"channel\"",
-        "page: \"preview\"",
-        "list_resources(kind: \"channels\")",
-      )
+      expect_channel_designer_attributes(definition)
+      expect_channel_designer_instructions(definition)
     end
 
     it "loads skill_catalog_designer metadata from the TOML definition", :aggregate_failures do
@@ -227,6 +249,8 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
         "skill_catalog_designer.manage_skill",
         "skill_catalog_designer.manage_skill_catalog_action",
         "resources.list_resources",
+        "web.web_search",
+        "web.web_fetch",
         "records.manage_record",
         "navigation.navigate_to_page",
       )
@@ -266,6 +290,8 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
         "test_suite_designer.manage_test_case",
         "test_suite_designer.manage_test_suite_action",
         "resources.list_resources",
+        "web.web_search",
+        "web.web_fetch",
         "records.manage_record",
         "navigation.navigate_to_page",
       )

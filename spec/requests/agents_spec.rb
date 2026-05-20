@@ -38,7 +38,7 @@ RSpec.describe "Agents" do
         card = document.at_css(%(a[href="#{admin_agent_path(builtin_agent)}"]))
 
         expect(card).to be_present
-        expect(card.text).to include("6 tools")
+        expect(card.text).to include("8 tools")
       end
 
       it "displays the empty state when no agents exist" do

@@ -23,14 +23,16 @@ RSpec.describe UndercoverAgents::PluginSystem::Definition do
       definition.author "Author"
       definition.description "A description"
       definition.icon "fa-solid fa-test"
-      definition.category [:rag_chunking]
+      definition.category [:rag_chunking, :web_search]
       definition.add_rag_chunker("RagSteps::ParagraphChunker")
+      definition.add_web_search_client("DuckDuckGoClient", identifier: "duckduckgo", default: true)
       definition.root_path = Pathname.new("/tmp")
 
       expect(definition.name).to eq("Test")
       expect(definition.description).to eq("A description")
       expect(definition.root_path).to eq(Pathname.new("/tmp"))
       expect(definition.rag_step_entry_points.first[:class_name]).to eq("RagSteps::ParagraphChunker")
+      expect(definition.web_search_entry_points.first[:identifier]).to eq("duckduckgo")
     end
   end
 
@@ -67,6 +69,18 @@ RSpec.describe UndercoverAgents::PluginSystem::Definition do
 
       expect(definition.tool_plugin?).to be(true)
       expect(definition.tool_entry_points).to eq([{ category: :tool, class_name: "Tools::SqlQuery" }])
+    end
+  end
+
+  describe "web search entry points" do
+    it "supports web search clients and exposes web_search_plugin?" do
+      definition.category [:web_search]
+      definition.add_web_search_client("DuckDuckGoClient", identifier: "duckduckgo", default: true)
+
+      expect(definition.web_search_plugin?).to be(true)
+      expect(definition.web_search_entry_points).to eq(
+        [{ category: :web_search, class_name: "DuckDuckGoClient", identifier: "duckduckgo", default: true }],
+      )
     end
   end
 

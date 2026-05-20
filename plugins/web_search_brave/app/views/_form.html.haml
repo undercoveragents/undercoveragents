@@ -1,0 +1,25 @@
+- action = connector.persisted? ? admin_connector_path(connector) : admin_connectors_path
+- method = connector.persisted? ? :patch : :post
+- form_id = local_assigns.fetch(:form_id, "connector-form")
+
+.connector-form-container
+  = form_with url: action, method:, local: true, html: { class: "connector-form", id: form_id } do |f|
+    = hidden_field_tag :connector_type, "brave_search"
+
+    = render "shared/forms/validation_errors", record: connector, resource_name: "connector"
+
+    = render "connectors/forms/shared/basic_info", f:, connector:
+
+    .card.mb-6
+      .card-header
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-compass.mr-2.text-accent
+          Brave Search Configuration
+      .card-body
+        .form-grid
+          .form-group
+            = f.label "brave_search[api_key]", class: "form-label" do
+              API Key
+              %span.text-danger-500.ml-0.5 *
+            = f.password_field "brave_search[api_key]", value: nil, class: "form-input", placeholder: (connector.persisted? ? "Leave blank to keep current key" : "Enter Brave Search API key"), required: !connector.persisted?
+            .form-hint Stored encrypted and used only for authenticated Brave Search API requests.
