@@ -74,13 +74,11 @@
               .form-hint Merge provider-specific request params into the model call as a JSON object.
 
             - if show_model_routing_settings
-              .form-group.col-span-full
-                %label.form-label{ for: "#{field_prefix}_model_routing_config" } Model Routing JSON
-                = text_area_tag "#{field_prefix}[model_routing_config]", model_routing_value, id: "#{field_prefix}_model_routing_config", rows: 8, class: "form-input form-textarea llm-settings-json-input", placeholder: '{"strategy":"fallback","fallback_models":[{"connector_id":12,"model_id":"gpt-4.1-mini"}]}'
-                .form-hint
-                  Optional multi-model runtime policy. Supported shapes:
-                  %code {"strategy":"fallback","fallback_models":[{"connector_id":12,"model_id":"gpt-4.1-mini"}]}
-                  ,
-                  %code {"strategy":"canary","canary_model":{"connector_id":12,"model_id":"gpt-5.4-mini"},"canary_percent":10}
-                  ,
-                  %code {"strategy":"ab_test","comparison_model":{"connector_id":14,"model_id":"claude-sonnet-4.5"}}
+              .col-span-full
+                = render "shared/model_routing_editor",
+                         input_name: "#{field_prefix}[model_routing_config]",
+                         input_id: "#{field_prefix}_model_routing_config",
+                         input_value: model_routing_value,
+                         connectors: available_llm_connectors,
+                         label: "Model Routing",
+                         hint: "Choose a runtime strategy for fallback, canary rollout, or A/B comparison."

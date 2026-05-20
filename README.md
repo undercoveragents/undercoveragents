@@ -45,14 +45,14 @@ Undercover Agents is built on [ruby_llm](https://github.com/crmne/ruby_llm), so 
 
 ### Multi-Model Routing
 
-Agents, tenant default system preferences, and Mission Generate Text nodes can all store an optional `model_routing_config` JSON object alongside their primary model settings.
+Agents, tenant default system preferences, and Mission Generate Text nodes can all store an optional `model_routing_config` alongside their primary model settings.
 
 - `single` keeps the normal one-model behavior
 - `fallback` retries against one or more alternate connector/model pairs when the primary call fails with provider availability-style errors
 - `canary` sends a percentage of traffic to an alternate model and falls back to the primary model if the canary attempt fails early
 - `ab_test` runs a secondary comparison model and stores its output in assistant message metadata without changing the visible transcript
 
-The current admin UI exposes this as a JSON field so the same routing shape works consistently across agents, preferences, and mission LLM nodes.
+The admin UI now exposes this through a dedicated routing editor with strategy-specific controls for fallback routes, canary traffic percentage, and A/B comparison models, while keeping the stored routing shape consistent across agents, preferences, and mission LLM nodes.
 
 ## Core Concepts
 

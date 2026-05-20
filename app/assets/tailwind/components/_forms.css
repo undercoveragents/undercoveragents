@@ -141,6 +141,149 @@ button.form-input {
   opacity: 0.58;
 }
 
+.llm-routing-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  padding: 0.875rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  background: var(--surface-primary);
+}
+
+.llm-routing-editor--compact {
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+}
+
+.llm-routing-editor__header,
+.llm-routing-editor__strategy-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.llm-routing-editor__title-wrap,
+.llm-routing-editor__strategy-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.llm-routing-editor__title,
+.llm-routing-editor__strategy-title,
+.llm-routing-editor__field-label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.llm-routing-editor--compact {
+  .llm-routing-editor__title,
+  .llm-routing-editor__strategy-title,
+  .llm-routing-editor__field-label {
+    font-size: 0.6875rem;
+  }
+}
+
+.llm-routing-editor__hint,
+.llm-routing-editor__strategy-description,
+.llm-routing-editor__field-hint {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.llm-routing-editor__strategy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.llm-routing-editor__routes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.llm-routing-editor__route {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-secondary);
+}
+
+.llm-routing-editor--compact .llm-routing-editor__route {
+  padding: 0.625rem;
+  border-radius: 0.625rem;
+}
+
+.llm-routing-editor__route-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.llm-routing-editor__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.llm-routing-editor__add,
+.llm-routing-editor__remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-primary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+
+  &:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 7%, var(--surface-primary));
+  }
+}
+
+.llm-routing-editor__add {
+  padding: 0.45rem 0.65rem;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+
+.llm-routing-editor__remove {
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .llm-routing-editor__route-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .llm-routing-editor__route {
+    flex-direction: column;
+  }
+
+  .llm-routing-editor__remove {
+    width: 100%;
+  }
+}
+
 .form-check {
   display: flex;
   align-items: center;
