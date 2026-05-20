@@ -24,7 +24,7 @@ RSpec.describe BuiltinAgents::Synchronizer do
       expect(agent_alpha.operation.name).to eq(Operation::HEADQUARTER_NAME)
       expect(designers.map(&:thinking_effort).uniq).to eq(["none"])
       expect(agent_alpha.runtime_tool_keys).to eq(
-        ["resources.list_resources", "web.safe_web_search", "web.safe_web_fetch"],
+        ["resources.list_resources", "web.web_search", "web.web_fetch"],
       )
       expect(agent_alpha.subagent_ids).to eq(designers.map(&:id))
       expect(agent_alpha.skill_catalogs.builtin.map(&:builtin_key)).to contain_exactly(
@@ -57,8 +57,8 @@ RSpec.describe BuiltinAgents::Synchronizer do
       expect(mission_designer.operation.name).to eq(Operation::HEADQUARTER_NAME)
       expect(mission_designer).to have_attributes(builtin: true, selectable: false, subagent_ids: [])
       expect(mission_designer.runtime_tool_keys).to include("resources.list_resources")
-      expect(mission_designer.runtime_tool_keys).to include("web.safe_web_search")
-      expect(mission_designer.runtime_tool_keys).to include("web.safe_web_fetch")
+      expect(mission_designer.runtime_tool_keys).to include("web.web_search")
+      expect(mission_designer.runtime_tool_keys).to include("web.web_fetch")
       expect(mission_designer.runtime_tool_keys).to include("mission_designer.validate_flow")
       expect(mission_designer.runtime_tool_keys).to include("mission_designer.run_debug", "mission_designer.read_run")
       expect(mission_designer.runtime_tool_keys).to include("records.manage_record", "navigation.navigate_to_page")
@@ -78,8 +78,8 @@ RSpec.describe BuiltinAgents::Synchronizer do
         "agent_designer.read_agent_chat",
         "agent_designer.debug_agent",
         "resources.list_resources",
-        "web.safe_web_search",
-        "web.safe_web_fetch",
+        "web.web_search",
+        "web.web_fetch",
         "agent_designer.manage_capability",
       )
       expect(agent_designer.runtime_tool_keys).to include("records.manage_record", "navigation.navigate_to_page")
@@ -96,8 +96,8 @@ RSpec.describe BuiltinAgents::Synchronizer do
       expect(tool_designer.runtime_tool_keys).to include(
         "tool_designer.read_tool",
         "resources.list_resources",
-        "web.safe_web_search",
-        "web.safe_web_fetch",
+        "web.web_search",
+        "web.web_fetch",
         "tool_designer.tool_type_info",
         "tool_designer.manage_tool_action",
       )
@@ -115,8 +115,8 @@ RSpec.describe BuiltinAgents::Synchronizer do
       expect(channel_designer.runtime_tool_keys).to include(
         "channel_designer.read_channel",
         "resources.list_resources",
-        "web.safe_web_search",
-        "web.safe_web_fetch",
+        "web.web_search",
+        "web.web_fetch",
         "records.manage_record",
         "navigation.navigate_to_page",
       )
@@ -136,8 +136,8 @@ RSpec.describe BuiltinAgents::Synchronizer do
       expect(skill_catalog_designer.runtime_tool_keys).to include(
         "skill_catalog_designer.read_skill_catalog",
         "resources.list_resources",
-        "web.safe_web_search",
-        "web.safe_web_fetch",
+        "web.web_search",
+        "web.web_fetch",
         "records.manage_record",
         "navigation.navigate_to_page",
       )
@@ -160,8 +160,8 @@ RSpec.describe BuiltinAgents::Synchronizer do
         "test_suite_designer.manage_test_case",
         "test_suite_designer.manage_test_suite_action",
         "resources.list_resources",
-        "web.safe_web_search",
-        "web.safe_web_fetch",
+        "web.web_search",
+        "web.web_fetch",
         "records.manage_record",
         "navigation.navigate_to_page",
       )

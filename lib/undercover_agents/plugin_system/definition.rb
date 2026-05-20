@@ -16,6 +16,7 @@ module UndercoverAgents
       CAPABILITY_CATEGORIES = [:capability].freeze
       TOOL_CATEGORIES = [:tool].freeze
       CHANNEL_CATEGORIES = [:channel].freeze
+      WEB_SEARCH_CATEGORIES = [:web_search].freeze
       NO_VALUE = Object.new
 
       attr_reader :identifier, :entry_points
@@ -90,6 +91,10 @@ module UndercoverAgents
         add_entry_point(:channel, klass)
       end
 
+      def add_web_search_client(klass, identifier: nil, default: false)
+        add_entry_point(:web_search, klass, identifier:, default:)
+      end
+
       def rag_step_entry_points
         entry_points.select { |entry| RAG_CATEGORIES.include?(entry.fetch(:category)) }
       end
@@ -130,6 +135,14 @@ module UndercoverAgents
         channel_entry_points.any? || category.map(&:to_sym).intersect?(CHANNEL_CATEGORIES)
       end
 
+      def web_search_entry_points
+        entry_points.select { |entry| WEB_SEARCH_CATEGORIES.include?(entry.fetch(:category)) }
+      end
+
+      def web_search_plugin?
+        web_search_entry_points.any? || category.map(&:to_sym).intersect?(WEB_SEARCH_CATEGORIES)
+      end
+
       def only_tool_plugin?
         tool_plugin? && !rag_step_plugin? && !connector_plugin? && !channel_plugin?
       end
@@ -165,8 +178,8 @@ module UndercoverAgents
 
       private
 
-      def add_entry_point(category_key, klass)
-        entry = { category: category_key, class_name: klass.to_s }
+      def add_entry_point(category_key, klass, **attributes)
+        entry = { category: category_key, class_name: klass.to_s }.merge(attributes.compact)
         entry[:stage] = RAG_CATEGORY_TO_STAGE.fetch(category_key) if RAG_CATEGORY_TO_STAGE.key?(category_key)
         @entry_points << entry
       end

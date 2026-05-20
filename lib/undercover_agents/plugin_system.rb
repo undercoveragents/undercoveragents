@@ -44,6 +44,7 @@ module UndercoverAgents
         register_capability_types!
         register_tool_types!
         register_channel_types!
+        register_web_search_clients!
         sync_database!
       end
 
@@ -201,9 +202,38 @@ module UndercoverAgents
         end
       end
 
+      def register_web_search_clients!
+        # :nocov:
+        return unless defined?(WebSearch::SearchClientRegistry)
+        # :nocov:
+
+        WebSearch::SearchClientRegistry.reset!
+
+        registry.all.to_a.each do |definition|
+          entry_points = definition.web_search_entry_points
+          next if entry_points.empty?
+
+          entry_points.each do |entry|
+            class_name = normalize_web_search_client_class_name(entry.fetch(:class_name))
+            metadata = web_search_client_metadata_for(
+              definition:,
+              entry:,
+              class_name:,
+            )
+
+            WebSearch::SearchClientRegistry.register(
+              metadata.fetch(:key),
+              class_name,
+              default: metadata.fetch(:default),
+            )
+          end
+        end
+      end
+
       # Resets the registry (useful for testing)
       def reset!
         @registry = Registry.new
+        WebSearch::SearchClientRegistry.reset! if defined?(WebSearch::SearchClientRegistry)
       end
 
       # DSL entry point used by plugin.rb manifests
@@ -331,6 +361,13 @@ module UndercoverAgents
         "Channels::#{raw}"
       end
 
+      def normalize_web_search_client_class_name(class_name)
+        raw = class_name.to_s
+        return raw if raw.include?("::")
+
+        "WebSearch::Clients::#{raw}"
+      end
+
       def connector_plugin_metadata_for(definition:, class_name:)
         {
           key: connector_key_for(definition:, class_name:),
@@ -364,6 +401,13 @@ module UndercoverAgents
           label: channel_label_for(class_name:, definition:),
           icon: channel_icon_for(class_name:, definition:),
           description: channel_description_for(class_name:, definition:),
+        }
+      end
+
+      def web_search_client_metadata_for(definition:, entry:, class_name:)
+        {
+          key: web_search_client_key_for(definition:, class_name:, entry:),
+          default: entry.fetch(:default, false),
         }
       end
 
@@ -473,6 +517,14 @@ module UndercoverAgents
         definition.description
       rescue NameError
         definition.description
+      end
+
+      def web_search_client_key_for(definition:, class_name:, entry:)
+        entry[:identifier].presence ||
+          klass_key_for(class_name.constantize) ||
+          definition.identifier.delete_prefix("web_search_")
+      rescue NameError
+        entry[:identifier].presence || definition.identifier.delete_prefix("web_search_")
       end
     end
   end

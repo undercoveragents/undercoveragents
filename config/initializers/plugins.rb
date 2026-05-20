@@ -10,12 +10,13 @@ Rails.application.config.after_initialize do
   db_task = rake_tasks.any? { |task| task.start_with?("db:") }
 
   if defined?(UndercoverAgents::PluginSystem) && UndercoverAgents::PluginSystem.registry
-    # Register step, connector, capability, and tool types now that Zeitwerk is ready
+    # Register step, connector, capability, tool, and web-search types now that Zeitwerk is ready
     UndercoverAgents::PluginSystem.register_step_types!
     UndercoverAgents::PluginSystem.register_connector_types!
     UndercoverAgents::PluginSystem.register_capability_types!
     UndercoverAgents::PluginSystem.register_tool_types!
     UndercoverAgents::PluginSystem.register_channel_types!
+    UndercoverAgents::PluginSystem.register_web_search_clients!
 
     next if asset_task || db_task
 
@@ -65,6 +66,8 @@ if Rails.env.development?
 
       ChannelPlugin.reset! if defined?(ChannelPlugin)
       UndercoverAgents::PluginSystem.register_channel_types!
+
+      UndercoverAgents::PluginSystem.register_web_search_clients!
     end
   end
 end

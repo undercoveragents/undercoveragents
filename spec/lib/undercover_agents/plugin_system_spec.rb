@@ -85,6 +85,7 @@ RSpec.describe UndercoverAgents::PluginSystem do
       allow(described_class).to receive(:register_capability_types!)
       allow(described_class).to receive(:register_tool_types!)
       allow(described_class).to receive(:register_channel_types!)
+      allow(described_class).to receive(:register_web_search_clients!)
       allow(described_class).to receive(:sync_database!)
       allow(RagStepPlugin).to receive(:reset!)
       allow(ConnectorPlugin).to receive(:reset!)
@@ -108,6 +109,7 @@ RSpec.describe UndercoverAgents::PluginSystem do
       expect(described_class).to have_received(:register_capability_types!)
       expect(described_class).to have_received(:register_tool_types!)
       expect(described_class).to have_received(:register_channel_types!)
+      expect(described_class).to have_received(:register_web_search_clients!)
       expect(described_class).to have_received(:sync_database!)
     end
 
@@ -120,6 +122,7 @@ RSpec.describe UndercoverAgents::PluginSystem do
       allow(described_class).to receive(:register_capability_types!)
       allow(described_class).to receive(:register_tool_types!)
       allow(described_class).to receive(:register_channel_types!)
+      allow(described_class).to receive(:register_web_search_clients!)
       allow(described_class).to receive(:sync_database!)
       hide_const("RagStepPlugin")
       hide_const("ConnectorPlugin")
@@ -573,17 +576,28 @@ RSpec.describe UndercoverAgents::PluginSystem do
   end
 
   describe ".reset!" do
-    it "creates a new registry instance" do
-      old_registry = described_class.registry
-      described_class.reset!
-      expect(described_class.registry).not_to equal(old_registry)
-
-      # Re-load plugins to restore state for subsequent tests
+    after do
       described_class.load!(Rails.application.config, Rails.root.join("plugins"))
       described_class.register_step_types!
       described_class.register_connector_types!
       described_class.register_capability_types!
+      described_class.register_tool_types!
       described_class.register_channel_types!
+      described_class.register_web_search_clients!
+    end
+
+    it "creates a new registry instance" do
+      old_registry = described_class.registry
+      described_class.reset!
+      expect(described_class.registry).not_to equal(old_registry)
+    end
+
+    it "returns a fresh registry even when the search-client registry is unavailable" do
+      old_registry = described_class.registry
+      hide_const("WebSearch::SearchClientRegistry")
+
+      expect { described_class.reset! }.not_to raise_error
+      expect(described_class.registry).not_to equal(old_registry)
     end
   end
 
@@ -666,6 +680,95 @@ RSpec.describe UndercoverAgents::PluginSystem do
         label: "Documented Tool",
         icon: "fa-solid fa-book",
         description: "Documented tool description",
+      )
+    end
+  end
+
+  describe ".register_web_search_clients!" do
+    it "returns early when the registry is not loaded" do
+      hide_const("WebSearch::SearchClientRegistry")
+
+      expect { described_class.register_web_search_clients! }.not_to raise_error
+    end
+
+    it "registers plugin-backed web search clients" do
+      definition = UndercoverAgents::PluginSystem::Definition.new("web_search_duckduckgo")
+      definition.category [:web_search]
+      definition.name "DuckDuckGo Web Search"
+      definition.add_web_search_client("DuckDuckGoClient", identifier: "duckduckgo", default: true)
+
+      fake_registry = instance_double(UndercoverAgents::PluginSystem::Registry, all: [definition])
+      allow(described_class).to receive(:registry).and_return(fake_registry)
+      allow(WebSearch::SearchClientRegistry).to receive(:reset!)
+      allow(WebSearch::SearchClientRegistry).to receive(:register)
+
+      described_class.register_web_search_clients!
+
+      expect(WebSearch::SearchClientRegistry).to have_received(:reset!)
+      expect(WebSearch::SearchClientRegistry).to have_received(:register).with(
+        "duckduckgo",
+        "WebSearch::Clients::DuckDuckGoClient",
+        default: true,
+      )
+    end
+
+    it "keeps fully qualified client class names unchanged" do
+      definition = UndercoverAgents::PluginSystem::Definition.new("web_search_duckduckgo")
+      definition.category [:web_search]
+      definition.name "DuckDuckGo Web Search"
+      definition.add_web_search_client("WebSearch::Clients::DuckDuckGoClient", identifier: "duckduckgo")
+
+      fake_registry = instance_double(UndercoverAgents::PluginSystem::Registry, all: [definition])
+      allow(described_class).to receive(:registry).and_return(fake_registry)
+      allow(WebSearch::SearchClientRegistry).to receive(:reset!)
+      allow(WebSearch::SearchClientRegistry).to receive(:register)
+
+      described_class.register_web_search_clients!
+
+      expect(WebSearch::SearchClientRegistry).to have_received(:register).with(
+        "duckduckgo",
+        "WebSearch::Clients::DuckDuckGoClient",
+        default: false,
+      )
+    end
+
+    it "falls back to the plugin identifier when the client class is missing" do
+      definition = UndercoverAgents::PluginSystem::Definition.new("web_search_duckduckgo")
+      definition.category [:web_search]
+      definition.name "DuckDuckGo Web Search"
+      definition.add_web_search_client("MissingDuckDuckGoClient")
+
+      fake_registry = instance_double(UndercoverAgents::PluginSystem::Registry, all: [definition])
+      allow(described_class).to receive(:registry).and_return(fake_registry)
+      allow(WebSearch::SearchClientRegistry).to receive(:reset!)
+      allow(WebSearch::SearchClientRegistry).to receive(:register)
+
+      described_class.register_web_search_clients!
+
+      expect(WebSearch::SearchClientRegistry).to have_received(:register).with(
+        "duckduckgo",
+        "WebSearch::Clients::MissingDuckDuckGoClient",
+        default: false,
+      )
+    end
+
+    it "falls back to the plugin identifier when the explicit client identifier is blank" do
+      definition = UndercoverAgents::PluginSystem::Definition.new("web_search_duckduckgo")
+      definition.category [:web_search]
+      definition.name "DuckDuckGo Web Search"
+      definition.add_web_search_client("MissingDuckDuckGoClient", identifier: "")
+
+      fake_registry = instance_double(UndercoverAgents::PluginSystem::Registry, all: [definition])
+      allow(described_class).to receive(:registry).and_return(fake_registry)
+      allow(WebSearch::SearchClientRegistry).to receive(:reset!)
+      allow(WebSearch::SearchClientRegistry).to receive(:register)
+
+      described_class.register_web_search_clients!
+
+      expect(WebSearch::SearchClientRegistry).to have_received(:register).with(
+        "duckduckgo",
+        "WebSearch::Clients::MissingDuckDuckGoClient",
+        default: false,
       )
     end
   end

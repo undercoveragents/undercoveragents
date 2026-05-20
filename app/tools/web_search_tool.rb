@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class SafeWebSearchTool < RubyLLM::Tool
+class WebSearchTool < RubyLLM::Tool
   description(
     "Safely search the public web through a plugin-backed search client. " \
     "Use it to discover relevant public URLs, then call web_fetch for only the smallest useful set of pages.",
@@ -30,7 +30,7 @@ class SafeWebSearchTool < RubyLLM::Tool
   end
 
   def name
-    "safe_web_search"
+    "web_search"
   end
 
   def execute(query:, page: nil, max_results: nil, provider: nil)

@@ -105,11 +105,11 @@ module BuiltinTools
 
     def register_web_tools
       Registry.register(
-        "web.safe_web_search",
-        name: "Safe Web Search",
+        "web.web_search",
+        name: "Web Search",
         description: "Safely search the public web through a plugin-backed search client.",
         visible_in_headquarter: true,
-        runtime_name: "safe_web_search",
+        runtime_name: "web_search",
         icon: "fa-solid fa-globe",
         compaction_policy: :replace_on_assistant_reply,
         tool_call_presentation: tool_call_presentation(
@@ -125,11 +125,11 @@ module BuiltinTools
           ],
           group_title: WEB_RESEARCH_GROUP_TITLE,
         ),
-      ) { |**| SafeWebSearchTool.new }
+      ) { |**| WebSearchTool.new }
 
       Registry.register(
-        "web.safe_web_fetch",
-        name: "Safe Web Fetch",
+        "web.web_fetch",
+        name: "Web Fetch",
         description: "Safely fetch a very small number of public pages and return focused snippets.",
         visible_in_headquarter: true,
         runtime_name: "web_fetch",

@@ -21,7 +21,7 @@ Current tool type label: {{tool_type_label}}
 - `read_tool` — inspect the current tool or pass `tool_id` for another/newly-created tool.
 - `list_resources` — list operation-scoped IDs and values for one or more core or plugin-declared kinds. Use `get_tool_type_info` to see which lookup kinds a tool type expects for its editable fields.
 - `get_tool_type_info` — inspect the editable configuration fields, plugin notes, and supported actions for a tool type.
-- `safe_web_search` — search the public web for relevant external references when you need current docs or links. Use it for discovery only.
+- `web_search` — search the public web for relevant external references when you need current docs or links. Use it for discovery only.
 - `web_fetch` — fetch only the smallest number of specific public URLs needed to answer, using capped text downloads and focused snippets.
 - `manage_record` — create, update, or delete supported records inside the current tenant and operation. For this agent use `resource="tool"` for tool CRUD.
 - `manage_tool_action` — run existing tool-specific actions such as discovery and visibility updates.
@@ -48,7 +48,7 @@ Current tool type label: {{tool_type_label}}
 - SQL Query tools generate their instructions automatically from the discovered visible schema; do not look for a separate schema-analysis or instruction-generation step there.
 - For a normal create or update request, try to finish the work in one pass and stop once the requested changes are complete.
 - Do not re-read or re-verify after a successful update unless a replacement-style field, returned warning, or explicit user request makes that necessary.
-- Use `safe_web_search` only for public external references and URL discovery. Use `web_fetch` only after you already have the specific public URLs you need. Do not use either tool for app-local inventory or as warm-up before direct tool work.
+- Use `web_search` only for public external references and URL discovery. Use `web_fetch` only after you already have the specific public URLs you need. Do not use either tool for app-local inventory or as warm-up before direct tool work.
 
 ## Core Flow
 1. If the user is editing the current tool, call `read_tool` first.
@@ -70,8 +70,8 @@ Handle the tool configuration directly, apply the necessary changes, and do not 
 tools = [
   "tool_designer.read_tool",
   "resources.list_resources",
-  "web.safe_web_search",
-  "web.safe_web_fetch",
+  "web.web_search",
+  "web.web_fetch",
   "tool_designer.tool_type_info",
   "tool_designer.manage_tool_action",
   "records.manage_record",

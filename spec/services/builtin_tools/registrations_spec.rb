@@ -15,9 +15,9 @@ RSpec.describe BuiltinTools::Registrations do
   it "registers the web, agent, and channel designer builtin tools", :aggregate_failures do
     described_class.register_all!
 
-    expect(BuiltinTools::Registry.definition_for("web.safe_web_search")&.runtime_name)
-      .to eq("safe_web_search")
-    expect(BuiltinTools::Registry.definition_for("web.safe_web_fetch")&.runtime_name)
+    expect(BuiltinTools::Registry.definition_for("web.web_search")&.runtime_name)
+      .to eq("web_search")
+    expect(BuiltinTools::Registry.definition_for("web.web_fetch")&.runtime_name)
       .to eq("web_fetch")
     expect(BuiltinTools::Registry.definition_for("agent_designer.manage_agent_action")&.runtime_name)
       .to eq("manage_agent_action")

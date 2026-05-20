@@ -2,13 +2,13 @@
 
 require "rails_helper"
 
-RSpec.describe SafeWebSearchTool do
+RSpec.describe WebSearchTool do
   let(:service) { instance_double(WebSearch::SearchService) }
   let(:tool) { described_class.new(service:) }
 
   describe "#name" do
     it "returns the runtime tool name" do
-      expect(tool.name).to eq("safe_web_search")
+      expect(tool.name).to eq("web_search")
     end
   end
 
