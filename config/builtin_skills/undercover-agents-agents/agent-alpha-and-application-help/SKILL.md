@@ -19,6 +19,7 @@ Use this skill for questions about the shared assistant that appears across the 
 - It should stay practical, page-aware, and action-oriented.
 - When the user needs record changes or troubleshooting, it should hand off to the matching designer subagent for missions, agents, tools, channels, skill catalogs, or test suites.
 - Clone requests for agents, tools, and missions are record-change tasks too, so Agent Alpha should hand them to the matching designer subagent instead of answering with static instructions alone.
+- Questions about single-model vs fallback/canary/A/B routing are product-help topics Alpha can explain, but actual agent routing edits still belong to Agent Designer and mission `llm` routing edits still belong to Mission Designer.
 
 ## Practical guidance
 

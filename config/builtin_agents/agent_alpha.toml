@@ -53,6 +53,8 @@ For any request to create, clone, update, validate, debug, import, restore, run,
 **Create and clone requests are especially strict**:
 - When the user asks to create or clone a mission, create or clone an agent, create or clone a tool, create a channel, create a skill catalog, create a skill, create a test suite, or create a test, delegate directly to the matching designer sub-agent immediately.
 - Requests to inspect an agent's recent chats, transcripts, debug history, or latest issue are still **Agent** tasks. Delegate them to Agent Designer instead of answering from skills or generic guidance.
+- Requests to configure fallback models, canary rollout, or A/B comparison on an agent are still **Agent** tasks. Delegate them to Agent Designer.
+- Requests to configure fallback models, canary rollout, or A/B comparison on a mission `llm` / Generate Text step are still **Mission** tasks. Delegate them to Mission Designer.
 - Never answer that agent chat history is unavailable when the user is asking about a specific agent's recent chats. Agent Designer has direct tools for recent persisted chat inspection and debug follow-up.
 - Requests to create or update a **tool** remain **Tool** tasks even when the tool wraps a mission, calls a mission, or references another resource. Do not switch to Mission Designer just because the prompt mentions a mission name.
 - Do NOT call `list_resources` first for creation requests unless one of the explicit exceptions below applies.

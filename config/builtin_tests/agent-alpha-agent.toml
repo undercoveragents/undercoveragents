@@ -214,3 +214,17 @@ expected_child_builtin_key = "agent_designer"
 expected_tool_names = ["ask_agent_agent_designer"]
 disallow_child_chats = false
 required_keywords = ["%{new_agent_name}"]
+
+[[test_cases]]
+key = "agent-16"
+name = "Agent 16"
+category = "agent"
+complexity = "high"
+position = 15
+match_type = "semantic"
+prompt = "Update %{benchmark_agent_name} so it uses a fallback model route and can fail over to another available model if the primary one is unavailable."
+expected_answer = "Agent Designer should update %{benchmark_agent_name} to use a fallback model route for failover."
+expected_child_builtin_key = "agent_designer"
+expected_tool_names = ["ask_agent_agent_designer"]
+disallow_child_chats = false
+required_keywords = ["fallback", "%{benchmark_agent_name}"]

@@ -41,6 +41,9 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
       "create a skill catalog, create a skill, create a test suite, or create a test, delegate directly",
       "Do NOT call `list_resources` first for creation requests",
       "explicitly asks for an inventory, list, or availability check before creation",
+      "Requests to configure fallback models, canary rollout, or A/B comparison on an agent are still **Agent** tasks",
+      "Requests to configure fallback models, canary rollout, or A/B comparison on a mission " \
+      "`llm` / Generate Text step are still **Mission** tasks",
       "designer sub-agent already returned an error and you now need to investigate the failure",
       "Mission → Mission Designer",
       "Agent → Agent Designer",
@@ -88,6 +91,7 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
       "manage_capability",
       "assigned_tool_ids",
       "subagent_ids",
+      "model_routing_config",
       "read_agent_chat",
       "debug_agent",
     )
@@ -167,6 +171,7 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
       expect(definition.input_schema.pluck("variable_name"))
         .to contain_exactly("mission_name", "mission_description")
       expect(definition.instructions).to include("mission")
+      expect(definition.instructions).to include("model_routing_config")
     end
 
     it "loads Agent Alpha with the designer subagents", :aggregate_failures do

@@ -9,6 +9,7 @@ class ManageRecordTool < RubyLLM::Tool
     "Missions support name and description.",
     "Agents support name, description, instructions, agent_type, enabled, selectable, llm_config_source,",
     "llm_connector_id, model_id, temperature, thinking_effort, thinking_budget, custom_llm_params,",
+    "model_routing_config,",
     "input_schema, assigned_tool_ids, subagent_ids, and skill_catalog_ids.",
     "Skill catalogs support name and description.",
     "Test suites support name, description, suite_type, agent_id, mission_id, evaluation_llm_connector_id,",

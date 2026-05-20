@@ -14,7 +14,7 @@ RSpec.describe BuiltinTestSuites::DefinitionLoader do
         "agent-alpha-mission",
         "agent-alpha-test-suite",
       )
-      expect(definitions.sum { |definition| definition.test_cases.size }).to eq(100)
+      expect(definitions.sum { |definition| definition.test_cases.size }).to eq(103)
     end
 
     it "loads behavior metadata from TOML" do

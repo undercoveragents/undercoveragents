@@ -15,7 +15,7 @@ RSpec.describe BuiltinTestSuites::Synchronizer do
 
       expect(result.created_keys).to include("agent-alpha-knowledge")
       expect(suites.count).to eq(9)
-      expect(suites.sum { |suite| suite.test_cases.count }).to eq(100)
+      expect(suites.sum { |suite| suite.test_cases.count }).to eq(103)
     end
 
     it "persists behavior fields on builtin test cases" do

@@ -22,6 +22,7 @@ Use this skill for general questions about what agents are and how they fit into
 ## Practical guidance
 
 - If someone asks what makes one agent different from another, explain the combination of purpose, tools, knowledge, and model setup.
+- Agent model setup can stay single-route or add multi-model routing for fallback, canary rollout, or A/B comparison when the user wants resiliency or evaluation behavior.
 - If a user wants a new working behavior, decide whether that belongs in the instructions, a skill catalog, a tool assignment, or a capability.
 - If an agent seems to be missing, confirm the current operation before assuming it was removed.
 - Agent show pages support a Clone action for creating a new editable copy in the same operation when the user wants a starting point instead of changing the original.

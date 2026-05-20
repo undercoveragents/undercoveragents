@@ -15,6 +15,7 @@ module RuntimeRecords
     "thinking_effort",
     "thinking_budget",
     "custom_llm_params",
+    "model_routing_config",
     "input_schema",
     "assigned_tool_ids",
     "subagent_ids",

@@ -15,6 +15,7 @@ module AgentDesigner
     "thinking_effort",
     "thinking_budget",
     "custom_llm_params",
+    "model_routing_config",
     "input_schema",
     "assigned_tool_ids",
     "subagent_ids",
@@ -42,19 +43,7 @@ module AgentDesigner
       agent = resolve_agent(agent_id)
       return missing_agent_message if agent.nil?
 
-      [
-        summary_section(agent),
-        llm_section(agent),
-        relation_section("Assigned Tools", agent.assigned_tools.order(:name)),
-        runtime_tools_section(agent),
-        relation_section("Sub-Agents", agent.subagents.order(:name)),
-        relation_section("Skill Catalogs", agent.skill_catalogs.order(:name)),
-        capabilities_section(agent),
-        input_schema_section(agent),
-        custom_params_section(agent),
-        instructions_section(agent),
-        editable_fields_section(agent),
-      ].compact.join("\n\n")
+      render_agent(agent)
     rescue ActiveRecord::RecordNotFound => e
       "Error: #{e.message}"
     rescue StandardError => e
@@ -79,6 +68,27 @@ module AgentDesigner
       ].compact.join("\n")
     end
 
+    def render_agent(agent)
+      agent_sections(agent).compact.join("\n\n")
+    end
+
+    def agent_sections(agent)
+      [
+        summary_section(agent),
+        llm_section(agent),
+        model_routing_section(agent),
+        relation_section("Assigned Tools", agent.assigned_tools.order(:name)),
+        runtime_tools_section(agent),
+        relation_section("Sub-Agents", agent.subagents.order(:name)),
+        relation_section("Skill Catalogs", agent.skill_catalogs.order(:name)),
+        capabilities_section(agent),
+        input_schema_section(agent),
+        custom_params_section(agent),
+        instructions_section(agent),
+        editable_fields_section,
+      ]
+    end
+
     def llm_section(agent)
       [
         "## Model Configuration",
@@ -89,6 +99,15 @@ module AgentDesigner
         ("- Thinking effort: `#{agent.thinking_effort}`" if agent.thinking_effort.present?),
         ("- Thinking budget: `#{agent.thinking_budget}`" if agent.thinking_budget.present?),
       ].compact.join("\n")
+    end
+
+    def model_routing_section(agent)
+      routing = Llm::ModelRoutingConfig.persistable(agent.model_routing_config)
+      if routing.blank?
+        return "## Model Routing\n- Single route only (no fallback, canary, or A/B comparison configured)."
+      end
+
+      "## Model Routing\n```json\n#{JSON.pretty_generate(routing)}\n```"
     end
 
     def relation_section(title, relation)
@@ -162,7 +181,7 @@ module AgentDesigner
         *AgentDesigner::READ_AGENT_EDITABLE_FIELDS.map { |field| "- `#{field}`" },
         "- Array and hash fields replace the full stored value on update, so reread first and send the " \
         "complete desired value when changing `input_schema`, `assigned_tool_ids`, `subagent_ids`, " \
-        "`skill_catalog_ids`, or `custom_llm_params`.",
+        "`skill_catalog_ids`, `custom_llm_params`, or `model_routing_config`.",
         "- Use `manage_record(action: \"clone\", resource: \"agent\", record_id: #{agent.id})` to clone this agent.",
         "- Capability configuration goes through `manage_capability`, not `manage_record`.",
         "- Builtin runtime tools and builtin metadata are read-only in `manage_record`.",

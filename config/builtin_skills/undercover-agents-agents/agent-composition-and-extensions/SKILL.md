@@ -24,4 +24,5 @@ Use this skill for questions about how an agent becomes more capable over time.
 - Add a skill when the agent needs better guidance or explanations.
 - Add a tool when the agent needs to act on structured inputs or external systems.
 - Add a capability when the product experience itself needs to change around the conversation.
+- Adjust the agent's model configuration when the behavior change is really about model choice or routing, including fallback resiliency, canary rollout, or A/B comparison.
 - Use subagents for specialist workflows, not for routine product explanations.

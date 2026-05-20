@@ -23,6 +23,7 @@ Use this skill for questions about shared setup that supports multiple features 
 
 - System preferences define tenant-wide defaults for model selection, especially when a builtin surface expects a default LLM, embedding model, or image model.
 - The default LLM preference also owns temperature, reasoning effort or budget, and provider custom params for agents or mission LLM nodes that choose the system preference source.
+- The default LLM preference can also own shared model routing behavior such as fallback, canary rollout, or A/B comparison for system-preference-backed agents or mission LLM nodes.
 - These defaults reduce repeated setup across builtins and shared tooling.
 
 ## Practical guidance
