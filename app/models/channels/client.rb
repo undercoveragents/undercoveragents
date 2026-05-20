@@ -75,9 +75,6 @@ module Channels
 
     def settings_payload(channel:)
       agent = channel.client_agent
-      logo_url = if channel.logo.attached?
-                   Rails.application.routes.url_helpers.rails_blob_path(channel.logo, only_path: true)
-                 end
 
       {
         id: channel.id,
@@ -86,15 +83,10 @@ module Channels
         welcome_message:,
         footer:,
         labels: effective_label_settings(channel_name: channel.name),
-        message_actions: normalized_message_action_settings,
-        message_actions_visibility: effective_message_action_settings["message_actions_visibility"],
-        copy_assistant_response_enabled: effective_message_action_settings["copy_assistant_response_enabled"],
-        copy_user_message_enabled: effective_message_action_settings["copy_user_message_enabled"],
-        assistant_feedback_enabled: effective_message_action_settings["assistant_feedback_enabled"],
-        retry_assistant_message_enabled: effective_message_action_settings["retry_assistant_message_enabled"],
+        **message_action_payload,
         agent_id: agent&.id,
         agent_name: agent&.name,
-        logo_url:,
+        logo_url: logo_url_for(channel),
       }
     end
 
@@ -121,6 +113,25 @@ module Channels
 
     def normalized_message_action_settings
       ClientConfiguration.normalized_message_actions_payload(effective_message_action_settings)
+    end
+
+    def message_action_payload
+      action_settings = effective_message_action_settings
+
+      {
+        message_actions: ClientConfiguration.normalized_message_actions_payload(action_settings),
+        message_actions_visibility: action_settings["message_actions_visibility"],
+        copy_assistant_response_enabled: action_settings["copy_assistant_response_enabled"],
+        copy_user_message_enabled: action_settings["copy_user_message_enabled"],
+        assistant_feedback_enabled: action_settings["assistant_feedback_enabled"],
+        retry_assistant_message_enabled: action_settings["retry_assistant_message_enabled"],
+      }
+    end
+
+    def logo_url_for(channel)
+      return unless channel.logo.attached?
+
+      Rails.application.routes.url_helpers.rails_blob_path(channel.logo, only_path: true)
     end
 
     def sanitize_rich_fields
