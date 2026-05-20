@@ -154,10 +154,31 @@ RSpec.describe ChatUiHelper do
         .to eq(message_feedback_admin_playground_chat_path(chat, message_id: message.id))
       expect(helper.chat_message_retry_path(chat:, message:, component: client_component))
         .to eq(message_retry_chat_path(chat, message_id: message.id))
+      expect(helper.chat_message_feedback_path(chat:, message:, component: client_component))
+        .to eq(message_feedback_chat_path(chat, message_id: message.id))
       expect(helper.chat_message_feedback_categories).to eq(MessageFeedback::NEGATIVE_CATEGORIES)
       expect(helper.chat_message_copy_text(message)).to eq(message.display_content.to_s)
       expect(helper.chat_message_actions_ui_context_selector(application_component))
         .to eq("#admin-agent-alpha-page-context")
+    end
+
+    it "adds preview params to client message action paths for admin preview surfaces" do
+      user = create(:user)
+      channel = create(:channel, :client, tenant: user.tenant)
+      chat = create(:chat, :user_context, user:, channel:)
+      message = create(:message, :assistant, chat:)
+
+      helper.define_singleton_method(:admin_client_preview?) { true }
+      helper.define_singleton_method(:current_client_record) { channel }
+      allow(helper).to receive(:client_chat_preview_params)
+        .with(client: channel)
+        .and_return(view: "preview", chat_id: chat.id)
+
+      expect(helper.send(:chat_message_action_path_options, chat:, message:)).to eq(
+        message_id: message.id,
+        view: "preview",
+        chat_id: chat.id,
+      )
     end
 
     it "falls back to a generic agent label when the playground agent name is blank" do

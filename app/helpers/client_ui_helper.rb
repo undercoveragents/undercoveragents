@@ -16,17 +16,21 @@ module ClientUiHelper
                     {}
                   end
 
+    default_actions = Channels::Client.normalized_message_actions_payload({})
+
     if raw_actions.is_a?(Hash) && (raw_actions.key?(:visibility) || raw_actions.key?("visibility"))
-      return raw_actions.deep_stringify_keys.slice(
-        "visibility",
-        "copy_assistant_response",
-        "copy_user_message",
-        "assistant_feedback",
-        "retry_assistant_message",
+      return default_actions.merge(
+        raw_actions.deep_stringify_keys.slice(
+          "visibility",
+          "copy_assistant_response",
+          "copy_user_message",
+          "assistant_feedback",
+          "retry_assistant_message",
+        ),
       )
     end
 
-    ClientConfiguration.normalized_message_actions_payload(raw_actions)
+    Channels::Client.normalized_message_actions_payload(raw_actions)
   end
 
   def client_chat_delete_button_data

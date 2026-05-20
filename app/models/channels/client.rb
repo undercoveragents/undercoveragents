@@ -11,6 +11,9 @@ module Channels
     MESSAGE_ACTION_BOOLEAN_FIELDS = ClientConfiguration::MESSAGE_ACTION_BOOLEAN_FIELDS
     MESSAGE_ACTION_VISIBILITY_VALUES = ClientConfiguration::MESSAGE_ACTION_VISIBILITY_VALUES
     LABEL_LENGTH_LIMIT = ClientConfiguration::LABEL_LENGTH_LIMIT
+    MESSAGE_ACTION_DEFAULTS = ClientConfiguration.default_message_actions_payload.merge(
+      "retry_assistant_message_enabled" => false,
+    ).freeze
     ALLOWED_TAGS = [
       "p", "br", "strong", "em", "b", "i", "u", "s", "a", "ul", "ol", "li",
       "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "code", "pre", "span", "sub", "sup",
@@ -54,6 +57,16 @@ module Channels
     def self.default_labels(channel_name: nil)
       ClientConfiguration::STATIC_LABEL_DEFAULTS.merge(
         "welcome_heading" => "Welcome to #{channel_name.presence || APP_NAME}",
+      )
+    end
+
+    def self.default_message_actions_payload
+      MESSAGE_ACTION_DEFAULTS.deep_dup
+    end
+
+    def self.normalized_message_actions_payload(settings)
+      ClientConfiguration.normalized_message_actions_payload(
+        default_message_actions_payload.merge(settings.to_h.deep_stringify_keys),
       )
     end
 
@@ -108,18 +121,18 @@ module Channels
     end
 
     def effective_message_action_settings
-      ClientConfiguration.default_message_actions_payload.merge(message_action_overrides)
+      self.class.default_message_actions_payload.merge(message_action_overrides)
     end
 
     def normalized_message_action_settings
-      ClientConfiguration.normalized_message_actions_payload(effective_message_action_settings)
+      self.class.normalized_message_actions_payload(message_action_overrides)
     end
 
     def message_action_payload
       action_settings = effective_message_action_settings
 
       {
-        message_actions: ClientConfiguration.normalized_message_actions_payload(action_settings),
+        message_actions: normalized_message_action_settings,
         message_actions_visibility: action_settings["message_actions_visibility"],
         copy_assistant_response_enabled: action_settings["copy_assistant_response_enabled"],
         copy_user_message_enabled: action_settings["copy_user_message_enabled"],

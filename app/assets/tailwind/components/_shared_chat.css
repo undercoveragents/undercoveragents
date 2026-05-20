@@ -86,6 +86,7 @@
   flex-direction: column;
   gap: var(--shared-chat-element-gap);
   max-width: min(100%, 52rem);
+  position: relative;
   animation: shared-chat-message-fade-in 0.2s ease;
 }
 
@@ -95,7 +96,8 @@
 
 .shared-chat__message--user {
   margin-left: auto;
-  flex-direction: row-reverse;
+  flex-direction: column;
+  align-items: flex-end;
   max-width: min(82%, 34rem);
 }
 
@@ -110,6 +112,7 @@
 .shared-chat__assistant-panel {
   display: grid;
   gap: var(--shared-chat-element-gap);
+  position: relative;
   width: min(100%, 52rem);
   padding: 0 0.6rem 0 0;
   border-left: 0;
@@ -119,6 +122,14 @@
     var(--shared-chat-surface-card, var(--surface-card, var(--color-surface-card))) 62%,
     transparent
   );
+}
+
+.shared-chat__user-panel {
+  display: grid;
+  gap: var(--shared-chat-element-gap);
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
 }
 
 .dark .shared-chat__assistant-panel {
@@ -289,46 +300,55 @@
 .shared-chat__message-actions {
   display: inline-flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.35rem;
-  min-height: 1.75rem;
+  width: max-content;
+  max-width: min(100%, calc(100vw - 2rem));
+  position: absolute;
+  top: calc(100% + 0.2rem);
+  left: 0;
+  z-index: 3;
+  padding: 0.2rem 0.3rem;
+  border: 1px solid color-mix(
+    in srgb,
+    var(--shared-chat-border, var(--border-default, var(--color-border-default))) 88%,
+    transparent
+  );
+  border-radius: 999px;
+  background: color-mix(
+    in srgb,
+    var(--shared-chat-surface-card, var(--surface-card, var(--color-surface-card))) 94%,
+    transparent
+  );
+  box-shadow: 0 10px 24px rgb(15 23 42 / 0.16);
   transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
-.shared-chat__message--user .shared-chat__message-actions {
-  justify-content: flex-end;
-  margin-top: 0.35rem;
+.shared-chat__user-panel > .shared-chat__message-actions {
+  left: auto;
+  right: 0;
 }
 
 .shared-chat__assistant-panel > .shared-chat__message-actions {
-  margin-top: -0.1rem;
+  top: calc(100% + 0.15rem);
 }
 
 .shared-chat__message-action-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.9rem;
-  height: 1.9rem;
-  border: 1px solid var(--shared-chat-border, var(--border-default, var(--color-border-default)));
-  border-radius: 999px;
-  background-color: color-mix(
-    in srgb,
-    var(--shared-chat-surface-card, var(--surface-card, var(--color-surface-card))) 90%,
-    transparent
-  );
+  width: 1.55rem;
+  height: 1.55rem;
+  border: 0;
+  border-radius: 0.45rem;
+  background-color: transparent;
   color: var(--shared-chat-text-muted, var(--text-muted, var(--color-text-muted)));
   cursor: pointer;
-  transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
 
   &:hover,
   &:focus-visible {
     color: var(--shared-chat-accent, var(--accent, var(--color-brand-600)));
-    border-color: color-mix(
-      in srgb,
-      var(--shared-chat-accent, var(--accent, var(--color-brand-600))) 42%,
-      var(--shared-chat-border, var(--border-default, var(--color-border-default)))
-    );
     background-color: var(--shared-chat-surface-hover, var(--surface-hover, var(--color-surface-hover)));
     transform: translateY(-1px);
     outline: none;
@@ -336,7 +356,6 @@
 
   &.is-selected {
     color: white;
-    border-color: var(--shared-chat-accent, var(--accent, var(--color-brand-600)));
     background-color: var(--shared-chat-accent, var(--accent, var(--color-brand-600)));
   }
 
@@ -358,7 +377,7 @@
 .shared-chat--message-actions-hover .shared-chat__message-actions {
   opacity: 0;
   pointer-events: none;
-  transform: translateY(-2px);
+  transform: translateY(-4px);
 }
 
 .shared-chat--message-actions-hover .shared-chat__message:hover .shared-chat__message-actions,

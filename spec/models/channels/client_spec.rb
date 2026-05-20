@@ -106,6 +106,17 @@ RSpec.describe Channels::Client do
       expect(payload[:logo_url]).to include("logo.txt")
     end
 
+    it "defaults client retry actions to disabled while keeping other message actions enabled" do
+      payload = described_class.new.settings_payload(channel:)
+
+      expect(payload[:message_actions]).to include(
+        "copy_assistant_response" => true,
+        "copy_user_message" => true,
+        "retry_assistant_message" => false,
+      )
+      expect(payload[:retry_assistant_message_enabled]).to be(false)
+    end
+
     it "preserves explicit message action overrides in the settings payload" do
       configurator = described_class.new(
         message_actions_visibility: "always",

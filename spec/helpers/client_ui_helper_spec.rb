@@ -25,6 +25,7 @@ RSpec.describe ClientUiHelper do
         "visibility" => "hover",
         "copy_assistant_response" => true,
         "copy_user_message" => true,
+        "retry_assistant_message" => false,
       )
     end
   end
