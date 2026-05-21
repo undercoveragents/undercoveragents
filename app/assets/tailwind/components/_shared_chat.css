@@ -301,14 +301,14 @@
   display: inline-flex;
   align-items: center;
   flex-wrap: nowrap;
-  gap: 0.35rem;
+  gap: 0.2rem;
   width: max-content;
   max-width: min(100%, calc(100vw - 2rem));
   position: absolute;
-  top: calc(100% + 0.2rem);
+  top: calc(100% - 0.08rem);
   left: 0;
   z-index: 3;
-  padding: 0.2rem 0.3rem;
+  padding: 0.14rem 0.18rem;
   border: 1px solid color-mix(
     in srgb,
     var(--shared-chat-border, var(--border-default, var(--color-border-default))) 88%,
@@ -320,8 +320,17 @@
     var(--shared-chat-surface-card, var(--surface-card, var(--color-surface-card))) 94%,
     transparent
   );
-  box-shadow: 0 10px 24px rgb(15 23 42 / 0.16);
+  box-shadow: 0 8px 18px rgb(15 23 42 / 0.14);
   transition: opacity 0.15s ease, transform 0.15s ease;
+
+  &::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 100%;
+    height: 0.4rem;
+  }
 }
 
 .shared-chat__user-panel > .shared-chat__message-actions {
@@ -330,17 +339,17 @@
 }
 
 .shared-chat__assistant-panel > .shared-chat__message-actions {
-  top: calc(100% + 0.15rem);
+  top: calc(100% - 0.08rem);
 }
 
 .shared-chat__message-action-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.55rem;
-  height: 1.55rem;
+  width: 1.35rem;
+  height: 1.35rem;
   border: 0;
-  border-radius: 0.45rem;
+  border-radius: 0.35rem;
   background-color: transparent;
   color: var(--shared-chat-text-muted, var(--text-muted, var(--color-text-muted)));
   cursor: pointer;
@@ -370,7 +379,7 @@
   }
 
   i {
-    font-size: 0.85rem;
+    font-size: 0.72rem;
   }
 }
 
@@ -1034,6 +1043,10 @@ details[open] > .shared-chat__tree-summary .shared-chat__tree-chevron {
   display: flex;
   align-items: center;
   flex-shrink: 0;
+}
+
+.shared-chat__status-shell:empty {
+  min-height: 0;
 }
 
 .shared-chat__status-indicator--streaming {

@@ -157,6 +157,16 @@ RSpec.describe "Messages" do
       expect(enqueued[:args][2].length).to eq(1)
     end
 
+    it "returns a turbo-stream thinking status update on turbo requests" do
+      post message_retry_chat_path(chat, message_id: assistant_message.id),
+           headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+      expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+      expect(chat.reload).to be_streaming
+      expect(response.body).to include("chat-#{chat.id}-status")
+      expect(response.body).to include("Thinking")
+    end
+
     it "returns unprocessable content when no earlier user turn exists" do
       empty_chat = create_channel_chat(user:, agent:, channel: client_channel)
       lonely_assistant = create(:message, :assistant, chat: empty_chat, content: "Nothing to retry")

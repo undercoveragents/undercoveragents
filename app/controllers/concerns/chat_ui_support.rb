@@ -86,7 +86,7 @@ module ChatUiSupport
         render turbo_stream: turbo_stream.replace(
           "chat-#{chat.id}-status",
           partial: "shared/chat/status",
-          locals: { chat: },
+          locals: { chat:, phase: "thinking" },
         )
       end
       format.any { head :ok }
