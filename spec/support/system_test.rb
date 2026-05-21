@@ -24,11 +24,7 @@ Capybara.server = :falcon
 Capybara.default_max_wait_time = 5
 
 RSpec.configure do |config|
-  config.before(:each, type: :system) do
-    driven_by :rack_test
-  end
-
-  config.before(:each, :js, type: :system) do
+  config.before(:each, :js) do
     driven_by :selenium, using: :headless_chrome, screen_size: [1440, 1200]
   end
 end

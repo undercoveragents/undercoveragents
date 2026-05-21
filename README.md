@@ -173,9 +173,6 @@ Before opening a PR, run:
 bundle exec rake
 ```
 
-GitHub Actions also emits a Cobertura coverage report at `coverage/coverage.xml`. The Codecov upload runs as a non-blocking best-effort step until the repository is connected to the Codecov GitHub app, so missing Codecov access does not fail the main CI job.
-
-
 ## Project Status
 
 Undercover Agents is under active development. The core product is usable today, but some extension points and internal APIs may continue to evolve as the open-source release matures.

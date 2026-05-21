@@ -37,6 +37,6 @@ RSpec.shared_context "with commit_db", :commit_db do
   self.use_transactional_tests = false
 end
 
-RSpec.shared_context "with js system", :js, type: :system do
+RSpec.shared_context "with js system", :js do
   self.use_transactional_tests = false
 end
