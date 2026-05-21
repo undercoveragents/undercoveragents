@@ -20,6 +20,9 @@ RSpec.describe ChatUiHelper do
             "copy_user_message" => false,
             "assistant_feedback" => true,
           },
+          composer: {
+            "thinking_level_selector_enabled" => true,
+          },
         }
       end
     end
@@ -64,8 +67,16 @@ RSpec.describe ChatUiHelper do
       )
       expect(component.allow_attachments?).to be(true)
       expect(component.allow_drag_drop?).to be(false)
+      expect(component.thinking_level_selector_visible?).to be(true)
       expect(component.references_enabled?).to be(false)
       expect(component.message_actions.visibility).to eq("hover")
+    end
+
+    it "hides the thinking selector when the selected model does not support reasoning" do
+      model = build(:model, capabilities: ["text"])
+      component = helper.build_chat_component(variant: :application).with_attachment_model(model)
+
+      expect(component.thinking_level_selector_visible?).to be(false)
     end
 
     it "applies customized control labels only to the client variant", :aggregate_failures do
@@ -84,6 +95,8 @@ RSpec.describe ChatUiHelper do
       expect(component.message_actions.copy_assistant_response).to be(true)
       expect(component.message_actions.copy_user_message).to be(false)
       expect(component.message_actions.assistant_feedback).to be(true)
+      expect(component.thinking_level_selector_visible?).to be(true)
+      expect(component.thinking_level_options).to include(["Model default", ""], ["High", "high"])
     end
 
     it "enables generic references only when configured" do

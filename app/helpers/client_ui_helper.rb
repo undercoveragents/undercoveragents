@@ -32,6 +32,21 @@ module ClientUiHelper
     Channels::Client.normalized_message_actions_payload(raw_actions)
   end
 
+  def current_client_composer_controls
+    client_settings = resolved_current_client_settings
+    raw_controls = if client_settings.is_a?(Hash)
+                     client_settings[:composer] || client_settings["composer"] || {}
+                   else
+                     {}
+                   end
+
+    Channels::Client.normalized_composer_payload(raw_controls)
+  end
+
+  def current_client_thinking_level_selector_enabled?
+    current_client_composer_controls.fetch("thinking_level_selector_enabled")
+  end
+
   def client_chat_delete_button_data
     {
       controller: "confirm",

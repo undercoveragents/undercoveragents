@@ -38,6 +38,48 @@ RSpec.describe "Messages" do
       expect(response).to have_http_status(:ok)
     end
 
+    it "passes selected thinking effort when the client channel enables the selector" do
+      client_channel.update!(
+        configuration: client_channel.configuration.merge("thinking_level_selector_enabled" => true),
+      )
+      allow(ChatResponseJob).to receive(:perform_later)
+
+      post chat_messages_path(chat), params: { message: { content: "Hello", thinking_effort: "low" } }
+
+      expect(ChatResponseJob).to have_received(:perform_later).with(
+        chat.id,
+        "Hello",
+        [],
+        { "llm_config" => { "thinking_effort" => "low" } },
+        tenant_id: tenant.id,
+      )
+    end
+
+    it "sends model-default thinking when the enabled selector is left blank" do
+      client_channel.update!(
+        configuration: client_channel.configuration.merge("thinking_level_selector_enabled" => true),
+      )
+      allow(ChatResponseJob).to receive(:perform_later)
+
+      post chat_messages_path(chat), params: { message: { content: "Hello", thinking_effort: "" } }
+
+      expect(ChatResponseJob).to have_received(:perform_later).with(
+        chat.id,
+        "Hello",
+        [],
+        { "llm_config" => { "thinking_effort" => nil } },
+        tenant_id: tenant.id,
+      )
+    end
+
+    it "ignores posted thinking effort when the client channel hides the selector" do
+      allow(ChatResponseJob).to receive(:perform_later)
+
+      post chat_messages_path(chat), params: { message: { content: "Hello", thinking_effort: "high" } }
+
+      expect(ChatResponseJob).to have_received(:perform_later).with(chat.id, "Hello", [], tenant_id: tenant.id)
+    end
+
     it "returns not found for another user's chat" do
       other_user = create(:user, tenant:)
       other_chat = create_channel_chat(user: other_user, agent:, channel: client_channel)

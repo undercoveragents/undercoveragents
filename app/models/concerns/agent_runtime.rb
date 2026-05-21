@@ -40,6 +40,7 @@ module AgentRuntime
       model_id: runtime_options[:model_id],
       temperature: runtime_options[:temperature],
       llm_context: runtime_options[:llm_context],
+      runtime_context: runtime_options[:runtime_context],
     )
     chat = create_runtime_chat(runtime_options, runtime_config)
 
@@ -53,6 +54,7 @@ module AgentRuntime
       model_id: runtime_options[:model_id],
       temperature: runtime_options[:temperature],
       llm_context: runtime_options[:llm_context],
+      runtime_context: runtime_options[:runtime_context],
     )
     combined_tools = combined_chat_tools(chat, runtime_options)
 
@@ -160,7 +162,7 @@ module AgentRuntime
     chat.with_runtime_instructions(runtime_instructions) if runtime_instructions.present?
   end
 
-  def resolve_runtime_configuration(model_id:, temperature:, llm_context:)
+  def resolve_runtime_configuration(model_id:, temperature:, llm_context:, runtime_context: {})
     preference = system_preference_runtime? ? SystemPreference.current(tenant:) : nil
     selected_model_id = select_runtime_model_id(model_id, preference)
     require_runtime_model!(selected_model_id)
@@ -171,7 +173,7 @@ module AgentRuntime
       temperature: select_runtime_temperature(temperature, preference),
       context: select_runtime_context(llm_context, preference),
       connector: select_runtime_connector(preference),
-    }.merge(runtime_llm_options(preference))
+    }.merge(runtime_llm_options(preference)).merge(runtime_llm_overrides(runtime_context))
   end
 
   def select_runtime_model_id(model_id, preference)
@@ -222,6 +224,21 @@ module AgentRuntime
       custom_params: custom_llm_params,
       model_routing_config:,
     }
+  end
+
+  def runtime_llm_overrides(runtime_context)
+    return {} unless runtime_context.respond_to?(:to_h)
+
+    llm_config = runtime_context.to_h.deep_stringify_keys["llm_config"]
+    return {} unless llm_config.is_a?(Hash)
+    return {} unless llm_config.key?("thinking_effort")
+
+    effort = llm_config["thinking_effort"].to_s.presence
+    unless effort.blank? || effort.in?(Llm::ChatOptions::THINKING_EFFORTS)
+      raise ArgumentError, "Thinking effort is invalid"
+    end
+
+    { thinking_effort: effort, thinking_budget: nil }
   end
 
   def system_preference_runtime?

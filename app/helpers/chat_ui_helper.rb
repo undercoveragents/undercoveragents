@@ -23,6 +23,9 @@ module ChatUiHelper
     :drop_label,
     :reference_config,
     :message_actions,
+    :thinking_level_selector_visible,
+    :thinking_level_label,
+    :thinking_level_options,
   ) do
     def root_classes
       [
@@ -44,12 +47,15 @@ module ChatUiHelper
     def with_attachment_model(model_record)
       effective_accept = model_record&.attachment_accept
       effective_allow_attachments = allow_attachments && effective_accept.present?
+      effective_thinking_level_selector_visible =
+        thinking_level_selector_visible && model_record&.supports_reasoning? != false
 
       self.class.new(
         **to_h,
         allow_attachments: effective_allow_attachments,
         allow_drag_drop: effective_allow_attachments && allow_drag_drop,
         attachment_accept: effective_accept,
+        thinking_level_selector_visible: effective_thinking_level_selector_visible,
       )
     end
 
@@ -59,6 +65,10 @@ module ChatUiHelper
 
     def message_actions_for?(message)
       message_actions.enabled_for?(message.role)
+    end
+
+    def thinking_level_selector_visible?
+      thinking_level_selector_visible
     end
   end
 
@@ -139,6 +149,7 @@ module ChatUiHelper
       allow_drag_drop: allow_drag_drop.nil? ? false : allow_drag_drop,
       reference_config: references || chat_reference_config,
       message_actions: default_message_actions_config,
+      thinking_level_selector_visible: true,
     )
   end
 
@@ -157,6 +168,7 @@ module ChatUiHelper
       allow_drag_drop: allow_drag_drop.nil? ? allow_attachments : allow_drag_drop,
       reference_config: references || chat_reference_config,
       message_actions: current_client_message_actions_config,
+      thinking_level_selector_visible: current_client_thinking_level_selector_enabled?,
     )
   end
 
@@ -169,6 +181,9 @@ module ChatUiHelper
       stop_label: "Stop",
       drop_label: "Drop files here",
       message_actions: default_message_actions_config,
+      thinking_level_selector_visible: false,
+      thinking_level_label: "Thinking level",
+      thinking_level_options: LlmConfigHelper::THINKING_EFFORT_OPTIONS,
       **attributes,
     )
   end

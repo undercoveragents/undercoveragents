@@ -71,6 +71,7 @@ class Client < ApplicationRecord
   def settings_payload
     logo_url = (Rails.application.routes.url_helpers.rails_blob_path(logo, only_path: true) if logo.attached?)
     message_action_settings = effective_message_action_settings
+    composer_settings = effective_composer_settings
 
     {
       id:,
@@ -80,6 +81,7 @@ class Client < ApplicationRecord
       footer:,
       labels: effective_label_settings,
       **message_action_payload_attributes(message_action_settings),
+      **composer_payload_attributes(composer_settings),
       agent_id:,
       agent_name: agent&.name,
       logo_url:,
@@ -115,6 +117,15 @@ class Client < ApplicationRecord
       copy_assistant_response_enabled: settings["copy_assistant_response_enabled"],
       copy_user_message_enabled: settings["copy_user_message_enabled"],
       assistant_feedback_enabled: settings["assistant_feedback_enabled"],
+    }
+  end
+
+  def composer_payload_attributes(settings)
+    normalized_settings = self.class.normalized_composer_payload(settings)
+
+    {
+      composer: normalized_settings,
+      thinking_level_selector_enabled: normalized_settings["thinking_level_selector_enabled"],
     }
   end
 

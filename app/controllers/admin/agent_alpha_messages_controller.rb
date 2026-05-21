@@ -47,7 +47,7 @@ module Admin
     end
 
     def message_params
-      params.expect(message: [:content, :chat_id, :ui_context_token, :references])
+      params.expect(message: [:content, :chat_id, :ui_context_token, :references, :thinking_effort])
     end
 
     def feedback_params
@@ -69,7 +69,14 @@ module Admin
       )
       ui_context = ui_context_with_references(ui_context)
 
-      AgentAlpha::RuntimeContext.build(ui_context:, tenant: current_tenant)
+      runtime_context = AgentAlpha::RuntimeContext.build(ui_context:, tenant: current_tenant)
+      return runtime_context unless agent_alpha_thinking_level_selector_visible?
+
+      runtime_context.dup.tap do |context|
+        llm_config = context.fetch(:llm_config, {}).dup
+        llm_config[:thinking_effort] = normalized_message_thinking_effort
+        context[:llm_config] = llm_config
+      end
     end
 
     def ui_context_with_references(ui_context)
@@ -87,6 +94,17 @@ module Admin
         operation: current_operation,
         kinds: agent_alpha_reference_kinds,
       ).resolve(message_params[:references])
+    end
+
+    def agent_alpha_thinking_level_selector_visible?
+      chat_model_for_attachments(agent_alpha_chat).try(:supports_reasoning?) != false
+    end
+
+    def normalized_message_thinking_effort
+      effort = message_params[:thinking_effort].to_s.presence
+      return effort if Llm::ChatOptions::THINKING_EFFORTS.include?(effort)
+
+      nil
     end
   end
 end

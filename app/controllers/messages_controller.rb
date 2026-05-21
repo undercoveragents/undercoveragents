@@ -8,7 +8,7 @@ class MessagesController < ApplicationController
   before_action :set_message, only: [:feedback]
 
   def create
-    enqueue_chat_message(chat: @chat, content: message_params[:content])
+    enqueue_chat_message(chat: @chat, content: message_params[:content], runtime_context: message_runtime_context)
   end
 
   def feedback
@@ -41,7 +41,20 @@ class MessagesController < ApplicationController
   end
 
   def message_params
-    params.expect(message: [:content])
+    params.expect(message: [:content, :thinking_effort])
+  end
+
+  def message_runtime_context
+    return {} unless current_client_thinking_level_selector_enabled?
+
+    { llm_config: { thinking_effort: normalized_message_thinking_effort } }
+  end
+
+  def normalized_message_thinking_effort
+    effort = message_params[:thinking_effort].to_s.presence
+    return effort if Llm::ChatOptions::THINKING_EFFORTS.include?(effort)
+
+    nil
   end
 
   def feedback_params

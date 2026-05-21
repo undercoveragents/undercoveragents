@@ -11,6 +11,7 @@ RSpec.describe "Admin::AgentAlphaMessages", :unauthenticated do
       :model,
       model_id: configured_preference.model_id,
       provider: configured_preference.llm_connector.provider,
+      capabilities: ["text", "reasoning"],
     )
   end
   let!(:chat) do
@@ -119,6 +120,7 @@ RSpec.describe "Admin::AgentAlphaMessages", :unauthenticated do
         chat.id,
         "Hello",
         [],
+        { "llm_config" => { "thinking_effort" => nil } },
         tenant_id: chat.send(:response_job_tenant_id),
       )
     end
@@ -192,6 +194,34 @@ RSpec.describe "Admin::AgentAlphaMessages", :unauthenticated do
       post admin_agent_alpha_messages_path, params: { message: { content: "Hello", chat_id: chat.id } }
 
       expect(response).to have_http_status(:ok)
+    end
+
+    it "passes selected thinking effort when the Agent Alpha model supports reasoning" do
+      allow(ChatResponseJob).to receive(:perform_later)
+
+      post admin_agent_alpha_messages_path, params: {
+        message: { content: "Hello", chat_id: chat.id, thinking_effort: "low" },
+      }
+
+      expect(ChatResponseJob).to have_received(:perform_later).with(
+        chat.id,
+        "Hello",
+        [],
+        hash_including("llm_config" => { "thinking_effort" => "low" }),
+        tenant_id: chat.send(:response_job_tenant_id),
+      )
+    end
+
+    it "ignores posted thinking effort when the Agent Alpha model does not support reasoning" do
+      model_record.update!(capabilities: ["text"])
+      allow(ChatResponseJob).to receive(:perform_later)
+
+      post admin_agent_alpha_messages_path, params: {
+        message: { content: "Hello", chat_id: chat.id, thinking_effort: "high" },
+      }
+
+      expect(ChatResponseJob).to have_received(:perform_later)
+        .with(chat.id, "Hello", [], tenant_id: chat.send(:response_job_tenant_id))
     end
 
     it "returns a turbo-stream status update on turbo requests" do

@@ -619,6 +619,20 @@
       font-size: 0.625rem;
     }
   }
+
+  .shared-chat__thinking-level-selector {
+    min-height: 28px;
+    padding: 0.25rem 0.45rem;
+
+    i {
+      font-size: 0.625rem;
+    }
+  }
+
+  .shared-chat__thinking-level-select {
+    height: 1.45rem;
+    font-size: 0.625rem;
+  }
 }
 
 .ms-chat-panel.shared-chat--application {
@@ -1394,6 +1408,7 @@ details[open] > .shared-chat__tree-summary .shared-chat__tree-chevron {
 .shared-chat__controls {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 0.75rem;
   padding-top: 0.25rem;
@@ -1408,6 +1423,7 @@ details[open] > .shared-chat__tree-summary .shared-chat__tree-chevron {
 .shared-chat__controls-right {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.5rem;
   min-height: 2rem;
 }
@@ -1460,6 +1476,41 @@ details[open] > .shared-chat__tree-summary .shared-chat__tree-chevron {
 
   &:hover {
     opacity: 0.92;
+  }
+}
+
+.shared-chat__thinking-level-selector {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 2rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--shared-chat-border, var(--border-default, var(--color-border-default)));
+  border-radius: var(--shared-chat-surface-radius);
+  background: transparent;
+  color: var(--shared-chat-text-secondary, var(--text-secondary, var(--color-text-secondary)));
+
+  i {
+    flex: 0 0 auto;
+    font-size: 0.75rem;
+  }
+}
+
+.shared-chat__thinking-level-select {
+  width: 8.5rem;
+  max-width: 100%;
+  height: 1.65rem;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+
+  &:focus-visible {
+    outline: 2px solid var(--shared-chat-accent, var(--accent, var(--color-brand-600)));
+    outline-offset: 2px;
   }
 }
 

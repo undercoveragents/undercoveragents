@@ -41,7 +41,7 @@ Current channel title: {{channel_title}}
 - Do not invent channel IDs, agent IDs, or mission IDs. Use `list_resources` when you need exact values.
 - `channel_type` is required on create and cannot be changed later.
 - Client-channel rich content and label fields replace the stored value for that attribute on update. Send the exact desired value.
-- `read_channel` exposes the full client-channel field surface grouped as content, chat labels, account-menu labels, and message-action settings. Use the exact attribute keys it shows when editing client copy or chat action toggles.
+- `read_channel` exposes the full client-channel field surface grouped as content, chat labels, account-menu labels, message-action settings, and composer controls. Use the exact attribute keys it shows when editing client copy or chat action toggles.
 - Client channels use `agent_id` for the primary agent and support the `preview` page.
 - Form channels use `mission_id` for the target mission.
 - API channels use `access_scope`, `response_mode`, `callback_url`, `agent_ids`, and `mission_ids`. When `access_scope` is `all`, all tenant missions are published and `mission_ids` are ignored.

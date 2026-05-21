@@ -114,7 +114,7 @@ RSpec.describe "Admin::AgentAlphas", :unauthenticated do
   end
 
   before do
-    create(:model, model_id: "gpt-4.1", provider: "openai")
+    create(:model, model_id: "gpt-4.1", provider: "openai", capabilities: ["text", "reasoning"])
     create(:system_preference, :configured)
     sign_in(user)
   end
@@ -160,6 +160,20 @@ RSpec.describe "Admin::AgentAlphas", :unauthenticated do
 
       expect_persistent_agent_alpha_frame_response
       expect_agent_alpha_composer_form
+    end
+
+    it "shows the thinking selector when the Agent Alpha model supports reasoning" do
+      get admin_agent_alpha_path
+
+      expect(response.body).to include('name="message[thinking_effort]"')
+    end
+
+    it "hides the thinking selector when the Agent Alpha model does not support reasoning" do
+      Model.find_by!(model_id: "gpt-4.1").update!(capabilities: ["text"])
+
+      get admin_agent_alpha_path
+
+      expect(response.body).not_to include('name="message[thinking_effort]"')
     end
 
     it "shows attachment controls when the Agent Alpha model accepts attachments" do

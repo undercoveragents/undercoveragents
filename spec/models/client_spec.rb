@@ -213,9 +213,44 @@ RSpec.describe Client do
     end
   end
 
+  describe "composer control configuration" do
+    it "persists thinking selector settings in configuration" do
+      client = build(:client, name: "Acme")
+      client.thinking_level_selector_enabled = true
+
+      expect(client.thinking_level_selector_enabled).to be(true)
+      expect(client.configuration).to include(
+        "composer" => include("thinking_level_selector_enabled" => true),
+      )
+    end
+
+    it "ignores unknown stored composer controls and includes normalized payload settings" do
+      client = build(:client, name: "Acme")
+      client.configuration = {
+        "composer" => {
+          "thinking_level_selector_enabled" => "1",
+          "unknown" => true,
+        },
+      }
+
+      expect(client.send(:effective_composer_settings)).not_to have_key("unknown")
+      expect(client.settings_payload[:composer]).to eq("thinking_level_selector_enabled" => true)
+      expect(client.settings_payload[:thinking_level_selector_enabled]).to be(true)
+    end
+
+    it "falls back to defaults when stored composer controls are nil" do
+      client = build(:client, name: "Acme")
+      client.configuration = { "composer" => { "thinking_level_selector_enabled" => nil } }
+
+      expect(client.thinking_level_selector_enabled).to be(false)
+      expect(client.settings_payload[:composer]).to eq("thinking_level_selector_enabled" => false)
+    end
+  end
+
   describe ".default_labels" do
     it "exposes the configuration-backed attribute names" do
-      expect(described_class.configuration_attribute_names).to include(:title, :welcome_message, :new_chat_label)
+      expect(described_class.configuration_attribute_names)
+        .to include(:title, :welcome_message, :new_chat_label, :thinking_level_selector_enabled)
     end
 
     it "falls back to the app name when no client name is provided" do

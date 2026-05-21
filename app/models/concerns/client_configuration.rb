@@ -38,9 +38,16 @@ module ClientConfiguration # rubocop:disable Metrics/ModuleLength
     :message_actions_visibility,
     *MESSAGE_ACTION_BOOLEAN_FIELDS,
   ].freeze
+  COMPOSER_BOOLEAN_FIELDS = [
+    :thinking_level_selector_enabled,
+  ].freeze
+  COMPOSER_FIELDS = [
+    *COMPOSER_BOOLEAN_FIELDS,
+  ].freeze
   MESSAGE_ACTION_VISIBILITY_VALUES = ["always", "hover"].freeze
   MESSAGE_ACTION_FIELD_NAMES = MESSAGE_ACTION_FIELDS.map(&:to_s).freeze
-  CONFIGURATION_ATTRIBUTE_NAMES = (CONTENT_FIELDS + LABEL_FIELDS + MESSAGE_ACTION_FIELDS).freeze
+  COMPOSER_FIELD_NAMES = COMPOSER_FIELDS.map(&:to_s).freeze
+  CONFIGURATION_ATTRIBUTE_NAMES = (CONTENT_FIELDS + LABEL_FIELDS + MESSAGE_ACTION_FIELDS + COMPOSER_FIELDS).freeze
   LABEL_LENGTH_LIMIT = 2_000
   STATIC_LABEL_DEFAULTS = {
     "new_chat_label" => "New chat",
@@ -72,9 +79,16 @@ module ClientConfiguration # rubocop:disable Metrics/ModuleLength
     "copy_user_message_enabled" => true,
     "assistant_feedback_enabled" => true,
   }.freeze
+  STATIC_COMPOSER_DEFAULTS = {
+    "thinking_level_selector_enabled" => false,
+  }.freeze
 
   def self.default_message_actions_payload
     STATIC_MESSAGE_ACTION_DEFAULTS.deep_dup
+  end
+
+  def self.default_composer_payload
+    STATIC_COMPOSER_DEFAULTS.deep_dup
   end
 
   def self.normalized_message_actions_payload(settings)
@@ -85,6 +99,16 @@ module ClientConfiguration # rubocop:disable Metrics/ModuleLength
       "copy_assistant_response" => action_settings.fetch("copy_assistant_response_enabled"),
       "copy_user_message" => action_settings.fetch("copy_user_message_enabled"),
       "assistant_feedback" => action_settings.fetch("assistant_feedback_enabled"),
+    }
+  end
+
+  def self.normalized_composer_payload(settings)
+    composer_settings = default_composer_payload.merge(settings.to_h.deep_stringify_keys)
+
+    {
+      "thinking_level_selector_enabled" => ActiveModel::Type::Boolean.new.cast(
+        composer_settings.fetch("thinking_level_selector_enabled"),
+      ),
     }
   end
 
@@ -101,6 +125,7 @@ module ClientConfiguration # rubocop:disable Metrics/ModuleLength
 
   class_methods do
     delegate :default_message_actions_payload, :normalized_message_actions_payload, to: ClientConfiguration
+    delegate :default_composer_payload, :normalized_composer_payload, to: ClientConfiguration
 
     def configuration_attribute_names
       CONFIGURATION_ATTRIBUTE_NAMES
@@ -147,12 +172,26 @@ module ClientConfiguration # rubocop:disable Metrics/ModuleLength
     end
   end
 
+  COMPOSER_FIELDS.each do |field_name|
+    define_method(field_name) do
+      effective_composer_settings.fetch(field_name.to_s)
+    end
+
+    define_method("#{field_name}=") do |value|
+      write_composer_configuration(field_name, value)
+    end
+  end
+
   def effective_label_settings
     self.class.default_labels(client_name: name).merge(present_label_overrides)
   end
 
   def effective_message_action_settings
     self.class.default_message_actions_payload.merge(present_message_action_overrides)
+  end
+
+  def effective_composer_settings
+    self.class.default_composer_payload.merge(present_composer_overrides)
   end
 
   private
@@ -189,6 +228,10 @@ module ClientConfiguration # rubocop:disable Metrics/ModuleLength
     configuration_section("message_actions")
   end
 
+  def composer_configuration
+    configuration_section("composer")
+  end
+
   def configuration_section(section_name)
     section = configuration_payload[section_name]
     section.is_a?(Hash) ? section : {}
@@ -212,6 +255,15 @@ module ClientConfiguration # rubocop:disable Metrics/ModuleLength
     end
   end
 
+  def present_composer_overrides
+    composer_configuration.each_with_object({}) do |(key, value), settings|
+      next unless COMPOSER_FIELD_NAMES.include?(key)
+      next if value.nil?
+
+      settings[key] = value
+    end
+  end
+
   def write_content_configuration(field_name, value)
     update_configuration_section("content", field_name, value, remove_blank: false)
   end
@@ -222,6 +274,10 @@ module ClientConfiguration # rubocop:disable Metrics/ModuleLength
 
   def write_message_action_configuration(field_name, value)
     update_configuration_section("message_actions", field_name, value, remove_blank: false)
+  end
+
+  def write_composer_configuration(field_name, value)
+    update_configuration_section("composer", field_name, value, remove_blank: false)
   end
 
   def update_configuration_section(section_name, field_name, value, remove_blank:)
