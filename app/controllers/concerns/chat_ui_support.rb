@@ -48,16 +48,6 @@ module ChatUiSupport
     render_chat_status(chat:)
   end
 
-  def retry_source_message(chat:, message:)
-    return unless message.assistant?
-
-    chat.messages.user.where(id: ...message.id).order(id: :desc).first
-  end
-
-  def retry_attachment_signed_ids(message)
-    message.attachments.blobs.map(&:signed_id)
-  end
-
   def persist_message_feedback(chat:, message:, user:, attributes:)
     feedback = message.message_feedbacks.find_or_initialize_by(user:)
     feedback.chat = chat

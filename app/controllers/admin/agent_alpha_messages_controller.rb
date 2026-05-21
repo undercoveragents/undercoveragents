@@ -17,20 +17,6 @@ module Admin
       )
     end
 
-    def retry
-      return head :unprocessable_content unless agent_alpha_configured?
-
-      source_message = retry_source_message(chat: agent_alpha_chat, message: agent_alpha_message)
-      return head :unprocessable_content if source_message.nil?
-
-      enqueue_chat_message(
-        chat: agent_alpha_chat,
-        content: source_message.content,
-        runtime_context: retry_runtime_context,
-        attachment_signed_ids: retry_attachment_signed_ids(source_message),
-      )
-    end
-
     def feedback
       feedback = persist_message_feedback(
         chat: agent_alpha_chat,
@@ -101,18 +87,6 @@ module Admin
         operation: current_operation,
         kinds: agent_alpha_reference_kinds,
       ).resolve(message_params[:references])
-    end
-
-    def retry_runtime_context
-      return {} if params[:ui_context_token].blank?
-
-      ui_context = AgentAlpha::PageContext.verify(
-        params[:ui_context_token],
-        user: current_user,
-        tenant: current_tenant,
-      )
-
-      AgentAlpha::RuntimeContext.build(ui_context:, tenant: current_tenant)
     end
   end
 end

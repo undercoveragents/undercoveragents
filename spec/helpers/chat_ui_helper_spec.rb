@@ -19,7 +19,6 @@ RSpec.describe ChatUiHelper do
             "copy_assistant_response" => true,
             "copy_user_message" => false,
             "assistant_feedback" => true,
-            "retry_assistant_message" => true,
           },
         }
       end
@@ -45,8 +44,7 @@ RSpec.describe ChatUiHelper do
       expect(component.message_actions.visibility).to eq("hover")
       expect(component.message_actions.copy_assistant_response).to be(true)
       expect(component.message_actions.copy_user_message).to be(true)
-      expect(component.message_actions.assistant_feedback).to be(false)
-      expect(component.message_actions.retry_assistant_message).to be(true)
+      expect(component.message_actions.assistant_feedback).to be(true)
     end
 
     it "builds the application component defaults", :aggregate_failures do
@@ -86,7 +84,6 @@ RSpec.describe ChatUiHelper do
       expect(component.message_actions.copy_assistant_response).to be(true)
       expect(component.message_actions.copy_user_message).to be(false)
       expect(component.message_actions.assistant_feedback).to be(true)
-      expect(component.message_actions.retry_assistant_message).to be(true)
     end
 
     it "enables generic references only when configured" do
@@ -144,16 +141,10 @@ RSpec.describe ChatUiHelper do
       client_component = helper.build_chat_component(variant: :client)
 
       expect(application_component.message_actions.enabled_for?("tool")).to be(false)
-      expect(helper.chat_message_retry_path(chat:, message:, component: application_component))
-        .to eq(message_retry_admin_agent_alpha_path(message_id: message.id))
       expect(helper.chat_message_feedback_path(chat:, message:, component: application_component))
         .to eq(message_feedback_admin_agent_alpha_path(message_id: message.id))
-      expect(helper.chat_message_retry_path(chat:, message:, component: playground_component))
-        .to eq(message_retry_admin_playground_chat_path(chat, message_id: message.id))
       expect(helper.chat_message_feedback_path(chat:, message:, component: playground_component))
         .to eq(message_feedback_admin_playground_chat_path(chat, message_id: message.id))
-      expect(helper.chat_message_retry_path(chat:, message:, component: client_component))
-        .to eq(message_retry_chat_path(chat, message_id: message.id))
       expect(helper.chat_message_feedback_path(chat:, message:, component: client_component))
         .to eq(message_feedback_chat_path(chat, message_id: message.id))
       expect(helper.chat_message_feedback_categories).to eq(MessageFeedback::NEGATIVE_CATEGORIES)

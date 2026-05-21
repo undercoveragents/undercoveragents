@@ -6,28 +6,16 @@ module ChatMessageActionsHelper
     :copy_assistant_response,
     :copy_user_message,
     :assistant_feedback,
-    :retry_assistant_message,
   ) do
     def enabled_for?(role)
       case role.to_s
       when "assistant"
-        copy_assistant_response || assistant_feedback || retry_assistant_message
+        copy_assistant_response || assistant_feedback
       when "user"
         copy_user_message
       else
         false
       end
-    end
-  end
-
-  def chat_message_retry_path(chat:, message:, component:)
-    case component.variant
-    when :application
-      message_retry_admin_agent_alpha_path(message_id: message.id)
-    when :playground
-      message_retry_admin_playground_chat_path(chat, message_id: message.id)
-    else
-      message_retry_chat_path(chat, chat_message_action_path_options(chat:, message:))
     end
   end
 
@@ -42,8 +30,8 @@ module ChatMessageActionsHelper
     end
   end
 
-  def chat_message_copy_text(message)
-    chat_message_display_content(message).to_s
+  def chat_message_copy_text(message, override_text: nil)
+    override_text.presence || chat_message_display_content(message).to_s
   end
 
   def chat_message_feedback_categories
@@ -71,8 +59,7 @@ module ChatMessageActionsHelper
       visibility: normalized.fetch(:visibility, "hover"),
       copy_assistant_response: normalized.fetch(:copy_assistant_response, true),
       copy_user_message: normalized.fetch(:copy_user_message, true),
-      assistant_feedback: normalized.fetch(:assistant_feedback, false),
-      retry_assistant_message: normalized.fetch(:retry_assistant_message, true),
+      assistant_feedback: normalized.fetch(:assistant_feedback, true),
     )
   end
 

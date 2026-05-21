@@ -8,21 +8,10 @@ module Admin
 
       before_action :set_chat
       before_action :ensure_chat_accessible!
-      before_action :set_message, only: [:retry, :feedback]
+      before_action :set_message, only: [:feedback]
 
       def create
         enqueue_chat_message(chat: @chat, content: message_params[:content])
-      end
-
-      def retry
-        source_message = retry_source_message(chat: @chat, message: @message)
-        return head :unprocessable_content if source_message.nil?
-
-        enqueue_chat_message(
-          chat: @chat,
-          content: source_message.content,
-          attachment_signed_ids: retry_attachment_signed_ids(source_message),
-        )
       end
 
       def feedback

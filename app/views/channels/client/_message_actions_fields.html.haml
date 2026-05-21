@@ -25,8 +25,3 @@
           = f.check_box :assistant_feedback_enabled, class: "form-check-input"
           = f.label :assistant_feedback_enabled, "Assistant feedback", class: "form-check-label"
         .form-hint.ml-6 Enable thumbs up and thumbs down feedback on assistant messages.
-      .form-group
-        .form-check
-          = f.check_box :retry_assistant_message_enabled, class: "form-check-input"
-          = f.label :retry_assistant_message_enabled, "Try again", class: "form-check-label"
-        .form-hint.ml-6 Show a retry icon on assistant messages that replays the last user turn.

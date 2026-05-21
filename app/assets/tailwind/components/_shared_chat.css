@@ -114,7 +114,7 @@
   gap: var(--shared-chat-element-gap);
   position: relative;
   width: min(100%, 52rem);
-  padding: 0 0.6rem 0 0;
+  padding: 0 0.6rem 1.15rem 0;
   border-left: 0;
   border-radius: 0;
   background: color-mix(
@@ -130,6 +130,7 @@
   position: relative;
   width: fit-content;
   max-width: 100%;
+  padding-bottom: 1.3rem;
 }
 
 .dark .shared-chat__assistant-panel {
@@ -301,45 +302,34 @@
   display: inline-flex;
   align-items: center;
   flex-wrap: nowrap;
-  gap: 0.2rem;
-  width: max-content;
-  max-width: min(100%, calc(100vw - 2rem));
+  gap: 0.15rem;
+  width: auto;
+  max-width: min(100%, 18rem);
   position: absolute;
-  top: calc(100% - 0.08rem);
-  left: 0;
+  top: auto;
+  bottom: 0;
   z-index: 3;
-  padding: 0.14rem 0.18rem;
-  border: 1px solid color-mix(
-    in srgb,
-    var(--shared-chat-border, var(--border-default, var(--color-border-default))) 88%,
-    transparent
-  );
-  border-radius: 999px;
-  background: color-mix(
-    in srgb,
-    var(--shared-chat-surface-card, var(--surface-card, var(--color-surface-card))) 94%,
-    transparent
-  );
-  box-shadow: 0 8px 18px rgb(15 23 42 / 0.14);
-  transition: opacity 0.15s ease, transform 0.15s ease;
-
-  &::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 100%;
-    height: 0.4rem;
-  }
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
 }
 
 .shared-chat__user-panel > .shared-chat__message-actions {
+  right: 0.1rem;
   left: auto;
-  right: 0;
+  justify-content: flex-end;
 }
 
 .shared-chat__assistant-panel > .shared-chat__message-actions {
-  top: calc(100% - 0.08rem);
+  left: 0;
+  right: auto;
+  justify-content: flex-start;
 }
 
 .shared-chat__message-action-button {
@@ -349,16 +339,20 @@
   width: 1.35rem;
   height: 1.35rem;
   border: 0;
-  border-radius: 0.35rem;
+  border-radius: 999px;
   background-color: transparent;
   color: var(--shared-chat-text-muted, var(--text-muted, var(--color-text-muted)));
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  transition: color 0.15s ease, transform 0.15s ease, background-color 0.15s ease;
 
   &:hover,
   &:focus-visible {
     color: var(--shared-chat-accent, var(--accent, var(--color-brand-600)));
-    background-color: var(--shared-chat-surface-hover, var(--surface-hover, var(--color-surface-hover)));
+    background-color: color-mix(
+      in srgb,
+      var(--shared-chat-surface-hover, var(--surface-hover, var(--color-surface-hover))) 82%,
+      transparent
+    );
     transform: translateY(-1px);
     outline: none;
   }
@@ -385,20 +379,87 @@
 
 .shared-chat--message-actions-hover .shared-chat__message-actions {
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
-  transform: translateY(-4px);
+  transform: translateY(0.2rem);
 }
 
 .shared-chat--message-actions-hover .shared-chat__message:hover .shared-chat__message-actions,
 .shared-chat--message-actions-hover .shared-chat__message:focus-within .shared-chat__message-actions,
 .shared-chat--message-actions-hover .shared-chat__message-actions.is-open {
   opacity: 1;
+  visibility: visible;
   pointer-events: auto;
   transform: translateY(0);
 }
 
 .shared-chat__feedback-dialog .dialog-content {
-  width: min(100%, 32rem);
+  width: 100%;
+}
+
+.shared-chat__feedback-dialog {
+  width: min(100% - 1.5rem, 42rem);
+  max-width: 42rem;
+  overflow: hidden;
+  border: 1px solid color-mix(
+    in srgb,
+    var(--shared-chat-border, var(--border-default, var(--color-border-default))) 92%,
+    transparent
+  );
+  background: var(--shared-chat-surface-card, var(--surface-card, var(--color-surface-card)));
+}
+
+.shared-chat__feedback-dialog .dialog-header {
+  padding: 1.25rem 1.5rem;
+}
+
+.shared-chat__feedback-dialog .dialog-title {
+  font-size: 1.125rem;
+  line-height: 1.2;
+}
+
+.shared-chat__feedback-dialog .dialog-close {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+}
+
+.shared-chat__feedback-dialog .dialog-body {
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.shared-chat__feedback-dialog .form-group {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.shared-chat__feedback-dialog .form-label {
+  margin: 0;
+  color: var(--shared-chat-panel-text-primary, var(--shared-chat-text-primary, var(--text-primary, var(--color-text-primary))));
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.shared-chat__feedback-dialog .form-input,
+.shared-chat__feedback-dialog .form-select {
+  width: 100%;
+}
+
+.shared-chat__feedback-dialog textarea.form-input {
+  min-height: 8rem;
+  resize: vertical;
+}
+
+.shared-chat__feedback-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 0.25rem;
 }
 
 :is(.ms-chat-panel.shared-chat--application, .shared-chat--playground) {
@@ -519,7 +580,7 @@
   }
 
   .shared-chat__composer-area {
-    padding: 8px 12px 12px;
+    padding: 8px 12px 8px;
   }
 
   .shared-chat__attachment-previews {
@@ -1039,14 +1100,15 @@ details[open] > .shared-chat__tree-summary .shared-chat__tree-chevron {
 }
 
 .shared-chat__status-shell {
-  min-height: 1.5rem;
-  display: flex;
-  align-items: center;
+  min-height: 0;
+  display: none;
   flex-shrink: 0;
 }
 
-.shared-chat__status-shell:empty {
-  min-height: 0;
+.shared-chat__status-shell--visible {
+  min-height: 1.5rem;
+  display: flex;
+  align-items: center;
 }
 
 .shared-chat__status-indicator--streaming {
@@ -1063,7 +1125,7 @@ details[open] > .shared-chat__tree-summary .shared-chat__tree-chevron {
 }
 
 .shared-chat__composer-area {
-  padding: 0.875rem 1rem;
+  padding: 0.875rem 1rem 0.75rem;
   border-top: 1px solid var(--shared-chat-border, var(--border-default, var(--color-border-default)));
   background-color: var(--shared-chat-surface-secondary, var(--surface-secondary, var(--color-surface-primary)));
   flex-shrink: 0;

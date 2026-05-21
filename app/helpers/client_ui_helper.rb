@@ -25,7 +25,6 @@ module ClientUiHelper
           "copy_assistant_response",
           "copy_user_message",
           "assistant_feedback",
-          "retry_assistant_message",
         ),
       )
     end

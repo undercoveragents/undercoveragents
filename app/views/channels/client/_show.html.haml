@@ -38,9 +38,6 @@
         .detail-item
           .detail-label Assistant Feedback
           .detail-value= channel.settings_payload.dig(:message_actions, :assistant_feedback) ? "Enabled" : "Disabled"
-        .detail-item
-          .detail-label Try Again
-          .detail-value= channel.settings_payload.dig(:message_actions, :retry_assistant_message) ? "Enabled" : "Disabled"
 
   .card
     .card-header

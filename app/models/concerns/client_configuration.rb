@@ -33,7 +33,6 @@ module ClientConfiguration # rubocop:disable Metrics/ModuleLength
     :copy_assistant_response_enabled,
     :copy_user_message_enabled,
     :assistant_feedback_enabled,
-    :retry_assistant_message_enabled,
   ].freeze
   MESSAGE_ACTION_FIELDS = [
     :message_actions_visibility,
@@ -71,8 +70,7 @@ module ClientConfiguration # rubocop:disable Metrics/ModuleLength
     "message_actions_visibility" => "hover",
     "copy_assistant_response_enabled" => true,
     "copy_user_message_enabled" => true,
-    "assistant_feedback_enabled" => false,
-    "retry_assistant_message_enabled" => true,
+    "assistant_feedback_enabled" => true,
   }.freeze
 
   def self.default_message_actions_payload
@@ -87,7 +85,6 @@ module ClientConfiguration # rubocop:disable Metrics/ModuleLength
       "copy_assistant_response" => action_settings.fetch("copy_assistant_response_enabled"),
       "copy_user_message" => action_settings.fetch("copy_user_message_enabled"),
       "assistant_feedback" => action_settings.fetch("assistant_feedback_enabled"),
-      "retry_assistant_message" => action_settings.fetch("retry_assistant_message_enabled"),
     }
   end
 

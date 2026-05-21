@@ -1,35 +1,11 @@
 import { Controller } from "@hotwired/stimulus"
-import { Turbo } from "@hotwired/turbo-rails"
 
 export default class extends Controller {
   static targets = ["dialog", "category", "comment", "positiveButton", "negativeButton", "error"]
 
   static values = {
-    retryUrl: String,
     feedbackUrl: String,
     uiContextSelector: String,
-  }
-
-  async retry(event) {
-    event.preventDefault()
-    if (!this.hasRetryUrlValue) return
-
-    const button = event.currentTarget
-    this.setBusy(button, true)
-
-    try {
-      const formData = new FormData()
-      const uiContextToken = this.currentUiContextToken()
-      if (uiContextToken) formData.append("ui_context_token", uiContextToken)
-
-      const response = await this.post(this.retryUrlValue, formData, {
-        accept: "text/vnd.turbo-stream.html",
-      })
-      const stream = await response.text()
-      if (stream) Turbo.renderStreamMessage(stream)
-    } finally {
-      this.setBusy(button, false)
-    }
   }
 
   async submitPositiveFeedback(event) {
@@ -51,7 +27,7 @@ export default class extends Controller {
     if (!this.hasDialogTarget) return
 
     this.element.classList.remove("is-open")
-    this.dialogTarget.close() if this.dialogTarget.open
+    if (this.dialogTarget.open) this.dialogTarget.close()
   }
 
   backdropClick(event) {

@@ -1,5 +1,6 @@
 - phase = local_assigns.fetch(:phase, nil)&.to_s
-.shared-chat__status-shell{ id: "chat-#{chat.id}-status", data: { chat_target: "status", status: chat.status, phase: } }
+- visible = (chat.streaming? && phase == "thinking") || chat.cancelled?
+.shared-chat__status-shell{ class: ("shared-chat__status-shell--visible" if visible), id: "chat-#{chat.id}-status", data: { chat_target: "status", status: chat.status, phase: } }
   - if chat.streaming? && phase == "thinking"
     .shared-chat__status-indicator.shared-chat__status-indicator--streaming
       %span.shared-chat__status-label.shared-chat__text-shimmer Thinking…

@@ -1,5 +1,5 @@
 - chat_message_render_entries(messages, chat: local_assigns[:chat]).each do |entry|
   - if entry[:kind] == :tool_group_message
-    = render partial: "shared/chat/tool_group_message", locals: { group_title: entry[:group_title], items: entry[:items], status: entry[:status] }
+    = render partial: "shared/chat/tool_group_message", locals: { group_title: entry[:group_title], items: entry[:items], status: entry[:status], action_message: entry[:action_message], action_copy_text: entry[:action_copy_text], component: local_assigns[:component], chat: local_assigns[:chat] }
   - else
-    = render "shared/chat/message", message: entry[:message], chat: local_assigns[:chat], component: local_assigns[:component]
+    = render "shared/chat/message", message: entry[:message], chat: local_assigns[:chat], component: local_assigns[:component], action_message: entry[:action_message], action_copy_text: entry[:action_copy_text]

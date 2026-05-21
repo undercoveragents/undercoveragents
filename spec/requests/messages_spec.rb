@@ -8,7 +8,6 @@ RSpec.describe "Messages" do
   let!(:agent) { create(:agent, enabled: true, operation: tenant.default_operation) }
   let!(:client_channel) { create_client_channel(agent:) }
   let(:chat) { create_channel_chat(user:, agent:, channel: client_channel) }
-  let!(:source_user_message) { create(:message, :user, chat:, content: "Retry this request") }
   let!(:assistant_message) { create(:message, :assistant, chat:, content: "Initial response") }
 
   def create_client_channel(agent:, default: true, name: "Support Channel")
@@ -134,52 +133,6 @@ RSpec.describe "Messages" do
           }
         end.not_to change(ActiveStorage::Blob, :count)
       end
-    end
-  end
-
-  describe "POST /chat/:id/messages/:message_id/retry" do
-    before do
-      source_user_message.attachments.attach(
-        io: StringIO.new("retry attachment"),
-        filename: "retry.txt",
-        content_type: "text/plain",
-      )
-    end
-
-    it "re-enqueues the previous user turn with the original attachments" do
-      post message_retry_chat_path(chat, message_id: assistant_message.id)
-
-      enqueued = ActiveJob::Base.queue_adapter.enqueued_jobs.last
-      expect(response).to have_http_status(:ok)
-      expect(enqueued[:args][0]).to eq(chat.id)
-      expect(enqueued[:args][1]).to eq("Retry this request")
-      expect(enqueued[:args][2]).to be_an(Array)
-      expect(enqueued[:args][2].length).to eq(1)
-    end
-
-    it "returns a turbo-stream thinking status update on turbo requests" do
-      post message_retry_chat_path(chat, message_id: assistant_message.id),
-           headers: { "Accept" => "text/vnd.turbo-stream.html" }
-
-      expect(response.media_type).to eq("text/vnd.turbo-stream.html")
-      expect(chat.reload).to be_streaming
-      expect(response.body).to include("chat-#{chat.id}-status")
-      expect(response.body).to include("Thinking")
-    end
-
-    it "returns unprocessable content when no earlier user turn exists" do
-      empty_chat = create_channel_chat(user:, agent:, channel: client_channel)
-      lonely_assistant = create(:message, :assistant, chat: empty_chat, content: "Nothing to retry")
-
-      post message_retry_chat_path(empty_chat, message_id: lonely_assistant.id)
-
-      expect(response).to have_http_status(:unprocessable_content)
-    end
-
-    it "returns unprocessable content when retry is requested for a user message" do
-      post message_retry_chat_path(chat, message_id: source_user_message.id)
-
-      expect(response).to have_http_status(:unprocessable_content)
     end
   end
 

@@ -115,7 +115,6 @@ class Client < ApplicationRecord
       copy_assistant_response_enabled: settings["copy_assistant_response_enabled"],
       copy_user_message_enabled: settings["copy_user_message_enabled"],
       assistant_feedback_enabled: settings["assistant_feedback_enabled"],
-      retry_assistant_message_enabled: settings["retry_assistant_message_enabled"],
     }
   end
 

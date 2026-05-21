@@ -11,9 +11,7 @@ module Channels
     MESSAGE_ACTION_BOOLEAN_FIELDS = ClientConfiguration::MESSAGE_ACTION_BOOLEAN_FIELDS
     MESSAGE_ACTION_VISIBILITY_VALUES = ClientConfiguration::MESSAGE_ACTION_VISIBILITY_VALUES
     LABEL_LENGTH_LIMIT = ClientConfiguration::LABEL_LENGTH_LIMIT
-    MESSAGE_ACTION_DEFAULTS = ClientConfiguration.default_message_actions_payload.merge(
-      "retry_assistant_message_enabled" => false,
-    ).freeze
+    MESSAGE_ACTION_DEFAULTS = ClientConfiguration.default_message_actions_payload.freeze
     ALLOWED_TAGS = [
       "p", "br", "strong", "em", "b", "i", "u", "s", "a", "ul", "ol", "li",
       "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "code", "pre", "span", "sub", "sup",
@@ -137,7 +135,6 @@ module Channels
         copy_assistant_response_enabled: action_settings["copy_assistant_response_enabled"],
         copy_user_message_enabled: action_settings["copy_user_message_enabled"],
         assistant_feedback_enabled: action_settings["assistant_feedback_enabled"],
-        retry_assistant_message_enabled: action_settings["retry_assistant_message_enabled"],
       }
     end
 
