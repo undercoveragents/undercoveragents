@@ -25,7 +25,6 @@ SimpleCov.start "rails" do
   add_group "Services", "/app/services"
   add_group "Policies", "/app/policies"
   add_group "Tools", "/app/tools"
-  add_group "Agents", "/app/agents"
   add_group "Presenters", "/app/presenters"
   add_group "Types", "/app/types"
   add_group "Validators", "/app/validators"
@@ -85,7 +84,7 @@ RSpec.configure do |config|
     TestDatabaseIsolation.truncate_all!
   end
 
-  config.around(:each, :js, type: :system) do |example|
+  config.around(:each, :js) do |example|
     example.run
   ensure
     TestDatabaseIsolation.truncate_all!
