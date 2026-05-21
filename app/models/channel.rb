@@ -182,7 +182,7 @@ class Channel < ApplicationRecord
   private_class_method :default_client_channel_scope
 
   def self.client_channel_scope(operation)
-    operation.channels.includes(channel_targets: :target).enabled.by_type("client").ordered
+    operation.channels.enabled.by_type("client").ordered
   end
   private_class_method :client_channel_scope
 
