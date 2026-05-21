@@ -23,9 +23,8 @@ RSpec.describe BuiltinAgents::Synchronizer do
 
       expect(agent_alpha.operation.name).to eq(Operation::HEADQUARTER_NAME)
       expect(designers.map(&:thinking_effort).uniq).to eq(["none"])
-      expect(agent_alpha.runtime_tool_keys).to eq(
-    ["manage_record", "resources.list_resources", "web.web_search", "web.web_fetch"],
-  )
+      expect(agent_alpha.runtime_tool_keys)
+        .to eq(["manage_record", "resources.list_resources", "web.web_search", "web.web_fetch"])
       expect(agent_alpha.subagent_ids).to eq(designers.map(&:id))
       expect(agent_alpha.skill_catalogs.builtin.map(&:builtin_key)).to contain_exactly(
         "undercover-agents-admin",

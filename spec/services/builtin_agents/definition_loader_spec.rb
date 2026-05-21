@@ -187,9 +187,8 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
       ]
 
       expect(definition.capability_configs.keys).to eq(["chat_title_generator"])
-      expect(definition.tool_keys).to eq(
-    ["manage_record", "resources.list_resources", "web.web_search", "web.web_fetch"],
-  )
+      expect(definition.tool_keys)
+        .to eq(["manage_record", "resources.list_resources", "web.web_search", "web.web_fetch"])
       expect(definition.subagent_keys).to eq(expected_subagents)
     end
 
