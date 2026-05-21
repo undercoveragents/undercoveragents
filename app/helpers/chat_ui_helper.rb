@@ -3,6 +3,7 @@
 module ChatUiHelper
   include ClientChatPathsHelper
   include ChatDisplayHelper
+  include ChatMessageActionsHelper
   include ChatReferenceUiHelper
   include ClientUiHelper
 
@@ -21,9 +22,15 @@ module ChatUiHelper
     :stop_label,
     :drop_label,
     :reference_config,
+    :message_actions,
   ) do
     def root_classes
-      [container_class, "shared-chat", "shared-chat--#{variant}"].compact.join(" ")
+      [
+        container_class,
+        "shared-chat",
+        "shared-chat--#{variant}",
+        "shared-chat--message-actions-#{message_actions.visibility}",
+      ].compact.join(" ")
     end
 
     def allow_attachments?
@@ -49,10 +56,19 @@ module ChatUiHelper
     def references_enabled?
       reference_config.enabled?
     end
+
+    def message_actions_for?(message)
+      message_actions.enabled_for?(message.role)
+    end
   end
 
-  def build_chat_component(variant:, agent_name: nil, allow_attachments: true, allow_drag_drop: nil,
-                           references: nil)
+  def build_chat_component(
+    variant:,
+    agent_name: nil,
+    allow_attachments: true,
+    allow_drag_drop: nil,
+    references: nil
+  )
     case variant.to_sym
     when :playground
       build_playground_chat_component(agent_name:, allow_attachments:, allow_drag_drop:, references:)
@@ -98,8 +114,6 @@ module ChatUiHelper
     )
   end
 
-  private
-
   def build_playground_chat_component(agent_name:, allow_attachments:, allow_drag_drop:, references:)
     chat_component_config(
       variant: :playground,
@@ -110,6 +124,7 @@ module ChatUiHelper
       allow_attachments:,
       allow_drag_drop: allow_drag_drop.nil? ? allow_attachments : allow_drag_drop,
       reference_config: references || chat_reference_config,
+      message_actions: default_message_actions_config,
     )
   end
 
@@ -123,6 +138,7 @@ module ChatUiHelper
       allow_attachments:,
       allow_drag_drop: allow_drag_drop.nil? ? false : allow_drag_drop,
       reference_config: references || chat_reference_config,
+      message_actions: default_message_actions_config,
     )
   end
 
@@ -140,6 +156,7 @@ module ChatUiHelper
       allow_attachments:,
       allow_drag_drop: allow_drag_drop.nil? ? allow_attachments : allow_drag_drop,
       reference_config: references || chat_reference_config,
+      message_actions: current_client_message_actions_config,
     )
   end
 
@@ -151,6 +168,7 @@ module ChatUiHelper
       send_label: "Send",
       stop_label: "Stop",
       drop_label: "Drop files here",
+      message_actions: default_message_actions_config,
       **attributes,
     )
   end

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module ClientConfiguration
+module ClientConfiguration # rubocop:disable Metrics/ModuleLength
   extend ActiveSupport::Concern
 
   CONTENT_FIELDS = [:title, :welcome_message, :footer].freeze
@@ -29,7 +29,18 @@ module ClientConfiguration
     :theme_label,
     :sign_out_label,
   ].freeze
-  CONFIGURATION_ATTRIBUTE_NAMES = (CONTENT_FIELDS + LABEL_FIELDS).freeze
+  MESSAGE_ACTION_BOOLEAN_FIELDS = [
+    :copy_assistant_response_enabled,
+    :copy_user_message_enabled,
+    :assistant_feedback_enabled,
+  ].freeze
+  MESSAGE_ACTION_FIELDS = [
+    :message_actions_visibility,
+    *MESSAGE_ACTION_BOOLEAN_FIELDS,
+  ].freeze
+  MESSAGE_ACTION_VISIBILITY_VALUES = ["always", "hover"].freeze
+  MESSAGE_ACTION_FIELD_NAMES = MESSAGE_ACTION_FIELDS.map(&:to_s).freeze
+  CONFIGURATION_ATTRIBUTE_NAMES = (CONTENT_FIELDS + LABEL_FIELDS + MESSAGE_ACTION_FIELDS).freeze
   LABEL_LENGTH_LIMIT = 2_000
   STATIC_LABEL_DEFAULTS = {
     "new_chat_label" => "New chat",
@@ -55,6 +66,27 @@ module ClientConfiguration
     "theme_label" => "Theme",
     "sign_out_label" => "Sign Out",
   }.freeze
+  STATIC_MESSAGE_ACTION_DEFAULTS = {
+    "message_actions_visibility" => "hover",
+    "copy_assistant_response_enabled" => true,
+    "copy_user_message_enabled" => true,
+    "assistant_feedback_enabled" => true,
+  }.freeze
+
+  def self.default_message_actions_payload
+    STATIC_MESSAGE_ACTION_DEFAULTS.deep_dup
+  end
+
+  def self.normalized_message_actions_payload(settings)
+    action_settings = default_message_actions_payload.merge(settings.to_h.deep_stringify_keys)
+
+    {
+      "visibility" => action_settings.fetch("message_actions_visibility"),
+      "copy_assistant_response" => action_settings.fetch("copy_assistant_response_enabled"),
+      "copy_user_message" => action_settings.fetch("copy_user_message_enabled"),
+      "assistant_feedback" => action_settings.fetch("assistant_feedback_enabled"),
+    }
+  end
 
   included do
     before_validation :ensure_client_configuration
@@ -64,9 +96,12 @@ module ClientConfiguration
     validates :footer, length: { maximum: 5000 }
 
     validate :validate_client_label_lengths
+    validate :validate_message_action_visibility
   end
 
   class_methods do
+    delegate :default_message_actions_payload, :normalized_message_actions_payload, to: ClientConfiguration
+
     def configuration_attribute_names
       CONFIGURATION_ATTRIBUTE_NAMES
     end
@@ -102,8 +137,22 @@ module ClientConfiguration
     end
   end
 
+  MESSAGE_ACTION_FIELDS.each do |field_name|
+    define_method(field_name) do
+      effective_message_action_settings.fetch(field_name.to_s)
+    end
+
+    define_method("#{field_name}=") do |value|
+      write_message_action_configuration(field_name, value)
+    end
+  end
+
   def effective_label_settings
     self.class.default_labels(client_name: name).merge(present_label_overrides)
+  end
+
+  def effective_message_action_settings
+    self.class.default_message_actions_payload.merge(present_message_action_overrides)
   end
 
   private
@@ -121,12 +170,23 @@ module ClientConfiguration
     end
   end
 
+  def validate_message_action_visibility
+    value = effective_message_action_settings["message_actions_visibility"]
+    return if MESSAGE_ACTION_VISIBILITY_VALUES.include?(value)
+
+    errors.add(:message_actions_visibility, "must be one of: #{MESSAGE_ACTION_VISIBILITY_VALUES.join(", ")}")
+  end
+
   def content_configuration
     configuration_section("content")
   end
 
   def label_configuration
     configuration_section("labels")
+  end
+
+  def message_action_configuration
+    configuration_section("message_actions")
   end
 
   def configuration_section(section_name)
@@ -144,12 +204,24 @@ module ClientConfiguration
     end
   end
 
+  def present_message_action_overrides
+    message_action_configuration.each_with_object({}) do |(key, value), settings|
+      next unless persist_message_action_override?(key, value)
+
+      settings[key] = value
+    end
+  end
+
   def write_content_configuration(field_name, value)
     update_configuration_section("content", field_name, value, remove_blank: false)
   end
 
   def write_label_configuration(field_name, value)
     update_configuration_section("labels", field_name, value, remove_blank: true)
+  end
+
+  def write_message_action_configuration(field_name, value)
+    update_configuration_section("message_actions", field_name, value, remove_blank: false)
   end
 
   def update_configuration_section(section_name, field_name, value, remove_blank:)
@@ -165,5 +237,15 @@ module ClientConfiguration
 
     config[section_name] = section
     self.configuration = config
+  end
+
+  def persist_message_action_override?(key, value)
+    return false unless MESSAGE_ACTION_FIELD_NAMES.include?(key)
+    return false if value.nil?
+    return true unless value.respond_to?(:blank?)
+    return true if value == false
+    return true if value.present?
+
+    key == "message_actions_visibility"
   end
 end

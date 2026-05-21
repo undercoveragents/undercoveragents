@@ -106,6 +106,38 @@ RSpec.describe Channels::Client do
       expect(payload[:logo_url]).to include("logo.txt")
     end
 
+    it "defaults client feedback and copy actions to enabled" do
+      payload = described_class.new.settings_payload(channel:)
+
+      expect(payload[:message_actions]).to include(
+        "copy_assistant_response" => true,
+        "copy_user_message" => true,
+        "assistant_feedback" => true,
+      )
+      expect(payload[:assistant_feedback_enabled]).to be(true)
+    end
+
+    it "preserves explicit message action overrides in the settings payload" do
+      configurator = described_class.new(
+        message_actions_visibility: "always",
+        copy_user_message_enabled: false,
+      )
+
+      payload = configurator.settings_payload(channel:)
+
+      expect(payload[:message_actions]).to include(
+        "visibility" => "always",
+        "copy_user_message" => false,
+      )
+    end
+
+    it "validates message action visibility" do
+      configurator = described_class.new(message_actions_visibility: "sometimes")
+
+      expect(configurator).not_to be_valid
+      expect(configurator.errors[:message_actions_visibility]).to include("must be one of: always, hover")
+    end
+
     it "returns the shared client partial paths and summary" do
       configurator = described_class.new
 

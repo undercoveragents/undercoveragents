@@ -8,6 +8,7 @@ RSpec.describe "Messages" do
   let!(:agent) { create(:agent, enabled: true, operation: tenant.default_operation) }
   let!(:client_channel) { create_client_channel(agent:) }
   let(:chat) { create_channel_chat(user:, agent:, channel: client_channel) }
+  let!(:assistant_message) { create(:message, :assistant, chat:, content: "Initial response") }
 
   def create_client_channel(agent:, default: true, name: "Support Channel")
     create(:channel, :client, tenant:, name:, default:).tap do |channel|
@@ -132,6 +133,49 @@ RSpec.describe "Messages" do
           }
         end.not_to change(ActiveStorage::Blob, :count)
       end
+    end
+  end
+
+  describe "POST /chat/:id/messages/:message_id/feedback" do
+    it "stores assistant feedback" do
+      expect do
+        post message_feedback_chat_path(chat, message_id: assistant_message.id),
+             params: { feedback: { value: "negative", category: "incorrect", comment: "Bad answer" } }
+      end.to change(MessageFeedback, :count).by(1)
+
+      feedback = MessageFeedback.last
+      expect(response).to have_http_status(:no_content)
+      expect(feedback).to have_attributes(
+        message: assistant_message,
+        chat:,
+        user:,
+        value: "negative",
+        category: "incorrect",
+        comment: "Bad answer",
+      )
+    end
+
+    it "updates existing feedback from the same user for the same message" do
+      create(:message_feedback, message: assistant_message, chat:, user:)
+
+      expect do
+        post message_feedback_chat_path(chat, message_id: assistant_message.id),
+             params: { feedback: { value: "positive" } }
+      end.not_to change(MessageFeedback, :count)
+
+      feedback = MessageFeedback.last
+      expect(response).to have_http_status(:no_content)
+      expect(feedback.value).to eq("positive")
+      expect(feedback.category).to be_nil
+      expect(feedback.comment).to be_nil
+    end
+
+    it "returns validation errors for invalid feedback" do
+      post message_feedback_chat_path(chat, message_id: assistant_message.id),
+           params: { feedback: { value: "negative", category: "bogus" } }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body["errors"]).to include("Category is not included in the list")
     end
   end
 end

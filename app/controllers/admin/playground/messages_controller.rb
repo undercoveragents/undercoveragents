@@ -8,19 +8,43 @@ module Admin
 
       before_action :set_chat
       before_action :ensure_chat_accessible!
+      before_action :set_message, only: [:feedback]
 
       def create
         enqueue_chat_message(chat: @chat, content: message_params[:content])
       end
 
+      def feedback
+        feedback = persist_message_feedback(
+          chat: @chat,
+          message: @message,
+          user: current_user,
+          attributes: feedback_params.to_h,
+        )
+
+        if feedback.save
+          head :no_content
+        else
+          render json: { errors: feedback.errors.full_messages }, status: :unprocessable_content
+        end
+      end
+
       private
 
       def set_chat
-        @chat = current_user.chats.find(params.expect(:chat_id))
+        @chat = current_user.chats.find(params[:chat_id] || params.expect(:id))
       end
 
       def message_params
         params.expect(message: [:content])
+      end
+
+      def set_message
+        @message = @chat.messages.visible.find(params.expect(:message_id))
+      end
+
+      def feedback_params
+        params.expect(feedback: [:value, :category, :comment])
       end
 
       def ensure_chat_accessible!

@@ -124,6 +124,45 @@ RSpec.describe "Chats" do
       expect(response.body).to include("shared-chat__messages")
     end
 
+    it "renders one assistant action row for the last assistant entry in a turn", :aggregate_failures do
+      client_channel.update!(
+        configuration: client_channel.configuration.to_h.merge(
+          "message_actions_visibility" => "always",
+          "copy_assistant_response_enabled" => true,
+          "copy_user_message_enabled" => false,
+          "assistant_feedback_enabled" => true,
+        ),
+      )
+      create(:message, :user, chat:, content: "Explain the changes")
+      create(:message, :assistant, chat:, content: "First step")
+      tool_message = create(:message, :assistant, chat:, content: nil)
+      create(:tool_call, message: tool_message, name: "read_mission_flow", duration_ms: 180)
+      create(:message, :assistant, chat:, content: "Final step")
+
+      get chat_path(chat)
+
+      document = response_document
+      assistant_actions = document.css(".shared-chat__message-actions")
+      copy_button = document.at_css('button[aria-label="Copy response"]')
+
+      expect(assistant_actions.size).to eq(1)
+      expect(document.css('button[aria-label="Try again"]').size).to eq(0)
+      expect(document.css('button[aria-label="Thumbs up"]').size).to eq(1)
+      expect(document.css('button[aria-label="Thumbs down"]').size).to eq(1)
+      expect(copy_button["data-clipboard-text-value"]).to include("First step")
+      expect(copy_button["data-clipboard-text-value"]).to include("Read Mission Flow")
+      expect(copy_button["data-clipboard-text-value"]).to include("Final step")
+    end
+
+    it "keeps the idle status target collapsed" do
+      get chat_path(chat)
+
+      status_shell = response_document.at_css("#chat-#{chat.id}-status")
+
+      expect(status_shell).to be_present
+      expect(status_shell["class"]).not_to include("shared-chat__status-shell--visible")
+    end
+
     it "hides attachment controls when the chat model does not accept attachments" do
       effective_attachment_model(chat).update!(modalities: { "input" => ["text"], "output" => ["text"] })
 

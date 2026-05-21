@@ -41,11 +41,18 @@ module ChatUiSupport
     render_chat_refresh(chat:, messages: @messages, component: @chat_component)
   end
 
-  def enqueue_chat_message(chat:, content:, runtime_context: {})
-    signed_ids = upload_chat_attachments(chat)
+  def enqueue_chat_message(chat:, content:, runtime_context: {}, attachment_signed_ids: nil)
+    signed_ids = attachment_signed_ids.nil? ? upload_chat_attachments(chat) : Array(attachment_signed_ids)
     chat.enqueue_response!(content:, attachment_signed_ids: signed_ids, runtime_context:)
 
     render_chat_status(chat:)
+  end
+
+  def persist_message_feedback(chat:, message:, user:, attributes:)
+    feedback = message.message_feedbacks.find_or_initialize_by(user:)
+    feedback.chat = chat
+    feedback.assign_attributes(attributes)
+    feedback
   end
 
   def render_chat_refresh(chat:, messages:, component:)
@@ -69,7 +76,7 @@ module ChatUiSupport
         render turbo_stream: turbo_stream.replace(
           "chat-#{chat.id}-status",
           partial: "shared/chat/status",
-          locals: { chat: },
+          locals: { chat:, phase: "thinking" },
         )
       end
       format.any { head :ok }

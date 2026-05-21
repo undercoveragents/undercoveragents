@@ -14,11 +14,17 @@ RSpec.describe ChatUiHelper do
             "stop_button_label" => "Abort",
             "drop_files_label" => "Drop branded files",
           },
+          message_actions: {
+            "visibility" => "always",
+            "copy_assistant_response" => true,
+            "copy_user_message" => false,
+            "assistant_feedback" => true,
+          },
         }
       end
     end
 
-    it "builds the playground component defaults" do
+    it "builds the playground component defaults", :aggregate_failures do
       component = helper.build_chat_component(variant: :playground, agent_name: "Planner")
 
       expect(component).to have_attributes(
@@ -30,12 +36,18 @@ RSpec.describe ChatUiHelper do
         stop_label: "Stop",
         drop_label: "Drop files here",
       )
-      expect(component.root_classes).to eq("playground-chat-area shared-chat shared-chat--playground")
+      expect(component.root_classes).to eq(
+        "playground-chat-area shared-chat shared-chat--playground shared-chat--message-actions-hover",
+      )
       expect(component.allow_attachments?).to be(true)
       expect(component.allow_drag_drop?).to be(true)
+      expect(component.message_actions.visibility).to eq("hover")
+      expect(component.message_actions.copy_assistant_response).to be(true)
+      expect(component.message_actions.copy_user_message).to be(true)
+      expect(component.message_actions.assistant_feedback).to be(true)
     end
 
-    it "builds the application component defaults" do
+    it "builds the application component defaults", :aggregate_failures do
       component = helper.build_chat_component(variant: :application, agent_name: "Application Agent")
 
       expect(component).to have_attributes(
@@ -47,13 +59,16 @@ RSpec.describe ChatUiHelper do
         stop_label: "Stop",
         drop_label: "Drop files here",
       )
-      expect(component.root_classes).to eq("ms-chat-panel shared-chat shared-chat--application")
+      expect(component.root_classes).to eq(
+        "ms-chat-panel shared-chat shared-chat--application shared-chat--message-actions-hover",
+      )
       expect(component.allow_attachments?).to be(true)
       expect(component.allow_drag_drop?).to be(false)
       expect(component.references_enabled?).to be(false)
+      expect(component.message_actions.visibility).to eq("hover")
     end
 
-    it "applies customized control labels only to the client variant" do
+    it "applies customized control labels only to the client variant", :aggregate_failures do
       component = helper.build_chat_component(variant: :client)
 
       expect(component).to have_attributes(
@@ -62,6 +77,13 @@ RSpec.describe ChatUiHelper do
         stop_label: "Abort",
         drop_label: "Drop branded files",
       )
+      expect(component.root_classes).to eq(
+        "chat-container shared-chat shared-chat--client shared-chat--message-actions-always",
+      )
+      expect(component.message_actions.visibility).to eq("always")
+      expect(component.message_actions.copy_assistant_response).to be(true)
+      expect(component.message_actions.copy_user_message).to be(false)
+      expect(component.message_actions.assistant_feedback).to be(true)
     end
 
     it "enables generic references only when configured" do
@@ -108,6 +130,46 @@ RSpec.describe ChatUiHelper do
       expect(component.allow_attachments?).to be(true)
       expect(component.allow_drag_drop?).to be(true)
       expect(component.attachment_accept).to eq("image/*,application/pdf")
+    end
+
+    it "exposes message action helpers for all chat variants", :aggregate_failures do
+      user = create(:user)
+      chat = create(:chat, :user_context, user:)
+      message = create(:message, :assistant, chat:)
+      application_component = helper.build_chat_component(variant: :application)
+      playground_component = helper.build_chat_component(variant: :playground)
+      client_component = helper.build_chat_component(variant: :client)
+
+      expect(application_component.message_actions.enabled_for?("tool")).to be(false)
+      expect(helper.chat_message_feedback_path(chat:, message:, component: application_component))
+        .to eq(message_feedback_admin_agent_alpha_path(message_id: message.id))
+      expect(helper.chat_message_feedback_path(chat:, message:, component: playground_component))
+        .to eq(message_feedback_admin_playground_chat_path(chat, message_id: message.id))
+      expect(helper.chat_message_feedback_path(chat:, message:, component: client_component))
+        .to eq(message_feedback_chat_path(chat, message_id: message.id))
+      expect(helper.chat_message_feedback_categories).to eq(MessageFeedback::NEGATIVE_CATEGORIES)
+      expect(helper.chat_message_copy_text(message)).to eq(message.display_content.to_s)
+      expect(helper.chat_message_actions_ui_context_selector(application_component))
+        .to eq("#admin-agent-alpha-page-context")
+    end
+
+    it "adds preview params to client message action paths for admin preview surfaces" do
+      user = create(:user)
+      channel = create(:channel, :client, tenant: user.tenant)
+      chat = create(:chat, :user_context, user:, channel:)
+      message = create(:message, :assistant, chat:)
+
+      helper.define_singleton_method(:admin_client_preview?) { true }
+      helper.define_singleton_method(:current_client_record) { channel }
+      allow(helper).to receive(:client_chat_preview_params)
+        .with(client: channel)
+        .and_return(view: "preview", chat_id: chat.id)
+
+      expect(helper.send(:chat_message_action_path_options, chat:, message:)).to eq(
+        message_id: message.id,
+        view: "preview",
+        chat_id: chat.id,
+      )
     end
 
     it "falls back to a generic agent label when the playground agent name is blank" do

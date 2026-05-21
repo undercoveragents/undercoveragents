@@ -308,6 +308,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_140000) do
     t.index ["label"], name: "index_memory_blocks_on_label"
   end
 
+  create_table "message_feedbacks", force: :cascade do |t|
+    t.string "category"
+    t.bigint "chat_id", null: false
+    t.text "comment"
+    t.datetime "created_at", null: false
+    t.bigint "message_id", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.string "value", null: false
+    t.index ["chat_id"], name: "index_message_feedbacks_on_chat_id"
+    t.index ["message_id", "user_id"], name: "index_message_feedbacks_on_message_id_and_user_id", unique: true
+    t.index ["message_id"], name: "index_message_feedbacks_on_message_id"
+    t.index ["user_id"], name: "index_message_feedbacks_on_user_id"
+    t.index ["value"], name: "index_message_feedbacks_on_value"
+  end
+
   create_table "messages", force: :cascade do |t|
     t.integer "cache_creation_tokens"
     t.integer "cached_tokens"
@@ -749,6 +765,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_140000) do
   add_foreign_key "clients", "agents"
   add_foreign_key "clients", "tenants"
   add_foreign_key "connectors", "tenants"
+  add_foreign_key "message_feedbacks", "chats"
+  add_foreign_key "message_feedbacks", "messages"
+  add_foreign_key "message_feedbacks", "users"
   add_foreign_key "messages", "chats"
   add_foreign_key "messages", "models"
   add_foreign_key "messages", "tool_calls"

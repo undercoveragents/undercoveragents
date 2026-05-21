@@ -1,6 +1,8 @@
 - message_class = ["shared-chat__message--#{message.role}", "shared-chat__message--stable"]
 - context_references = chat_message_context_references(message)
 - display_content = chat_message_display_content(message)
+- assistant_action_message = local_assigns.fetch(:action_message, nil)
+- assistant_action_copy_text = local_assigns.fetch(:action_copy_text, nil)
 %article.shared-chat__message{ class: message_class }
   - if message.assistant?
     .shared-chat__assistant-panel
@@ -9,24 +11,27 @@
         .shared-chat__assistant-content.shared-chat__message-content.markdown-body{ data: { controller: "markdown-render", markdown_render_content_value: message.content } }
       = render "shared/chat/tool_calls", tool_calls: message.tool_calls, message: message, chat: local_assigns[:chat] if message.tool_calls.any?
       %time.shared-chat__message-time{ datetime: message.created_at.iso8601, data: { controller: "local-time" } }
+      = render "shared/chat/message_actions", message: assistant_action_message, chat: local_assigns[:chat], component: local_assigns[:component], copy_text: assistant_action_copy_text if assistant_action_message.present? && local_assigns[:component]&.message_actions_for?(assistant_action_message)
   - else
-    .shared-chat__bubble.shared-chat__bubble--user
-      - if message.attachments_attachments.any?
-        .shared-chat__attachments
-          - message.attachments.each do |attachment|
-            - if attachment.image?
-              .shared-chat__attachment-thumb
-                = image_tag url_for(attachment), class: "shared-chat__attachment-image", alt: attachment.filename.to_s
-            - else
-              .shared-chat__attachment-file
-                %i.fa-solid{ class: chat_attachment_icon(attachment) }
-                %span.shared-chat__attachment-name= attachment.filename.to_s
-      - if context_references.any?
-        .shared-chat__message-references
-          - context_references.each do |reference|
-            .shared-chat__message-reference
-              %code.shared-chat__inline-reference.shared-chat__inline-reference--context{ title: chat_reference_badge_title(reference) }
-                = chat_reference_badge_text(reference)
-      - if display_content.present?
-        .shared-chat__message-content= chat_message_display_html(message)
-      %time.shared-chat__message-time{ datetime: message.created_at.iso8601, data: { controller: "local-time" } }
+    .shared-chat__user-panel
+      .shared-chat__bubble.shared-chat__bubble--user
+        - if message.attachments_attachments.any?
+          .shared-chat__attachments
+            - message.attachments.each do |attachment|
+              - if attachment.image?
+                .shared-chat__attachment-thumb
+                  = image_tag url_for(attachment), class: "shared-chat__attachment-image", alt: attachment.filename.to_s
+              - else
+                .shared-chat__attachment-file
+                  %i.fa-solid{ class: chat_attachment_icon(attachment) }
+                  %span.shared-chat__attachment-name= attachment.filename.to_s
+        - if context_references.any?
+          .shared-chat__message-references
+            - context_references.each do |reference|
+              .shared-chat__message-reference
+                %code.shared-chat__inline-reference.shared-chat__inline-reference--context{ title: chat_reference_badge_title(reference) }
+                  = chat_reference_badge_text(reference)
+        - if display_content.present?
+          .shared-chat__message-content= chat_message_display_html(message)
+        %time.shared-chat__message-time{ datetime: message.created_at.iso8601, data: { controller: "local-time" } }
+      = render "shared/chat/message_actions", message:, chat: local_assigns[:chat], component: local_assigns[:component] if local_assigns[:component]&.message_actions_for?(message)

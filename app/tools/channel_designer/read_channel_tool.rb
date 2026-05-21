@@ -58,6 +58,15 @@ module ChannelDesigner
         "sign_out_label" => "Sign Out Link",
       },
     },
+    {
+      title: "Message Actions",
+      fields: {
+        "message_actions_visibility" => "Action Bar Visibility",
+        "copy_assistant_response_enabled" => "Copy Response",
+        "copy_user_message_enabled" => "Copy Message",
+        "assistant_feedback_enabled" => "Assistant Feedback",
+      },
+    },
   ].freeze
 
   class ReadChannelTool < RubyLLM::Tool

@@ -23,6 +23,11 @@ RSpec.describe "Admin::AgentAlphaMessages", :unauthenticated do
       title: "#{agent_alpha.name} — Existing",
     )
   end
+  let(:source_user_message) { create(:message, :user, chat:, content: "Retry this Agent Alpha request") }
+  let!(:assistant_message) do
+    source_user_message
+    create(:message, :assistant, chat:, content: "Initial Agent Alpha response")
+  end
 
   before do
     sign_in(user)
@@ -277,6 +282,32 @@ RSpec.describe "Admin::AgentAlphaMessages", :unauthenticated do
       end.not_to have_enqueued_job(ChatResponseJob)
 
       expect(response).to have_http_status(:unprocessable_content)
+    end
+  end
+
+  describe "POST /admin/agent_alpha/messages/:message_id/feedback" do
+    it "stores assistant feedback" do
+      expect do
+        post message_feedback_admin_agent_alpha_path(message_id: assistant_message.id),
+             params: { feedback: { value: "positive" } }
+      end.to change(MessageFeedback, :count).by(1)
+
+      feedback = MessageFeedback.last
+      expect(response).to have_http_status(:no_content)
+      expect(feedback).to have_attributes(
+        message: assistant_message,
+        chat:,
+        user:,
+        value: "positive",
+      )
+    end
+
+    it "returns validation errors for invalid feedback" do
+      post message_feedback_admin_agent_alpha_path(message_id: assistant_message.id),
+           params: { feedback: { value: "negative", category: "bogus" } }
+
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body["errors"]).to include("Category is not included in the list")
     end
   end
 end

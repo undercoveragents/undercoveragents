@@ -254,6 +254,178 @@ RSpec.describe ChatToolCallHelper do
       expect(entries).to contain_exactly(include(kind: :message))
     end
 
+    it "returns no render entries for an empty transcript" do
+      expect(helper.chat_message_render_entries([])).to eq([])
+    end
+
+    it "marks only the last assistant entry in a turn as actionable", :aggregate_failures do
+      chat = create(:chat, :user_context, user: create(:user), agent: create(:agent), status: "idle")
+      create(:message, :user, chat:, content: "Summarize this")
+      create(:message, :assistant, chat:, content: "First pass")
+      tool_message = create(:message, :assistant, chat:, content: nil)
+      create(:tool_call, message: tool_message, name: "read_mission_flow", duration_ms: 180)
+      final_message = create(:message, :assistant, chat:, content: "Final answer")
+
+      entries = helper.chat_message_render_entries(chat.messages.visible.order(:created_at).to_a)
+
+      expect(entries.pluck(:kind)).to eq([:message, :message, :tool_group_message, :message])
+      expect(entries[1][:action_message]).to be_nil
+      expect(entries[2][:action_message]).to be_nil
+      expect(entries[3][:action_message]).to eq(final_message)
+      expect(entries[3][:action_copy_text]).to include("First pass")
+      expect(entries[3][:action_copy_text]).to include("Read Mission Flow")
+      expect(entries[3][:action_copy_text]).to include("Final answer")
+      expect(entries[3][:action_copy_text]).not_to include("Summarize this")
+    end
+
+    it "attaches turn actions to the last grouped tool entry when a turn ends on tools", :aggregate_failures do
+      chat = create(:chat, :user_context, user: create(:user), agent: create(:agent), status: "idle")
+      create(:message, :user, chat:, content: "Continue")
+      create(:message, :assistant, chat:, content: "Working on it")
+      final_tool_message = create(:message, :assistant, chat:, content: nil)
+      create(:tool_call, message: final_tool_message, name: "manage_edges", duration_ms: 210)
+
+      entries = helper.chat_message_render_entries(chat.messages.visible.order(:created_at).to_a)
+      tool_entry = entries.last
+
+      expect(tool_entry[:kind]).to eq(:tool_group_message)
+      expect(tool_entry[:action_message]).to eq(final_tool_message)
+      expect(tool_entry[:action_copy_text]).to include("Working on it")
+      expect(tool_entry[:action_copy_text]).to include("Manage Edges")
+      expect(tool_entry[:action_copy_text]).not_to include("Continue")
+    end
+
+    it "returns nil grouped entries for non-tool-only messages", :aggregate_failures do
+      user_message = build_stubbed(:message, :user, content: "Hello")
+      assistant_message = build_stubbed(:message, :assistant, content: "Visible reply")
+
+      expect(helper.send(:grouped_render_entry_for_message, user_message)).to be_nil
+      expect(helper.send(:grouped_render_entry_for_message, assistant_message)).to be_nil
+    end
+
+    it "returns the expected tool call state labels" do
+      expect(helper.chat_tool_call_state_label(:running)).to eq("In progress")
+      expect(helper.chat_tool_call_state_label(:complete)).to eq("Completed")
+    end
+
+    it "classifies assistant and user render entries", :aggregate_failures do
+      assistant_entry = { kind: :message, message: build_stubbed(:message, :assistant, content: "Hi") }
+      user_entry = { kind: :message, message: build_stubbed(:message, :user, content: "Hello") }
+      message_less_entry = { kind: :message, message: nil }
+      tool_group_entry = { kind: :tool_group_message, items: [] }
+
+      expect(helper.send(:assistant_render_entry?, assistant_entry)).to be(true)
+      expect(helper.send(:assistant_render_entry?, tool_group_entry)).to be(true)
+      expect(helper.send(:assistant_render_entry?, user_entry)).to be(false)
+      expect(helper.send(:assistant_render_entry?, message_less_entry)).to be_nil
+      expect(helper.send(:assistant_render_entry?, nil)).to be(false)
+      expect(helper.send(:user_render_entry?, user_entry)).to be(true)
+      expect(helper.send(:user_render_entry?, assistant_entry)).to be(false)
+      expect(helper.send(:user_render_entry?, message_less_entry)).to be_nil
+      expect(helper.send(:user_render_entry?, nil)).to be(false)
+    end
+
+    it "resolves assistant action messages only for assistant entries", :aggregate_failures do
+      assistant_message = build_stubbed(:message, :assistant, content: "Reply")
+      user_message = build_stubbed(:message, :user, content: "Prompt")
+      tool_group_entry = { kind: :tool_group_message, source_message: assistant_message, items: [] }
+
+      expect(helper.send(:assistant_action_message, tool_group_entry)).to eq(assistant_message)
+      expect(
+        helper.send(:assistant_action_message, { kind: :message, message: assistant_message }),
+      ).to eq(assistant_message)
+      expect(helper.send(:assistant_action_message, { kind: :message, message: user_message })).to be_nil
+      expect(helper.send(:assistant_action_message, { kind: :message, message: nil })).to be_nil
+      expect(helper.send(:assistant_action_message, nil)).to be_nil
+    end
+
+    it "ignores entries without assistant action targets when annotating turns", :aggregate_failures do
+      assistant_message = build_stubbed(:message, :assistant, content: "Reply")
+      entries = [
+        { kind: :message, message: nil },
+        { kind: :system },
+        { kind: :message, message: assistant_message },
+      ]
+
+      helper.send(:annotate_assistant_turn_actions!, entries)
+
+      expect(entries[0][:action_message]).to be_nil
+      expect(entries[1][:action_message]).to be_nil
+      expect(entries[2][:action_message]).to eq(assistant_message)
+    end
+
+    it "leaves turn actions blank when the last entry has no assistant action message" do
+      entries = [{ kind: :message, message: nil }]
+
+      helper.send(:assign_assistant_turn_actions!, entries)
+
+      expect(entries.first[:action_message]).to be_nil
+      expect(entries.first[:action_copy_text]).to be_nil
+    end
+
+    it "returns empty assistant turn copy text when nothing is copyable" do
+      entry = { kind: :message, message: build_stubbed(:message, :user, content: "Prompt") }
+
+      expect(helper.send(:assistant_turn_copy_text, [entry])).to eq("")
+    end
+
+    it "returns no copy text for nil and unknown assistant entries", :aggregate_failures do
+      expect(helper.send(:assistant_entry_copy_text, nil)).to be_nil
+      expect(helper.send(:assistant_entry_copy_text, { kind: :system })).to be_nil
+      expect(helper.send(:assistant_message_copy_text, nil)).to be_nil
+      expect(helper.send(:assistant_message_copy_text, build_stubbed(:message, :user, content: "Prompt"))).to be_nil
+    end
+
+    it "serializes tool group items with label-only and phrase-only rows", :aggregate_failures do
+      expect(
+        helper.send(:tool_group_item_copy_text, { label: "Read Mission Flow", phrase: "" }),
+      ).to eq("- Read Mission Flow")
+      expect(helper.send(:tool_group_item_copy_text, { label: "", phrase: "Working" })).to eq("- Working")
+      expect(helper.send(:tool_group_item_copy_text, { label: "", phrase: "" })).to be_nil
+    end
+
+    it "skips blank tool group item lines when building copy text" do
+      entry = {
+        group_title: "Working on the mission flow",
+        items: [
+          { label: "", phrase: "" },
+          { label: "Read Mission Flow", phrase: "" },
+        ],
+      }
+
+      expect(helper.send(:tool_group_entry_copy_text, entry)).to eq(
+        "Working on the mission flow\n- Read Mission Flow",
+      )
+    end
+
+    it "does not replace an existing grouped source message with a blank source message" do
+      first_source = build_stubbed(:message, :assistant, content: nil)
+      entries = [
+        {
+          kind: :tool_group_message,
+          group_title: "",
+          items: [{ label: "Read Mission Flow" }],
+          status: :complete,
+          source_message: first_source,
+        },
+      ]
+
+      helper.send(
+        :append_grouped_chat_message_render_entry,
+        entries,
+        {
+          kind: :tool_group_message,
+          group_title: "",
+          items: [{ label: "Manage Edges" }],
+          status: :complete,
+          source_message: nil,
+        },
+      )
+
+      expect(entries.first[:items].size).to eq(2)
+      expect(entries.first[:source_message]).to eq(first_source)
+    end
+
     it "does not keep grouped entries running once the chat stops streaming" do
       chat = create(:chat, :user_context, user: create(:user), agent: create(:agent), status: "idle")
       first_message = create(:message, :assistant, chat:, content: nil)

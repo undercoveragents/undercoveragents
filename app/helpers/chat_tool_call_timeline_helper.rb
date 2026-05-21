@@ -15,6 +15,7 @@ module ChatToolCallTimelineHelper
     end
 
     keep_trailing_tool_group_running!(entries, messages, chat:)
+    annotate_assistant_turn_actions!(entries)
   end
 
   def chat_tool_call_status(tool_call, chat: nil)
@@ -31,7 +32,7 @@ module ChatToolCallTimelineHelper
     grouped_entry = grouped_render_entry_for_message(message, chat:)
     return unless grouped_entry
 
-    grouped_entry.merge(kind: :tool_group_message)
+    grouped_entry.merge(kind: :tool_group_message, source_message: message)
   end
 
   def grouped_render_entry_for_message(message, chat: nil)
@@ -96,9 +97,109 @@ module ChatToolCallTimelineHelper
     if entries.last&.dig(:kind) == :tool_group_message && entries.last[:group_title] == grouped_entry[:group_title]
       entries.last[:items].concat(grouped_entry[:items])
       entries.last[:status] = chat_tool_group_status(entries.last[:items])
+      entries.last[:source_message] = grouped_entry[:source_message] if grouped_entry[:source_message].present?
     else
       entries << grouped_entry
     end
+  end
+
+  def annotate_assistant_turn_actions!(entries)
+    assistant_turn_entries = []
+
+    Array(entries).each do |entry|
+      if user_render_entry?(entry)
+        assign_assistant_turn_actions!(assistant_turn_entries)
+        assistant_turn_entries = []
+        next
+      end
+
+      assistant_turn_entries << entry if assistant_render_entry?(entry)
+    end
+
+    assign_assistant_turn_actions!(assistant_turn_entries)
+    entries
+  end
+
+  def assign_assistant_turn_actions!(entries)
+    return if entries.empty?
+
+    last_entry = entries.last
+    action_message = assistant_action_message(last_entry)
+    return if action_message.blank?
+
+    last_entry[:action_message] = action_message
+    last_entry[:action_copy_text] = assistant_turn_copy_text(entries)
+  end
+
+  def assistant_render_entry?(entry)
+    return true if entry&.dig(:kind) == :tool_group_message
+
+    entry&.dig(:kind) == :message && entry[:message]&.assistant?
+  end
+
+  def user_render_entry?(entry)
+    entry&.dig(:kind) == :message && entry[:message]&.user?
+  end
+
+  def assistant_action_message(entry)
+    return entry[:source_message] if entry&.dig(:kind) == :tool_group_message
+    return unless entry&.dig(:kind) == :message
+
+    entry[:message] if entry[:message]&.assistant?
+  end
+
+  def assistant_turn_copy_text(entries)
+    Array(entries).filter_map { |entry| assistant_entry_copy_text(entry) }.join("\n\n").presence.to_s
+  end
+
+  def assistant_entry_copy_text(entry)
+    case entry&.dig(:kind)
+    when :tool_group_message
+      tool_group_entry_copy_text(entry)
+    when :message
+      assistant_message_copy_text(entry[:message])
+    end
+  end
+
+  def assistant_message_copy_text(message)
+    return unless message&.assistant?
+
+    parts = []
+    content = message.display_content.to_s.strip
+    parts << content if content.present?
+
+    tool_calls_text = tool_call_entries_copy_text(
+      grouped_tool_call_render_entries(Array(message.tool_calls), message:),
+    )
+    parts << tool_calls_text if tool_calls_text.present?
+    parts.join("\n").presence
+  end
+
+  def tool_call_entries_copy_text(entries)
+    Array(entries).filter_map { |entry| tool_group_entry_copy_text(entry) }.join("\n").presence
+  end
+
+  def tool_group_entry_copy_text(entry)
+    lines = []
+    group_title = entry[:group_title].to_s.strip
+    lines << group_title if group_title.present?
+
+    Array(entry[:items]).each do |item|
+      line = tool_group_item_copy_text(item)
+      lines << line if line.present?
+    end
+
+    lines.join("\n").presence
+  end
+
+  def tool_group_item_copy_text(item)
+    label = item[:label].to_s.strip
+    phrase = item[:phrase].to_s.strip
+    return if label.blank? && phrase.blank?
+    return "- #{label}" if phrase.blank?
+    return "- #{phrase}" if label.blank?
+
+    "- #{label}: #{phrase}"
   end
 
   def keep_trailing_tool_group_running!(entries, messages, chat: nil)

@@ -17,14 +17,41 @@ module Admin
       )
     end
 
+    def feedback
+      feedback = persist_message_feedback(
+        chat: agent_alpha_chat,
+        message: agent_alpha_message,
+        user: current_user,
+        attributes: feedback_params.to_h,
+      )
+
+      if feedback.save
+        head :no_content
+      else
+        render json: { errors: feedback.errors.full_messages }, status: :unprocessable_content
+      end
+    end
+
     private
 
     def agent_alpha_chat
-      @agent_alpha_chat ||= agent_alpha_chats.find(message_params[:chat_id])
+      @agent_alpha_chat ||= if params[:message].present?
+                              agent_alpha_chats.find(message_params[:chat_id])
+                            else
+                              agent_alpha_message.chat
+                            end
+    end
+
+    def agent_alpha_message
+      @agent_alpha_message ||= Message.joins(:chat).merge(agent_alpha_chats).visible.find(params.expect(:message_id))
     end
 
     def message_params
       params.expect(message: [:content, :chat_id, :ui_context_token, :references])
+    end
+
+    def feedback_params
+      params.expect(feedback: [:value, :category, :comment])
     end
 
     def agent_alpha_message_content

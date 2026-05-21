@@ -47,6 +47,7 @@ class User < ApplicationRecord
   # ── Associations ──────────────────────────────────────────────────────────────
   belongs_to :tenant
   has_many :chats, dependent: :nullify
+  has_many :message_feedbacks, dependent: :destroy
   # ── Scopes ─────────────────────────────────────────────────────────────────────
   scope :ordered, -> { order(:email) }
   scope :local_accounts, -> { where(provider: nil) }

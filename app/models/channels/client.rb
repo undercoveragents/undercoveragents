@@ -7,7 +7,11 @@ module Channels
 
     CONTENT_FIELDS = ClientConfiguration::CONTENT_FIELDS
     LABEL_FIELDS = ClientConfiguration::LABEL_FIELDS
+    MESSAGE_ACTION_FIELDS = ClientConfiguration::MESSAGE_ACTION_FIELDS
+    MESSAGE_ACTION_BOOLEAN_FIELDS = ClientConfiguration::MESSAGE_ACTION_BOOLEAN_FIELDS
+    MESSAGE_ACTION_VISIBILITY_VALUES = ClientConfiguration::MESSAGE_ACTION_VISIBILITY_VALUES
     LABEL_LENGTH_LIMIT = ClientConfiguration::LABEL_LENGTH_LIMIT
+    MESSAGE_ACTION_DEFAULTS = ClientConfiguration.default_message_actions_payload.freeze
     ALLOWED_TAGS = [
       "p", "br", "strong", "em", "b", "i", "u", "s", "a", "ul", "ol", "li",
       "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "code", "pre", "span", "sub", "sup",
@@ -22,10 +26,19 @@ module Channels
       attribute field_name, :string
     end
 
+    MESSAGE_ACTION_FIELDS.each do |field_name|
+      if MESSAGE_ACTION_BOOLEAN_FIELDS.include?(field_name)
+        attribute field_name, :boolean
+      else
+        attribute field_name, :string
+      end
+    end
+
     validates :title, length: { maximum: 5000 }
     validates :welcome_message, length: { maximum: 10_000 }
     validates :footer, length: { maximum: 5000 }
     validate :label_lengths
+    validate :message_action_visibility_value
     before_validation :sanitize_rich_fields
 
     key "client"
@@ -35,12 +48,23 @@ module Channels
     target_kinds ["agent"]
 
     def self.permitted_params(params)
-      params.fetch(:channel, ActionController::Parameters.new).permit(:title, :welcome_message, :footer, *LABEL_FIELDS)
+      params.fetch(:channel, ActionController::Parameters.new)
+            .permit(:title, :welcome_message, :footer, *LABEL_FIELDS, *MESSAGE_ACTION_FIELDS)
     end
 
     def self.default_labels(channel_name: nil)
       ClientConfiguration::STATIC_LABEL_DEFAULTS.merge(
         "welcome_heading" => "Welcome to #{channel_name.presence || APP_NAME}",
+      )
+    end
+
+    def self.default_message_actions_payload
+      MESSAGE_ACTION_DEFAULTS.deep_dup
+    end
+
+    def self.normalized_message_actions_payload(settings)
+      ClientConfiguration.normalized_message_actions_payload(
+        default_message_actions_payload.merge(settings.to_h.deep_stringify_keys),
       )
     end
 
@@ -62,9 +86,6 @@ module Channels
 
     def settings_payload(channel:)
       agent = channel.client_agent
-      logo_url = if channel.logo.attached?
-                   Rails.application.routes.url_helpers.rails_blob_path(channel.logo, only_path: true)
-                 end
 
       {
         id: channel.id,
@@ -73,9 +94,10 @@ module Channels
         welcome_message:,
         footer:,
         labels: effective_label_settings(channel_name: channel.name),
+        **message_action_payload,
         agent_id: agent&.id,
         agent_name: agent&.name,
-        logo_url:,
+        logo_url: logo_url_for(channel),
       }
     end
 
@@ -96,6 +118,32 @@ module Channels
       end
     end
 
+    def effective_message_action_settings
+      self.class.default_message_actions_payload.merge(message_action_overrides)
+    end
+
+    def normalized_message_action_settings
+      self.class.normalized_message_actions_payload(message_action_overrides)
+    end
+
+    def message_action_payload
+      action_settings = effective_message_action_settings
+
+      {
+        message_actions: normalized_message_action_settings,
+        message_actions_visibility: action_settings["message_actions_visibility"],
+        copy_assistant_response_enabled: action_settings["copy_assistant_response_enabled"],
+        copy_user_message_enabled: action_settings["copy_user_message_enabled"],
+        assistant_feedback_enabled: action_settings["assistant_feedback_enabled"],
+      }
+    end
+
+    def logo_url_for(channel)
+      return unless channel.logo.attached?
+
+      Rails.application.routes.url_helpers.rails_blob_path(channel.logo, only_path: true)
+    end
+
     def sanitize_rich_fields
       sanitizer = Rails::HTML5::SafeListSanitizer.new
 
@@ -107,6 +155,25 @@ module Channels
           "#{field_name}=",
           sanitizer.sanitize(value, tags: ALLOWED_TAGS, attributes: ALLOWED_ATTRIBUTES),
         )
+      end
+    end
+
+    def message_action_visibility_value
+      value = effective_message_action_settings["message_actions_visibility"]
+      return if MESSAGE_ACTION_VISIBILITY_VALUES.include?(value)
+
+      errors.add(
+        :message_actions_visibility,
+        "must be one of: #{MESSAGE_ACTION_VISIBILITY_VALUES.join(", ")}",
+      )
+    end
+
+    def message_action_overrides
+      MESSAGE_ACTION_FIELDS.each_with_object({}) do |field_name, overrides|
+        value = public_send(field_name)
+        next if value.nil?
+
+        overrides[field_name.to_s] = value
       end
     end
   end

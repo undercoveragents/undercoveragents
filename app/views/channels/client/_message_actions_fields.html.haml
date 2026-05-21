@@ -1,0 +1,27 @@
+.card.mb-6
+  .card-header
+    %h3.text-sm.font-semibold.text-text-primary
+      %i.fa-regular.fa-hand-pointer.mr-2.text-accent
+      Message Actions
+  .card-body.space-y-6
+    .form-group
+      = f.label :message_actions_visibility, "Action Bar Visibility", class: "form-label"
+      = f.select :message_actions_visibility, options_for_select([["Show on hover", "hover"], ["Always show", "always"]], f.object.message_actions_visibility), {}, class: "form-input form-select"
+      .form-hint Controls whether the action icons stay visible or appear only when a message is hovered or focused.
+
+    .form-grid
+      .form-group
+        .form-check
+          = f.check_box :copy_assistant_response_enabled, class: "form-check-input"
+          = f.label :copy_assistant_response_enabled, "Copy response", class: "form-check-label"
+        .form-hint.ml-6 Show a copy icon on assistant messages.
+      .form-group
+        .form-check
+          = f.check_box :copy_user_message_enabled, class: "form-check-input"
+          = f.label :copy_user_message_enabled, "Copy message", class: "form-check-label"
+        .form-hint.ml-6 Show a copy icon on user messages.
+      .form-group
+        .form-check
+          = f.check_box :assistant_feedback_enabled, class: "form-check-input"
+          = f.label :assistant_feedback_enabled, "Assistant feedback", class: "form-check-label"
+        .form-hint.ml-6 Enable thumbs up and thumbs down feedback on assistant messages.

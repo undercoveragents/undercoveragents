@@ -1,0 +1,47 @@
+- actions = component.message_actions
+- action_bar_data = {}
+- copy_text = local_assigns.fetch(:copy_text, nil)
+- if message.assistant? && actions.assistant_feedback
+  - action_bar_data[:controller] = "chat-message-actions"
+  - action_bar_data[:chat_message_actions_feedback_url_value] = chat_message_feedback_path(chat:, message:, component:)
+  - action_bar_data[:chat_message_actions_ui_context_selector_value] = chat_message_actions_ui_context_selector(component) if chat_message_actions_ui_context_selector(component).present?
+
+.shared-chat__message-actions{ data: action_bar_data }
+  - if message.assistant?
+    - if actions.copy_assistant_response
+      %button.shared-chat__message-action-button{ type: "button", title: "Copy response", aria: { label: "Copy response" }, data: { controller: "clipboard", clipboard_text_value: chat_message_copy_text(message, override_text: copy_text), action: "click->clipboard#copy" } }
+        %i.fa-regular.fa-copy{ aria: { hidden: true } }
+        %span.sr-only Copy response
+    - if actions.assistant_feedback
+      %button.shared-chat__message-action-button{ type: "button", title: "Thumbs up", aria: { label: "Thumbs up" }, data: { action: "click->chat-message-actions#submitPositiveFeedback", chat_message_actions_target: "positiveButton" } }
+        %i.fa-regular.fa-thumbs-up{ aria: { hidden: true } }
+        %span.sr-only Thumbs up
+      %button.shared-chat__message-action-button{ type: "button", title: "Thumbs down", aria: { label: "Thumbs down" }, data: { action: "click->chat-message-actions#openNegativeFeedback", chat_message_actions_target: "negativeButton" } }
+        %i.fa-regular.fa-thumbs-down{ aria: { hidden: true } }
+        %span.sr-only Thumbs down
+  - elsif actions.copy_user_message
+    %button.shared-chat__message-action-button{ type: "button", title: "Copy message", aria: { label: "Copy message" }, data: { controller: "clipboard", clipboard_text_value: chat_message_copy_text(message), action: "click->clipboard#copy" } }
+      %i.fa-regular.fa-copy{ aria: { hidden: true } }
+      %span.sr-only Copy message
+
+  - if message.assistant? && actions.assistant_feedback
+    %dialog.dialog.shared-chat__feedback-dialog{ data: { chat_message_actions_target: "dialog", action: "click->chat-message-actions#backdropClick close->chat-message-actions#closeFeedback" } }
+      .dialog-content.shared-chat__feedback-dialog-content
+        .dialog-header.shared-chat__feedback-dialog-header
+          %h3.dialog-title.shared-chat__feedback-dialog-title Share feedback
+          %button.dialog-close.shared-chat__feedback-dialog-close{ type: "button", data: { action: "click->chat-message-actions#closeFeedback" } }
+            %i.fa-solid.fa-times
+        .dialog-body.shared-chat__feedback-dialog-body
+          %p.form-hint.text-danger-500.hidden.shared-chat__feedback-dialog-error{ data: { chat_message_actions_target: "error" } }
+          .form-group.shared-chat__feedback-field
+            %label.form-label.shared-chat__feedback-label{ for: "message-feedback-category-#{message.id}" } Problem category
+            %select.form-input.form-select{ id: "message-feedback-category-#{message.id}", data: { chat_message_actions_target: "category" } }
+              %option{ value: "" } Select a category (optional)
+              - chat_message_feedback_categories.each do |category|
+                %option{ value: category }= category.humanize
+          .form-group.shared-chat__feedback-field
+            %label.form-label.shared-chat__feedback-label{ for: "message-feedback-comment-#{message.id}" } Additional details
+            %textarea.form-input{ id: "message-feedback-comment-#{message.id}", rows: 4, placeholder: "Tell us what went wrong (optional)", data: { chat_message_actions_target: "comment" } }
+          .shared-chat__feedback-actions
+            %button.btn.btn-secondary{ type: "button", data: { action: "click->chat-message-actions#closeFeedback" } } Cancel
+            %button.btn.btn-primary{ type: "button", data: { action: "click->chat-message-actions#submitNegativeFeedback" } } Submit feedback
