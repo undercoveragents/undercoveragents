@@ -10,8 +10,11 @@ module Channels
     MESSAGE_ACTION_FIELDS = ClientConfiguration::MESSAGE_ACTION_FIELDS
     MESSAGE_ACTION_BOOLEAN_FIELDS = ClientConfiguration::MESSAGE_ACTION_BOOLEAN_FIELDS
     MESSAGE_ACTION_VISIBILITY_VALUES = ClientConfiguration::MESSAGE_ACTION_VISIBILITY_VALUES
+    COMPOSER_FIELDS = ClientConfiguration::COMPOSER_FIELDS
+    COMPOSER_BOOLEAN_FIELDS = ClientConfiguration::COMPOSER_BOOLEAN_FIELDS
     LABEL_LENGTH_LIMIT = ClientConfiguration::LABEL_LENGTH_LIMIT
     MESSAGE_ACTION_DEFAULTS = ClientConfiguration.default_message_actions_payload.freeze
+    COMPOSER_DEFAULTS = ClientConfiguration.default_composer_payload.freeze
     ALLOWED_TAGS = [
       "p", "br", "strong", "em", "b", "i", "u", "s", "a", "ul", "ol", "li",
       "h1", "h2", "h3", "h4", "h5", "h6", "blockquote", "code", "pre", "span", "sub", "sup",
@@ -34,6 +37,10 @@ module Channels
       end
     end
 
+    COMPOSER_BOOLEAN_FIELDS.each do |field_name|
+      attribute field_name, :boolean
+    end
+
     validates :title, length: { maximum: 5000 }
     validates :welcome_message, length: { maximum: 10_000 }
     validates :footer, length: { maximum: 5000 }
@@ -49,7 +56,7 @@ module Channels
 
     def self.permitted_params(params)
       params.fetch(:channel, ActionController::Parameters.new)
-            .permit(:title, :welcome_message, :footer, *LABEL_FIELDS, *MESSAGE_ACTION_FIELDS)
+            .permit(:title, :welcome_message, :footer, *LABEL_FIELDS, *MESSAGE_ACTION_FIELDS, *COMPOSER_FIELDS)
     end
 
     def self.default_labels(channel_name: nil)
@@ -62,9 +69,19 @@ module Channels
       MESSAGE_ACTION_DEFAULTS.deep_dup
     end
 
+    def self.default_composer_payload
+      COMPOSER_DEFAULTS.deep_dup
+    end
+
     def self.normalized_message_actions_payload(settings)
       ClientConfiguration.normalized_message_actions_payload(
         default_message_actions_payload.merge(settings.to_h.deep_stringify_keys),
+      )
+    end
+
+    def self.normalized_composer_payload(settings)
+      ClientConfiguration.normalized_composer_payload(
+        default_composer_payload.merge(settings.to_h.deep_stringify_keys),
       )
     end
 
@@ -95,6 +112,7 @@ module Channels
         footer:,
         labels: effective_label_settings(channel_name: channel.name),
         **message_action_payload,
+        **composer_payload,
         agent_id: agent&.id,
         agent_name: agent&.name,
         logo_url: logo_url_for(channel),
@@ -138,6 +156,19 @@ module Channels
       }
     end
 
+    def normalized_composer_settings
+      self.class.normalized_composer_payload(composer_overrides)
+    end
+
+    def composer_payload
+      normalized_settings = normalized_composer_settings
+
+      {
+        composer: normalized_settings,
+        thinking_level_selector_enabled: normalized_settings["thinking_level_selector_enabled"],
+      }
+    end
+
     def logo_url_for(channel)
       return unless channel.logo.attached?
 
@@ -170,6 +201,15 @@ module Channels
 
     def message_action_overrides
       MESSAGE_ACTION_FIELDS.each_with_object({}) do |field_name, overrides|
+        value = public_send(field_name)
+        next if value.nil?
+
+        overrides[field_name.to_s] = value
+      end
+    end
+
+    def composer_overrides
+      COMPOSER_FIELDS.each_with_object({}) do |field_name, overrides|
         value = public_send(field_name)
         next if value.nil?
 

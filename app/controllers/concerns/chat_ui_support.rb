@@ -32,7 +32,13 @@ module ChatUiSupport
 
   def render_chat_surface(chat:, component:)
     @messages = load_chat_messages(chat)
-    @chat_component = component.with_attachment_model(chat_model_for_attachments(chat))
+    model_record = chat_model_for_attachments(chat)
+    base_component = component.with_thinking_level_options(thinking_level_options_for_chat(chat))
+    @chat_component = base_component.with_attachment_model(model_record)
+    @chat_component = @chat_component.with_thinking_level_selector_visible(
+      @chat_component.thinking_level_selector_visible? &&
+      chat_thinking_level_selector_supported?(chat, model_record:),
+    )
 
     return unless turbo_stream_chat_refresh_request?
 
@@ -76,7 +82,7 @@ module ChatUiSupport
         render turbo_stream: turbo_stream.replace(
           "chat-#{chat.id}-status",
           partial: "shared/chat/status",
-          locals: { chat:, phase: "thinking" },
+          locals: { chat: },
         )
       end
       format.any { head :ok }

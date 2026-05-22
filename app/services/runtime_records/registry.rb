@@ -39,6 +39,7 @@ module RuntimeRecords
     *ClientConfiguration::CONTENT_FIELDS.map(&:to_s),
     *ClientConfiguration::LABEL_FIELDS.map(&:to_s),
     *ClientConfiguration::MESSAGE_ACTION_FIELDS.map(&:to_s),
+    *ClientConfiguration::COMPOSER_FIELDS.map(&:to_s),
   ].freeze
   TOOL_PERMITTED_ATTRIBUTES = [
     "tool_type",

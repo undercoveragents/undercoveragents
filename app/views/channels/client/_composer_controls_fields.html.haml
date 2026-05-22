@@ -1,0 +1,11 @@
+.card.mb-6
+  .card-header
+    %h3.text-sm.font-semibold.text-text-primary
+      %i.fa-solid.fa-keyboard.mr-2.text-accent
+      Composer Controls
+  .card-body
+    .form-group
+      .form-check
+        = f.check_box :thinking_level_selector_enabled, class: "form-check-input"
+        = f.label :thinking_level_selector_enabled, "Thinking level dropdown", class: "form-check-label"
+      .form-hint.ml-6 Allow chat users to choose Model default, Off, Low, Medium, or High for each message.

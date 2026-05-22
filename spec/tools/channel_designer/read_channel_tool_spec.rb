@@ -56,6 +56,8 @@ RSpec.describe ChannelDesigner::ReadChannelTool do
         "## Client Editable Fields",
         '`new_chat_label` (New Chat Button) — current (custom): "Start now"',
         '`theme_label` (Theme Toggle) — current (default): "Theme"',
+        "### Composer Controls",
+        '`thinking_level_selector_enabled` (Thinking Level Dropdown) — current: "false"',
         "`profile_settings_label` (Profile Link)",
         "## Editable Attribute Keys",
         "`channel_type`",

@@ -619,6 +619,14 @@
       font-size: 0.625rem;
     }
   }
+
+  .shared-chat__thinking-level-select {
+    min-height: 0;
+    height: 1.35rem;
+    padding: 0 1.4rem 0 0.35rem;
+    background-position: right 0.42rem center;
+    font-size: 0.625rem;
+  }
 }
 
 .ms-chat-panel.shared-chat--application {
@@ -1150,6 +1158,12 @@ details[open] > .shared-chat__tree-summary .shared-chat__tree-chevron {
       transparent
     );
   }
+
+  &:has(.shared-chat__thinking-level-select:focus),
+  &:has(.shared-chat__thinking-level-select:focus-visible) {
+    border-color: var(--shared-chat-border, var(--border-default, var(--color-border-default)));
+    box-shadow: none;
+  }
 }
 
 .shared-chat__input {
@@ -1394,6 +1408,7 @@ details[open] > .shared-chat__tree-summary .shared-chat__tree-chevron {
 .shared-chat__controls {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 0.75rem;
   padding-top: 0.25rem;
@@ -1408,6 +1423,7 @@ details[open] > .shared-chat__tree-summary .shared-chat__tree-chevron {
 .shared-chat__controls-right {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.5rem;
   min-height: 2rem;
 }
@@ -1460,6 +1476,42 @@ details[open] > .shared-chat__tree-summary .shared-chat__tree-chevron {
 
   &:hover {
     opacity: 0.92;
+  }
+}
+
+.shared-chat__thinking-level-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  field-sizing: content;
+  width: auto;
+  max-width: 100%;
+  min-height: 0;
+  height: 2rem;
+  padding: 0 1.8rem 0 0.55rem;
+  border: 1px solid var(--shared-chat-border, var(--border-default, var(--color-border-default)));
+  border-radius: var(--shared-chat-surface-radius);
+  background-color: transparent;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+  background-position: right 0.6rem center;
+  background-repeat: no-repeat;
+  background-size: 0.95rem 0.95rem;
+  color: var(--shared-chat-text-secondary, var(--text-secondary, var(--color-text-secondary)));
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+
+  &:hover {
+    color: var(--shared-chat-accent, var(--accent, var(--color-brand-600)));
+    background-color: var(--shared-chat-surface-hover, var(--surface-hover, var(--color-surface-hover)));
+  }
+
+  &:focus,
+  &:focus-visible {
+    outline: none;
+    box-shadow: none;
   }
 }
 

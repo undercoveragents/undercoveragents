@@ -53,9 +53,7 @@ class ChatResponseJob < BaseChatResponseJob
 
   def configure_chat!(chat, runtime_context: {})
     case chat.response_context
-    when :user, :channel
-      configure_agent_chat!(chat)
-    when :application
+    when :user, :channel, :application
       configure_agent_chat!(chat, runtime_context:)
     when :playground
       configure_agent_chat!(chat, require_playground_support: true)

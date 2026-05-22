@@ -38,6 +38,9 @@
         .detail-item
           .detail-label Assistant Feedback
           .detail-value= channel.settings_payload.dig(:message_actions, :assistant_feedback) ? "Enabled" : "Disabled"
+        .detail-item
+          .detail-label Thinking Level Dropdown
+          .detail-value= channel.settings_payload.dig(:composer, "thinking_level_selector_enabled") ? "Enabled" : "Disabled"
 
   .card
     .card-header

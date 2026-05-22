@@ -62,6 +62,14 @@ RSpec.describe "Admin Channels" do
       expect(response.body).not_to include(%(>Type<))
     end
 
+    it "renders client-channel composer controls" do
+      get new_admin_channel_path(type: "client")
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("Composer Controls")
+      expect(response.body).to include("Thinking level dropdown")
+    end
+
     it "returns to the channel type chooser for invalid type params" do
       get new_admin_channel_path(type: "unknown")
 
@@ -82,6 +90,7 @@ RSpec.describe "Admin Channels" do
           title: "Client title",
           welcome_message: "Welcome aboard",
           footer: "Footer copy",
+          thinking_level_selector_enabled: "1",
         },
         channel_target: { target_kind: "agent", agent_id: agent.id },
       }
@@ -102,6 +111,7 @@ RSpec.describe "Admin Channels" do
       channel = Channel.last
       expect(channel).to have_attributes(name: "Client Channel", channel_type: "client", default: true)
       expect(channel.configuration).to include("title" => "Client title", "welcome_message" => "Welcome aboard")
+      expect(channel.configuration).to include("thinking_level_selector_enabled" => true)
       expect(channel.channel_targets.first.target).to eq(agent)
       expect(channel.channel_credentials).to be_empty
     end

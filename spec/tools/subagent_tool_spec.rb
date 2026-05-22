@@ -155,6 +155,38 @@ RSpec.describe SubagentTool do
     end
   end
 
+  describe "SubagentToolStreaming#stream_phase_for" do
+    let(:streaming_probe) do
+      Class.new do
+        include SubagentToolStreaming
+
+        public :stream_phase_for
+      end.new
+    end
+
+    it "returns nil for an empty thinking payload" do
+      chunk = Class.new do
+        def tool_call? = false
+
+        def content = nil
+
+        def thinking = ""
+      end.new
+
+      expect(streaming_probe.stream_phase_for(chunk)).to be_nil
+    end
+
+    it "returns nil when the chunk does not expose thinking" do
+      chunk = Class.new do
+        def tool_call? = false
+
+        def content = nil
+      end.new
+
+      expect(streaming_probe.stream_phase_for(chunk)).to be_nil
+    end
+  end
+
   describe "#execute" do
     def stub_streaming_child_chat(child_chat, callbacks, child_agent_name)
       allow(child_chat).to receive(:before_tool_call_execution) { |&block| callbacks[:start] = block }

@@ -67,6 +67,12 @@ module ChannelDesigner
         "assistant_feedback_enabled" => "Assistant Feedback",
       },
     },
+    {
+      title: "Composer Controls",
+      fields: {
+        "thinking_level_selector_enabled" => "Thinking Level Dropdown",
+      },
+    },
   ].freeze
 
   class ReadChannelTool < RubyLLM::Tool
@@ -196,7 +202,7 @@ module ChannelDesigner
 
     def client_field_value_suffix(channel, field)
       value = client_field_value(channel, field)
-      value_note = value.present? ? JSON.generate(value.to_s) : "(blank)"
+      value_note = value == false || value.present? ? JSON.generate(value.to_s) : "(blank)"
 
       return " — current: #{value_note}" unless client_label_field?(field)
 

@@ -11,6 +11,7 @@ RSpec.describe "Admin::AgentAlphaMessages", :unauthenticated do
       :model,
       model_id: configured_preference.model_id,
       provider: configured_preference.llm_connector.provider,
+      capabilities: ["text", "reasoning"],
     )
   end
   let!(:chat) do
@@ -119,6 +120,7 @@ RSpec.describe "Admin::AgentAlphaMessages", :unauthenticated do
         chat.id,
         "Hello",
         [],
+        { "llm_config" => { "thinking_effort" => nil } },
         tenant_id: chat.send(:response_job_tenant_id),
       )
     end
@@ -192,6 +194,119 @@ RSpec.describe "Admin::AgentAlphaMessages", :unauthenticated do
       post admin_agent_alpha_messages_path, params: { message: { content: "Hello", chat_id: chat.id } }
 
       expect(response).to have_http_status(:ok)
+    end
+
+    it "does not render a synthetic thinking phase in the first turbo status response" do
+      post admin_agent_alpha_messages_path,
+           params: { message: { content: "Hello", chat_id: chat.id } },
+           headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+      expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+      expect(chat.reload).to be_streaming
+      expect(response.body).to include("chat-#{chat.id}-status")
+      expect(response.body).not_to include('data-phase="thinking"')
+      expect(response.body).not_to include("Thinking...")
+    end
+
+    it "passes selected thinking effort when the Agent Alpha model supports reasoning" do
+      allow(ChatResponseJob).to receive(:perform_later)
+
+      post admin_agent_alpha_messages_path, params: {
+        message: { content: "Hello", chat_id: chat.id, thinking_effort: "low" },
+      }
+
+      expect(ChatResponseJob).to have_received(:perform_later).with(
+        chat.id,
+        "Hello",
+        [],
+        hash_including("llm_config" => { "thinking_effort" => "low" }),
+        tenant_id: chat.send(:response_job_tenant_id),
+      )
+    end
+
+    it "passes posted thinking effort when DeepSeek plus tools uses runtime reasoning" do
+      deepseek_connector = create(:connector, :llm_provider, :enabled, tenant: user.tenant, provider: "deepseek")
+      deepseek_model = create(
+        :model,
+        model_id: "deepseek-v4-flash",
+        provider: "deepseek",
+        capabilities: ["text", "reasoning"],
+      )
+      configured_preference.update!(llm_connector: deepseek_connector, model_id: deepseek_model.model_id)
+      allow(ChatResponseJob).to receive(:perform_later)
+
+      post admin_agent_alpha_messages_path, params: {
+        message: { content: "Hello", chat_id: chat.id, thinking_effort: "high" },
+      }
+
+      expect(ChatResponseJob).to have_received(:perform_later).with(
+        chat.id,
+        "Hello",
+        [],
+        hash_including("llm_config" => { "thinking_effort" => "high" }),
+        tenant_id: chat.send(:response_job_tenant_id),
+      )
+    end
+
+    it "passes thinking off when the Agent Alpha selector chooses off" do
+      allow(ChatResponseJob).to receive(:perform_later)
+
+      post admin_agent_alpha_messages_path, params: {
+        message: { content: "Hello", chat_id: chat.id, thinking_effort: "none" },
+      }
+
+      expect(ChatResponseJob).to have_received(:perform_later).with(
+        chat.id,
+        "Hello",
+        [],
+        hash_including("llm_config" => { "thinking_effort" => "none" }),
+        tenant_id: chat.send(:response_job_tenant_id),
+      )
+    end
+
+    it "preserves the effective default thinking effort when the selector posts a blank value" do
+      configured_preference.update!(thinking_effort: "none")
+      allow(ChatResponseJob).to receive(:perform_later)
+
+      post admin_agent_alpha_messages_path, params: {
+        message: { content: "Hello", chat_id: chat.id, thinking_effort: "" },
+      }
+
+      expect(ChatResponseJob).to have_received(:perform_later).with(
+        chat.id,
+        "Hello",
+        [],
+        hash_including("llm_config" => { "thinking_effort" => "none" }),
+        tenant_id: chat.send(:response_job_tenant_id),
+      )
+    end
+
+    it "falls back to nil when an invalid thinking effort is posted" do
+      allow(ChatResponseJob).to receive(:perform_later)
+
+      post admin_agent_alpha_messages_path, params: {
+        message: { content: "Hello", chat_id: chat.id, thinking_effort: "bogus" },
+      }
+
+      expect(ChatResponseJob).to have_received(:perform_later).with(
+        chat.id,
+        "Hello",
+        [],
+        hash_including("llm_config" => { "thinking_effort" => nil }),
+        tenant_id: chat.send(:response_job_tenant_id),
+      )
+    end
+
+    it "ignores posted thinking effort when the Agent Alpha model does not support reasoning" do
+      model_record.update!(capabilities: ["text"])
+      allow(ChatResponseJob).to receive(:perform_later)
+
+      post admin_agent_alpha_messages_path, params: {
+        message: { content: "Hello", chat_id: chat.id, thinking_effort: "high" },
+      }
+
+      expect(ChatResponseJob).to have_received(:perform_later)
+        .with(chat.id, "Hello", [], tenant_id: chat.send(:response_job_tenant_id))
     end
 
     it "returns a turbo-stream status update on turbo requests" do

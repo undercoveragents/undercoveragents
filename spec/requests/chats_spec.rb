@@ -124,6 +124,31 @@ RSpec.describe "Chats" do
       expect(response.body).to include("shared-chat__messages")
     end
 
+    it "renders the thinking level selector when the client channel enables it" do
+      client_channel.update!(
+        configuration: client_channel.configuration.merge("thinking_level_selector_enabled" => true),
+      )
+      agent.update!(thinking_effort: "medium")
+      effective_attachment_model(chat).update!(capabilities: ["text", "reasoning"])
+
+      get chat_path(chat)
+
+      document = response_document
+      selector = document.at_css(".shared-chat__thinking-level-select")
+      options = selector.css("option").map { |option| [option.text, option["value"]] }
+
+      expect(selector).to be_present
+      expect(options.first).to eq(["Thinking: medium", ""])
+      expect(options).to include(["Thinking: off", "none"], ["Thinking: high", "high"])
+      expect(options).not_to include(["Thinking: medium", "medium"])
+    end
+
+    it "hides the thinking level selector by default" do
+      get chat_path(chat)
+
+      expect(response_document.at_css(".shared-chat__thinking-level-select")).to be_nil
+    end
+
     it "renders one assistant action row for the last assistant entry in a turn", :aggregate_failures do
       client_channel.update!(
         configuration: client_channel.configuration.to_h.merge(

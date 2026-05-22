@@ -136,6 +136,31 @@ RSpec.describe UndercoverAgents::PluginSystem::Loader do
       end
     end
 
+    it "replaces frozen autoload and eager-load arrays instead of mutating them" do
+      frozen_config = app_config_class.new(
+        paths:,
+        autoload_paths: [].freeze,
+        eager_load_paths: [].freeze,
+        assets:,
+        i18n:,
+      )
+      frozen_loader = described_class.new(frozen_config, Rails.root.join("plugins"), registry)
+
+      Dir.mktmpdir do |tmpdir|
+        plugin_root = Pathname.new(tmpdir)
+        FileUtils.mkdir_p(plugin_root.join("app", "services"))
+        FileUtils.mkdir_p(plugin_root.join("app", "views"))
+
+        definition = UndercoverAgents::PluginSystem::Definition.new("frozen_paths_plugin")
+        definition.category [:general]
+        definition.root_path = plugin_root
+
+        expect { frozen_loader.send(:configure_paths, definition) }.not_to raise_error
+        expect(frozen_config.autoload_paths).to include(plugin_root.join("app", "services").to_s)
+        expect(frozen_config.eager_load_paths).to include(plugin_root.join("app", "services").to_s)
+      end
+    end
+
     it "leaves asset paths unchanged when a plugin has no asset or javascript directories" do
       Dir.mktmpdir do |tmpdir|
         plugin_root = Pathname.new(tmpdir)

@@ -270,6 +270,21 @@ RSpec.describe Channel do
 
       expect(described_class.current_client_settings(operation:)).to include(name: "Client Settings", title: "Hello")
     end
+
+    it "includes client channel composer control settings" do
+      tenant = create(:tenant)
+      operation = create(:operation, tenant:)
+      channel = create(
+        :channel,
+        :client,
+        tenant:,
+        operation:,
+        configuration: { "thinking_level_selector_enabled" => true },
+      )
+
+      expect(channel.settings_payload[:composer]).to eq("thinking_level_selector_enabled" => true)
+      expect(channel.settings_payload[:thinking_level_selector_enabled]).to be(true)
+    end
   end
 
   describe "private configurator helpers" do

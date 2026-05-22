@@ -49,6 +49,17 @@ RSpec.describe ChatResponseJob do
       expect(chat.reload.status).to eq("idle")
     end
 
+    it "passes user chat runtime context into agent configuration" do
+      runtime_context = { "llm_config" => { "thinking_effort" => "low" } }
+      allow(Chat).to receive(:find).with(chat.id).and_return(chat)
+      allow(chat).to receive(:configure_for_agent)
+      allow(chat).to receive(:ask).and_return(nil)
+
+      described_class.new.perform(chat.id, "Hello", [], runtime_context)
+
+      expect(chat).to have_received(:configure_for_agent).with(agent, runtime_context:)
+    end
+
     it "broadcasts chunks via the chat UI stream" do
       chunk = instance_double(RubyLLM::Chunk, content: "Hello world", thinking: nil, tool_call?: false)
       allow_any_instance_of(Chat).to receive(:ask).and_yield(chunk) # rubocop:disable RSpec/AnyInstance

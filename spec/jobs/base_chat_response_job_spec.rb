@@ -460,6 +460,28 @@ RSpec.describe BaseChatResponseJob do
       expect(job.stream_phase_for(chunk)).to eq(:thinking)
     end
 
+    it "returns nil when the chunk exposes an empty thinking payload" do
+      chunk = Class.new do
+        def tool_call? = false
+
+        def content = nil
+
+        def thinking = ""
+      end.new
+
+      expect(job.stream_phase_for(chunk)).to be_nil
+    end
+
+    it "returns nil when the chunk does not expose thinking" do
+      chunk = Class.new do
+        def tool_call? = false
+
+        def content = nil
+      end.new
+
+      expect(job.stream_phase_for(chunk)).to be_nil
+    end
+
     it "returns nil when the chunk already has visible content" do
       chunk = Class.new do
         def tool_call? = false
