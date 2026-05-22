@@ -168,6 +168,19 @@ RSpec.describe "Admin::AgentAlphas", :unauthenticated do
       expect(response.body).to include('name="message[thinking_effort]"')
     end
 
+    it "labels the thinking selector with the current default effort" do
+      SystemPreference.current(tenant: user.tenant).update!(thinking_effort: "low")
+
+      get admin_agent_alpha_path
+
+      selector = response_document.at_css(".shared-chat__thinking-level-select")
+      options = selector.css("option").map { |option| [option.text, option["value"]] }
+
+      expect(options.first).to eq(["Thinking: low", ""])
+      expect(options).to include(["Thinking: off", "none"], ["Thinking: high", "high"])
+      expect(options).not_to include(["Thinking: low", "low"])
+    end
+
     it "hides the thinking selector when the Agent Alpha model does not support reasoning" do
       Model.find_by!(model_id: "gpt-4.1").update!(capabilities: ["text"])
 

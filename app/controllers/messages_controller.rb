@@ -46,12 +46,16 @@ class MessagesController < ApplicationController
 
   def message_runtime_context
     return {} unless current_client_thinking_level_selector_enabled?
+    return {} unless chat_thinking_level_selector_supported?(@chat, model_record: chat_model_for_attachments(@chat))
 
     { llm_config: { thinking_effort: normalized_message_thinking_effort } }
   end
 
   def normalized_message_thinking_effort
-    effort = message_params[:thinking_effort].to_s.presence
+    message_data = message_params.to_h.deep_stringify_keys
+    return nil unless message_data.key?("thinking_effort")
+
+    effort = message_data["thinking_effort"].to_s.presence || effective_chat_thinking_effort(@chat)
     return effort if Llm::ChatOptions::THINKING_EFFORTS.include?(effort)
 
     nil

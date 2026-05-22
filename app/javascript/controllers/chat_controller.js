@@ -109,6 +109,7 @@ export default class extends Controller {
 
   syncStatusTarget(element, { live = false } = {}) {
     const nextStatus = element.dataset.status || "idle"
+    const nextPhase = element.dataset.phase || null
     const nextStreaming = nextStatus === "streaming"
     const wasStreaming = this.streamingValue
 
@@ -124,6 +125,7 @@ export default class extends Controller {
     }
 
     this.streamingValue = nextStreaming
+  this.renderStatusTarget(element, nextStatus, nextPhase)
 
     // Preserved panels can keep stale button/input state even when the value did not change.
     this.applyStreamingUiState(nextStreaming)
@@ -136,6 +138,34 @@ export default class extends Controller {
     if (nextStatus === "cancelled" && this.isApplicationPanel()) {
       liveStream?.finalizeStream()
     }
+  }
+
+  renderStatusTarget(element, status, phase) {
+    const showThinking = status === "streaming" && phase === "thinking"
+    const showCancelled = status === "cancelled"
+
+    element.classList.toggle("shared-chat__status-shell--visible", showThinking || showCancelled)
+
+    if (showThinking) {
+      element.innerHTML = `
+        <div class="shared-chat__status-indicator shared-chat__status-indicator--streaming">
+          <span class="shared-chat__status-label shared-chat__text-shimmer">Thinking…</span>
+        </div>
+      `
+      return
+    }
+
+    if (showCancelled) {
+      element.innerHTML = `
+        <div class="shared-chat__status-indicator shared-chat__status-indicator--cancelled">
+          <i class="fa-solid fa-ban" aria-hidden="true"></i>
+          <span>Response cancelled</span>
+        </div>
+      `
+      return
+    }
+
+    element.innerHTML = ""
   }
 
   syncRenderedStatusTarget() {

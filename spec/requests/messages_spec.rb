@@ -5,7 +5,10 @@ require "rails_helper"
 RSpec.describe "Messages" do
   let(:user) { User.find_by(role: "admin") }
   let(:tenant) { user.tenant.tap(&:ensure_core_resources!) }
-  let!(:agent) { create(:agent, enabled: true, operation: tenant.default_operation) }
+  let!(:reasoning_model) { create(:model, capabilities: ["text", "reasoning"]) }
+  let!(:agent) do
+    create(:agent, enabled: true, operation: tenant.default_operation, model_id: reasoning_model.model_id)
+  end
   let!(:client_channel) { create_client_channel(agent:) }
   let(:chat) { create_channel_chat(user:, agent:, channel: client_channel) }
   let!(:assistant_message) { create(:message, :assistant, chat:, content: "Initial response") }
@@ -55,6 +58,23 @@ RSpec.describe "Messages" do
       )
     end
 
+    it "passes thinking off when the client channel selector chooses off" do
+      client_channel.update!(
+        configuration: client_channel.configuration.merge("thinking_level_selector_enabled" => true),
+      )
+      allow(ChatResponseJob).to receive(:perform_later)
+
+      post chat_messages_path(chat), params: { message: { content: "Hello", thinking_effort: "none" } }
+
+      expect(ChatResponseJob).to have_received(:perform_later).with(
+        chat.id,
+        "Hello",
+        [],
+        { "llm_config" => { "thinking_effort" => "none" } },
+        tenant_id: tenant.id,
+      )
+    end
+
     it "sends model-default thinking when the enabled selector is left blank" do
       client_channel.update!(
         configuration: client_channel.configuration.merge("thinking_level_selector_enabled" => true),
@@ -72,12 +92,86 @@ RSpec.describe "Messages" do
       )
     end
 
+    it "keeps thinking effort nil when the enabled selector field is omitted" do
+      client_channel.update!(
+        configuration: client_channel.configuration.merge("thinking_level_selector_enabled" => true),
+      )
+      allow(ChatResponseJob).to receive(:perform_later)
+
+      post chat_messages_path(chat), params: { message: { content: "Hello" } }
+
+      expect(ChatResponseJob).to have_received(:perform_later).with(
+        chat.id,
+        "Hello",
+        [],
+        { "llm_config" => { "thinking_effort" => nil } },
+        tenant_id: tenant.id,
+      )
+    end
+
+    it "preserves the effective default thinking when the enabled selector posts a blank value" do
+      client_channel.update!(
+        configuration: client_channel.configuration.merge("thinking_level_selector_enabled" => true),
+      )
+      agent.update!(thinking_effort: "none")
+      allow(ChatResponseJob).to receive(:perform_later)
+
+      post chat_messages_path(chat), params: { message: { content: "Hello", thinking_effort: "" } }
+
+      expect(ChatResponseJob).to have_received(:perform_later).with(
+        chat.id,
+        "Hello",
+        [],
+        { "llm_config" => { "thinking_effort" => "none" } },
+        tenant_id: tenant.id,
+      )
+    end
+
     it "ignores posted thinking effort when the client channel hides the selector" do
       allow(ChatResponseJob).to receive(:perform_later)
 
       post chat_messages_path(chat), params: { message: { content: "Hello", thinking_effort: "high" } }
 
       expect(ChatResponseJob).to have_received(:perform_later).with(chat.id, "Hello", [], tenant_id: tenant.id)
+    end
+
+    it "ignores posted thinking effort when the selected model does not support reasoning" do
+      client_channel.update!(
+        configuration: client_channel.configuration.merge("thinking_level_selector_enabled" => true),
+      )
+      text_model = create(:model, capabilities: ["text"])
+      agent.update!(model_id: text_model.model_id)
+      allow(ChatResponseJob).to receive(:perform_later)
+
+      post chat_messages_path(chat), params: { message: { content: "Hello", thinking_effort: "high" } }
+
+      expect(ChatResponseJob).to have_received(:perform_later).with(chat.id, "Hello", [], tenant_id: tenant.id)
+    end
+
+    it "passes posted thinking effort when DeepSeek tool-enabled chats use runtime reasoning" do
+      client_channel.update!(
+        configuration: client_channel.configuration.merge("thinking_level_selector_enabled" => true),
+      )
+      deepseek_model = create(
+        :model,
+        model_id: "deepseek-v4-flash",
+        provider: "deepseek",
+        capabilities: ["text", "reasoning"],
+      )
+      agent.update!(model_id: deepseek_model.model_id)
+      agent.runtime_tool_keys = ["resources.list_resources"]
+      agent.save!
+      allow(ChatResponseJob).to receive(:perform_later)
+
+      post chat_messages_path(chat), params: { message: { content: "Hello", thinking_effort: "high" } }
+
+      expect(ChatResponseJob).to have_received(:perform_later).with(
+        chat.id,
+        "Hello",
+        [],
+        { "llm_config" => { "thinking_effort" => "high" } },
+        tenant_id: tenant.id,
+      )
     end
 
     it "returns not found for another user's chat" do
@@ -107,6 +201,8 @@ RSpec.describe "Messages" do
       expect(response.media_type).to eq("text/vnd.turbo-stream.html")
       expect(chat.reload).to be_streaming
       expect(response.body).to include("chat-#{chat.id}-status")
+      expect(response.body).not_to include('data-phase="thinking"')
+      expect(response.body).not_to include("Thinking...")
     end
 
     it "keeps an already-streaming chat streaming" do
@@ -143,6 +239,7 @@ RSpec.describe "Messages" do
       end
 
       before do
+        agent.update!(model_id: chat.model.model_id)
         chat.model.update!(modalities: { "input" => ["text", "file"], "output" => ["text"] })
       end
 
@@ -166,6 +263,7 @@ RSpec.describe "Messages" do
       end
 
       it "skips attachments when no model metadata is available" do
+        agent.update!(model_id: "missing-model")
         Chat.where(id: chat.id).update_all(model_id: nil) # rubocop:disable Rails/SkipsModelValidations
         allow_any_instance_of(Chat).to receive(:enqueue_response!) # rubocop:disable RSpec/AnyInstance
 

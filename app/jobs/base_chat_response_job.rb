@@ -165,7 +165,11 @@ class BaseChatResponseJob < ApplicationJob
   def stream_phase_for(chunk)
     return nil if chunk.respond_to?(:tool_call?) && chunk.tool_call?
     return nil if chunk.respond_to?(:content) && chunk.content.present?
-    return :thinking if chunk.respond_to?(:thinking) && !chunk.thinking.nil?
+
+    if chunk.respond_to?(:thinking)
+      thinking_content = normalized_chunk_content(chunk.thinking)
+      return :thinking if thinking_content.present?
+    end
 
     nil
   end

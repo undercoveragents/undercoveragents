@@ -42,10 +42,8 @@
                 %i.fa-solid.fa-paperclip
                 %span= component.attach_label
             - if component.thinking_level_selector_visible?
-              .shared-chat__thinking-level-selector{ title: component.thinking_level_label }
-                %i.fa-solid.fa-brain
-                = f.label :thinking_effort, component.thinking_level_label, class: "sr-only"
-                = f.select :thinking_effort, options_for_select(component.thinking_level_options), {}, class: "shared-chat__thinking-level-select", aria: { label: component.thinking_level_label }
+              = f.label :thinking_effort, component.thinking_level_label, class: "sr-only"
+              = f.select :thinking_effort, options_for_select(component.thinking_level_options), {}, class: "shared-chat__thinking-level-select", title: component.thinking_level_label, aria: { label: component.thinking_level_label }
           .shared-chat__controls-right
             %button.shared-chat__control-button.shared-chat__control-button--send{ type: "submit", data: { chat_target: "submitButton" }, title: component.send_label }
               %i.fa-solid.fa-arrow-up

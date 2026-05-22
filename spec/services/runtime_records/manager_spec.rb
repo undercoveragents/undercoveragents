@@ -250,7 +250,7 @@ RSpec.describe RuntimeRecords::Manager do
   end
 
   describe "#update" do
-    it "normalizes Agent Designer reasoning-off updates for DeepSeek agents" do
+    it "leaves blank Agent Designer reasoning updates blank for DeepSeek agents" do
       create(:model, model_id: "deepseek-v4-flash", provider: "deepseek", capabilities: ["reasoning"])
       agent = create(
         :agent,
@@ -266,7 +266,7 @@ RSpec.describe RuntimeRecords::Manager do
         attributes: { thinking_effort: nil, thinking_budget: nil },
       )
 
-      expect(result.record.reload.thinking_effort).to eq("none")
+      expect(result.record.reload.thinking_effort).to be_nil
       expect(result.record.thinking_budget).to be_nil
     end
 

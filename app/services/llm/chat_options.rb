@@ -6,21 +6,26 @@ module Llm
 
     THINKING_EFFORTS = ["none", "low", "medium", "high"].freeze
 
+    def self.reasoning_available?(model_record:)
+      return true if model_record.nil?
+
+      model_record.supports_reasoning? != false
+    end
+
     def self.apply_to_chat(chat:, model_id:, model_record: nil, tools_present: false, **settings)
       resolved_model = model_record || resolve_model(model_id)
       thinking_settings = {
         effort: settings[:thinking_effort],
         budget: settings[:thinking_budget],
       }
-      custom_params = effective_custom_params(
-        settings[:custom_params],
+      custom_params = provider_disabled_thinking_params(
+        normalize_custom_params(settings[:custom_params]),
         resolved_model,
-        thinking_effort: settings[:thinking_effort],
-        tools_present:,
+        thinking_settings[:effort],
       )
 
       apply_temperature(chat, settings[:temperature], resolved_model)
-      apply_thinking(chat, resolved_model, thinking_settings, tools_present:, custom_params:)
+      apply_thinking(chat, resolved_model, thinking_settings, tools_present:)
       apply_custom_params(chat, custom_params)
 
       resolved_model
@@ -73,21 +78,14 @@ module Llm
     end
     private_class_method :apply_temperature
 
-    def self.apply_thinking(chat, model_record, thinking_settings, tools_present: false, custom_params: {})
+    def self.apply_thinking(chat, model_record, thinking_settings, **_options)
       options = thinking_options(**thinking_settings)
       return if options.blank?
-      return if custom_thinking_type(custom_params) == "disabled"
-      return if model_record&.supports_reasoning? == false
-      return if skip_tool_reasoning_for_provider?(model_record, tools_present:)
+      return unless reasoning_available?(model_record:)
 
       chat.with_thinking(**options)
     end
     private_class_method :apply_thinking
-
-    def self.skip_tool_reasoning_for_provider?(model_record, tools_present: false)
-      tools_present && model_record&.provider.to_s == "deepseek"
-    end
-    private_class_method :skip_tool_reasoning_for_provider?
 
     def self.apply_custom_params(chat, custom_params)
       return if custom_params.blank?
@@ -96,36 +94,13 @@ module Llm
     end
     private_class_method :apply_custom_params
 
-    def self.effective_custom_params(custom_params, model_record, thinking_effort:, tools_present: false)
-      params = normalize_custom_params(custom_params)
-      return params unless model_record&.provider.to_s == "deepseek"
+    def self.provider_disabled_thinking_params(custom_params, model_record, thinking_effort)
+      return custom_params unless thinking_effort.to_s == "none"
+      return custom_params unless model_record&.provider.to_s == "deepseek"
 
-      params = flatten_deepseek_extra_body(params)
-      return merge_deepseek_thinking_type(params, "disabled") if tools_present
-      return params if custom_thinking_type(params).present?
-      return merge_deepseek_thinking_type(params, "disabled") if thinking_effort.to_s == "none"
-
-      params
+      custom_params.deep_merge("thinking" => { "type" => "disabled" })
     end
-    private_class_method :effective_custom_params
-
-    def self.custom_thinking_type(custom_params)
-      custom_params.dig("thinking", "type").to_s.presence
-    end
-    private_class_method :custom_thinking_type
-
-    def self.flatten_deepseek_extra_body(params)
-      extra_body = params["extra_body"]
-      return params unless extra_body.is_a?(Hash)
-
-      params.except("extra_body").deep_merge(extra_body.deep_stringify_keys)
-    end
-    private_class_method :flatten_deepseek_extra_body
-
-    def self.merge_deepseek_thinking_type(params, type)
-      params.deep_merge("thinking" => { "type" => type })
-    end
-    private_class_method :merge_deepseek_thinking_type
+    private_class_method :provider_disabled_thinking_params
 
     def self.normalize_custom_params_string(value)
       stripped = value.to_s.strip

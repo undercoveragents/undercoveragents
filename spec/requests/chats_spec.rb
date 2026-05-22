@@ -128,18 +128,19 @@ RSpec.describe "Chats" do
       client_channel.update!(
         configuration: client_channel.configuration.merge("thinking_level_selector_enabled" => true),
       )
+      agent.update!(thinking_effort: "medium")
       effective_attachment_model(chat).update!(capabilities: ["text", "reasoning"])
 
       get chat_path(chat)
 
       document = response_document
       selector = document.at_css(".shared-chat__thinking-level-select")
+      options = selector.css("option").map { |option| [option.text, option["value"]] }
 
       expect(selector).to be_present
-      expect(selector.css("option").map { |option| [option.text, option["value"]] }).to include(
-        ["Model default", ""],
-        ["High", "high"],
-      )
+      expect(options.first).to eq(["Thinking: medium", ""])
+      expect(options).to include(["Thinking: off", "none"], ["Thinking: high", "high"])
+      expect(options).not_to include(["Thinking: medium", "medium"])
     end
 
     it "hides the thinking level selector by default" do

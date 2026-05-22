@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require Rails.root.join("lib/undercover_agents/ruby_llm_deepseek_reasoning_content_patch")
+
 RubyLLM.configure do |config|
   # Use the new association-based acts_as API (recommended)
   config.use_new_acts_as = true

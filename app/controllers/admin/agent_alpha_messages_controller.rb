@@ -97,11 +97,15 @@ module Admin
     end
 
     def agent_alpha_thinking_level_selector_visible?
-      chat_model_for_attachments(agent_alpha_chat).try(:supports_reasoning?) != false
+      model_record = chat_model_for_attachments(agent_alpha_chat)
+      chat_thinking_level_selector_supported?(agent_alpha_chat, model_record:)
     end
 
     def normalized_message_thinking_effort
-      effort = message_params[:thinking_effort].to_s.presence
+      message_data = message_params.to_h.deep_stringify_keys
+      return nil unless message_data.key?("thinking_effort")
+
+      effort = message_data["thinking_effort"].to_s.presence || effective_chat_thinking_effort(agent_alpha_chat)
       return effort if Llm::ChatOptions::THINKING_EFFORTS.include?(effort)
 
       nil

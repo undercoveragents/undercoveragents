@@ -79,6 +79,33 @@ RSpec.describe ChatUiHelper do
       expect(component.thinking_level_selector_visible?).to be(false)
     end
 
+    it "keeps the thinking selector available for DeepSeek tool-enabled chats" do
+      tenant = create(:tenant)
+      tenant.ensure_core_resources!
+      agent = create(:agent, operation: tenant.default_operation)
+      agent.runtime_tool_keys = ["resources.list_resources"]
+      chat = build(:chat, agent:)
+      model = build(:model, model_id: "deepseek-v4-flash", provider: "deepseek", capabilities: ["reasoning"])
+
+      expect(helper.chat_thinking_level_selector_supported?(chat, model_record: model)).to be(true)
+    end
+
+    it "falls back to the agent thinking effort when system preferences are unconfigured" do
+      tenant = create(:tenant)
+      tenant.ensure_core_resources!
+      agent = create(
+        :agent,
+        operation: tenant.default_operation,
+        llm_config_source: "system_preference",
+        thinking_effort: "high",
+      )
+      chat = build(:chat, agent:)
+
+      SystemPreference.current(tenant:)
+
+      expect(helper.effective_chat_thinking_effort(chat)).to eq("high")
+    end
+
     it "applies customized control labels only to the client variant", :aggregate_failures do
       component = helper.build_chat_component(variant: :client)
 
@@ -96,7 +123,10 @@ RSpec.describe ChatUiHelper do
       expect(component.message_actions.copy_user_message).to be(false)
       expect(component.message_actions.assistant_feedback).to be(true)
       expect(component.thinking_level_selector_visible?).to be(true)
-      expect(component.thinking_level_options).to include(["Model default", ""], ["High", "high"])
+      expect(component.thinking_level_options).to include(
+        ["Thinking: auto", ""],
+        ["Thinking: high", "high"],
+      )
     end
 
     it "enables generic references only when configured" do

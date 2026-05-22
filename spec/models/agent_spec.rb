@@ -794,6 +794,21 @@ RSpec.describe Agent do
       )
     end
 
+    it "forwards thinking off from chat runtime context to shared chat options" do
+      model_record = create(:model, model_id: "gpt-4.1", provider: "openai",
+                                    capabilities: ["temperature", "reasoning"],)
+      agent = create(:agent, model_id: model_record.model_id, thinking_effort: "high", thinking_budget: 256)
+      chat = instance_spy(Chat)
+      allow(agent).to receive_messages(build_full_instructions: "", tools: [])
+      allow(Llm::ChatOptions).to receive(:apply_to_chat)
+
+      agent.configure_chat(chat, runtime_context: { llm_config: { thinking_effort: "none" } })
+
+      expect(Llm::ChatOptions).to have_received(:apply_to_chat).with(
+        hash_including(thinking_effort: "none", thinking_budget: nil),
+      )
+    end
+
     it "resets thinking to model default from chat runtime context" do
       agent = create(:agent, thinking_effort: "high", thinking_budget: 256)
 

@@ -19,6 +19,50 @@ module LlmConfigHelper
     THINKING_EFFORT_OPTIONS
   end
 
+  def thinking_level_options_for_chat(chat = nil)
+    default_effort = effective_chat_thinking_effort(chat)
+    options = [[thinking_level_option_label(default_effort), ""]]
+
+    Llm::ChatOptions::THINKING_EFFORTS.each do |effort|
+      next if default_effort.present? && effort == default_effort
+
+      options << [thinking_level_option_label(effort), effort]
+    end
+
+    options
+  end
+
+  def effective_chat_thinking_effort(chat)
+    agent = chat&.agent
+    return nil unless agent
+
+    if agent.llm_config_source == "system_preference"
+      preference = SystemPreference.current(tenant: agent.tenant)
+      return preference.thinking_effort.presence if preference.configured?
+    end
+
+    agent.thinking_effort.presence
+  end
+
+  def thinking_level_option_label(effort)
+    "Thinking: #{thinking_level_label_text(effort)}"
+  end
+
+  def chat_thinking_level_selector_supported?(_chat, model_record:)
+    Llm::ChatOptions.reasoning_available?(model_record:)
+  end
+
+  def thinking_level_label_text(effort)
+    case effort.to_s
+    when "none"
+      "off"
+    when *Llm::ChatOptions::THINKING_EFFORTS
+      effort.to_s
+    else
+      "auto"
+    end
+  end
+
   def model_routing_strategy_options_for_select
     MODEL_ROUTING_STRATEGY_OPTIONS
   end

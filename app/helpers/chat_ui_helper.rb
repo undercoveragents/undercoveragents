@@ -6,6 +6,7 @@ module ChatUiHelper
   include ChatMessageActionsHelper
   include ChatReferenceUiHelper
   include ClientUiHelper
+  include LlmConfigHelper
 
   ChatComponentConfig = Data.define(
     :variant,
@@ -57,6 +58,14 @@ module ChatUiHelper
         attachment_accept: effective_accept,
         thinking_level_selector_visible: effective_thinking_level_selector_visible,
       )
+    end
+
+    def with_thinking_level_options(options)
+      self.class.new(**to_h, thinking_level_options: options)
+    end
+
+    def with_thinking_level_selector_visible(visible)
+      self.class.new(**to_h, thinking_level_selector_visible: visible)
     end
 
     def references_enabled?
@@ -183,7 +192,7 @@ module ChatUiHelper
       message_actions: default_message_actions_config,
       thinking_level_selector_visible: false,
       thinking_level_label: "Thinking level",
-      thinking_level_options: LlmConfigHelper::THINKING_EFFORT_OPTIONS,
+      thinking_level_options: thinking_level_options_for_chat,
       **attributes,
     )
   end
