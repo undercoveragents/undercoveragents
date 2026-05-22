@@ -3,7 +3,7 @@
 require "ruby_llm/providers/deepseek/chat"
 
 module UndercoverAgents
-  module RubyLlmDeepSeekReasoningContentPatch
+  module RubyLlmDeepseekReasoningContentPatch
     def format_thinking(message)
       return {} unless message.role == :assistant
 
@@ -15,8 +15,10 @@ module UndercoverAgents
       payload
     end
   end
+
+  RubyLlmDeepSeekReasoningContentPatch = RubyLlmDeepseekReasoningContentPatch
 end
 
 RubyLLM::Providers::DeepSeek::Chat.singleton_class.prepend(
-  UndercoverAgents::RubyLlmDeepSeekReasoningContentPatch,
+  UndercoverAgents::RubyLlmDeepseekReasoningContentPatch,
 )

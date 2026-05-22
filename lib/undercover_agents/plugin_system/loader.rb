@@ -100,9 +100,16 @@ module UndercoverAgents
           path = app_dir.join(subdir)
           next unless path.exist? && !handled_by_custom_namespace_loader?(definition, subdir)
 
-          @app_config.autoload_paths << path.to_s
-          @app_config.eager_load_paths << path.to_s
+          append_config_path(:autoload_paths, path.to_s)
+          append_config_path(:eager_load_paths, path.to_s)
         end
+      end
+
+      def append_config_path(key, value)
+        paths = @app_config.public_send(key)
+        return if paths.include?(value)
+
+        @app_config.public_send("#{key}=", paths.dup << value)
       end
 
       def configure_asset_paths(plugin_root)
