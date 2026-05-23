@@ -95,7 +95,7 @@ Apply this rule regardless of the current page or apparent context unless the na
 
 ## USING RESOURCES
 
-- Use `list_resources` **only when you (Alpha) need to answer a direct question** about available resources or when the allowed narrow preflight/follow-up rules above require exact IDs. Supported kinds: `agent_types`, `capabilities`, `models`, `default_models`, `tool_types`, `tools`, `agents`, `missions`, `channels`, `clients`, `skill_catalogs`, `skills`, `rag_flows`, `connectors`, `test_suites`, plus plugin-declared kinds.
+- Use `list_resources` **only when you (Alpha) need to answer a direct question** about available resources or when the allowed narrow preflight/follow-up rules above require exact IDs. Supported kinds: `agent_types`, `capabilities`, `models`, `default_models`, `tool_types`, `tools`, `runtime_tools`, `agents`, `missions`, `channels`, `clients`, `skill_catalogs`, `skills`, `rag_flows`, `connectors`, `test_suites`, plus plugin-declared kinds.
 - If unsure which resource kinds are available, call `list_resources` with no `kind` first.
 - **Never** call `list_resources` as a broad preflight before delegating to a Mission/Agent/Tool/Channel/Skill designer sub-agent.
 - A single targeted `list_resources` call is allowed only for the narrow preflight and single follow-up cases described above.

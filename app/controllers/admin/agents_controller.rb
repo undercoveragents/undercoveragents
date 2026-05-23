@@ -126,11 +126,22 @@ module Admin
                 :llm_connector_id, :thinking_effort, :thinking_budget, :custom_llm_params,
                 :model_routing_config,
                 :input_schema, :edit_context,
-                { assigned_tool_ids: [], subagent_ids: [], skill_catalog_ids: [] },],
+                { assigned_tool_ids: [], runtime_tool_keys: [], subagent_ids: [], skill_catalog_ids: [] },],
       )
+      normalize_runtime_tool_params!(permitted)
       @agent.name = permitted[:name] if permitted.key?(:name)
       permitted.except(:name, :input_schema, :edit_context).each { |k, v| @agent.public_send(:"#{k}=", v) }
       @agent.input_schema = parse_input_schema(permitted[:input_schema]) if permitted.key?(:input_schema)
+    end
+
+    def normalize_runtime_tool_params!(permitted)
+      return unless permitted.key?(:runtime_tool_keys)
+
+      if @agent.builtin?
+        permitted.delete(:runtime_tool_keys)
+      else
+        permitted[:runtime_tool_keys] = permitted[:runtime_tool_keys] & BuiltinTools::Registry.user_assignable_keys
+      end
     end
 
     def build_agent_skill_counts(agents)
@@ -163,6 +174,8 @@ module Admin
           key: tool_key,
           name: definition&.name || tool_key,
           description: definition&.description || "Missing built-in tool definition.",
+          icon: definition&.icon || "fa-solid fa-wrench",
+          configuration_hint: definition&.configuration_hint,
           missing: definition.nil?,
         }
       end
@@ -170,6 +183,7 @@ module Admin
 
     def load_form_data
       @available_tools = scoped_tools.enabled.ordered
+      @available_builtin_tools = BuiltinTools::Registry.user_assignable_definitions
       @available_agents = scoped_agents.enabled.selectable.ordered.where.not(id: @agent.id)
       @available_llm_connectors = scoped_connectors.llm_providers.enabled.ordered
       provider_connector = @agent.llm_connector

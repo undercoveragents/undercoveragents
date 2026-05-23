@@ -39,5 +39,27 @@ RSpec.describe RuntimeRecords::AgentAttributesNormalizer do
 
       expect(attributes).to eq({ "thinking_effort" => "none", "thinking_budget" => nil })
     end
+
+    it "keeps only user-assignable runtime tool keys for user agents" do
+      BuiltinTools::Registrations.register_all!
+
+      attributes = described_class.call(
+        record: agent,
+        attributes: { runtime_tool_keys: ["web.web_search", "mission_designer.read_flow"] },
+      )
+
+      expect(attributes).to eq({ "runtime_tool_keys" => ["web.web_search"] })
+    end
+
+    it "does not update runtime tool keys for builtin agents" do
+      builtin_agent = build(:agent, builtin: true)
+
+      attributes = described_class.call(
+        record: builtin_agent,
+        attributes: { runtime_tool_keys: ["web.web_search"] },
+      )
+
+      expect(attributes).to eq({})
+    end
   end
 end

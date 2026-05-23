@@ -39,6 +39,22 @@ RSpec.describe BuiltinTools::Registry do
     expect(described_class.visible_definitions.map(&:name)).to eq(["Alpha", "Zulu"])
   end
 
+  it "returns user-assignable definitions sorted by name" do
+    described_class.register("z.tool", name: "Zulu", description: "Z", user_assignable: true) { nil }
+    described_class.register(
+      "a.tool",
+      name: "Alpha",
+      description: "A",
+      user_assignable: true,
+      configuration_hint: "Configured elsewhere.",
+    ) { nil }
+    described_class.register("hidden.tool", name: "Hidden", description: "H") { nil }
+
+    expect(described_class.user_assignable_definitions.map(&:name)).to eq(["Alpha", "Zulu"])
+    expect(described_class.user_assignable_keys).to eq(["a.tool", "z.tool"])
+    expect(described_class.definition_for("a.tool").configuration_hint).to eq("Configured elsewhere.")
+  end
+
   describe "compaction_policy" do
     it "defaults to nil when not provided" do
       described_class.register("plain.tool", name: "Plain", description: "") { nil }

@@ -7,6 +7,8 @@ module BuiltinTools
       :name,
       :description,
       :visible_in_headquarter,
+      :user_assignable,
+      :configuration_hint,
       :runtime_name,
       :icon,
       :presentation,
@@ -21,6 +23,8 @@ module BuiltinTools
           name:,
           description:,
           visible_in_headquarter: options.fetch(:visible_in_headquarter, false),
+          user_assignable: options.fetch(:user_assignable, false),
+          configuration_hint: options[:configuration_hint],
           runtime_name: options[:runtime_name],
           icon: options[:icon],
           presentation: build_presentation(name:, icon: options[:icon], config: options[:tool_call_presentation]),
@@ -36,6 +40,14 @@ module BuiltinTools
 
       def visible_definitions
         definitions.values.select(&:visible_in_headquarter).sort_by(&:name)
+      end
+
+      def user_assignable_definitions
+        definitions.values.select(&:user_assignable).sort_by(&:name)
+      end
+
+      def user_assignable_keys
+        user_assignable_definitions.map(&:key)
       end
 
       def definition_for(key)

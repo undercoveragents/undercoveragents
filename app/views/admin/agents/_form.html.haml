@@ -5,3 +5,6 @@
 = form_with model: agent, url: action, method:, local: true, html: { class: "agent-form", id: form_id } do |f|
   = render "shared/forms/validation_errors", record: agent, resource_name: "agent"
   = render "agents/form_configuration_fields", f:, agent:, available_models:, available_llm_connectors:
+  - unless agent.builtin?
+    -# Keep a separator comment between consecutive render calls for haml-lint.
+    = render "agents/form_tools", f:, agent:, available_tools:, available_builtin_tools:

@@ -52,11 +52,13 @@
           - builtin_tools.each do |tool|
             .flex.items-center.gap-2.p-2.rounded-lg.bg-surface-secondary
               .entity-card__icon
-                %i.fa-solid.fa-wrench
+                %i{ class: tool[:icon] }
               .flex-1.min-w-0
                 .text-sm.font-medium.text-text-primary.leading-snug= tool[:name]
                 .text-xs.text-text-secondary= tool[:description]
                 .text-text-muted.mt-1{ class: "text-[11px]" }= tool[:key]
+                - if tool[:configuration_hint].present?
+                  .text-xs.text-text-muted.mt-1= tool[:configuration_hint]
               - if tool[:missing]
                 .badge.badge-danger Missing
               - else

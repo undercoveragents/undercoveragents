@@ -109,6 +109,9 @@ module BuiltinTools
         name: "Web Search",
         description: "Safely search the public web through a plugin-backed search client.",
         visible_in_headquarter: true,
+        user_assignable: true,
+        configuration_hint: "Uses the configured web-search provider; provider credentials stay on " \
+                            "connector/plugin settings.",
         runtime_name: "web_search",
         icon: "fa-solid fa-globe",
         compaction_policy: :replace_on_assistant_reply,
@@ -132,6 +135,8 @@ module BuiltinTools
         name: "Web Fetch",
         description: "Safely fetch a very small number of public pages and return focused snippets.",
         visible_in_headquarter: true,
+        user_assignable: true,
+        configuration_hint: "No per-agent setup; safety limits and fetch behavior are application controlled.",
         runtime_name: "web_fetch",
         icon: "fa-solid fa-file-lines",
         compaction_policy: :replace_on_assistant_reply,

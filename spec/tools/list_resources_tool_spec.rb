@@ -144,8 +144,8 @@ RSpec.describe ListResourcesTool do
 
       expect(result).to include("Available resource kinds:")
       expect(result).to include(
-        "Core: agent_types, capabilities, models, default_models, tool_types, tools, agents, missions, " \
-        "channels, clients, skill_catalogs, skills, rag_flows, connectors, test_suites",
+        "Core: agent_types, capabilities, models, default_models, tool_types, tools, runtime_tools, " \
+        "agents, missions, channels, clients, skill_catalogs, skills, rag_flows, connectors, test_suites",
       )
       expect(result).not_to include("Plugin-defined:")
       expect(result).to include("Use connector_id when kind includes \"models\".")
@@ -441,6 +441,50 @@ RSpec.describe ListResourcesTool do
         allow(ToolPlugin).to receive(:all_types).and_return([])
 
         expect(tool.execute(kind: "tool_types")).to include("No tool types available.")
+      end
+    end
+
+    describe "runtime_tools" do
+      it "lists user-assignable built-in runtime tools" do
+        BuiltinTools::Registrations.register_all!
+
+        result = tool.execute(kind: "runtime_tools")
+
+        expect(result).to include(
+          "## Built-in Runtime Tools",
+          "`web.web_search`",
+          "`web.web_fetch`",
+        )
+        expect(result).not_to include("mission_designer.read_flow")
+      end
+
+      it "reports when no built-in runtime tools are user-assignable" do
+        allow(BuiltinTools::Registry).to receive(:user_assignable_definitions).and_return([])
+
+        expect(tool.execute(kind: "runtime_tools"))
+          .to include("No user-assignable built-in runtime tools available.")
+      end
+
+      it "lists user-assignable built-in runtime tools without configuration hints" do
+        definition = BuiltinTools::Registry::Definition.new(
+          key: "demo.runtime",
+          name: "Demo Runtime",
+          description: "Demo desc",
+          visible_in_headquarter: false,
+          user_assignable: true,
+          configuration_hint: nil,
+          runtime_name: nil,
+          icon: nil,
+          presentation: nil,
+          compaction_policy: nil,
+          factory: nil,
+        )
+        allow(BuiltinTools::Registry).to receive(:user_assignable_definitions).and_return([definition])
+
+        result = tool.execute(kind: "runtime_tools")
+
+        expect(result).to include("`demo.runtime` — Demo Runtime — Demo desc")
+        expect(result).not_to include("Configuration:")
       end
     end
 

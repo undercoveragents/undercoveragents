@@ -272,6 +272,18 @@ RSpec.describe "Agents" do
           agent = Agent.last
           expect(agent.assigned_tools).to include(tool)
         end
+
+        it "assigns user-selectable built-in runtime tools to the agent" do
+          BuiltinTools::Registrations.register_all!
+
+          post admin_agents_path, params: {
+            agent: valid_params[:agent].merge(
+              runtime_tool_keys: ["web.web_search", "mission_designer.read_flow"],
+            ),
+          }
+
+          expect(Agent.last.runtime_tool_keys).to eq(["web.web_search"])
+        end
       end
     end
 
@@ -486,6 +498,17 @@ RSpec.describe "Agents" do
         expect(response.body).to include("grid grid-cols-1 xl:grid-cols-2")
         expect(response.body).not_to include("grid grid-cols-1 lg:grid-cols-2")
       end
+
+      it "shows user-selectable built-in runtime tools" do
+        BuiltinTools::Registrations.register_all!
+
+        get edit_admin_agent_path(agent)
+
+        expect(response.body).to include("Built-in Runtime Tools")
+        expect(response.body).to include("Web Search")
+        expect(response.body).to include("Web Fetch")
+        expect(response.body).not_to include("Read Mission Flow")
+      end
     end
 
     describe "GET /agents/:id/edit_instructions" do
@@ -567,6 +590,38 @@ RSpec.describe "Agents" do
           expect(agent.name).to eq("Old Name")
           expect(agent.description).to eq("Updated description")
           expect(agent.input_schema).to eq([])
+        end
+
+        it "updates only user-selectable built-in runtime tools" do
+          BuiltinTools::Registrations.register_all!
+
+          patch admin_agent_path(agent), params: {
+            agent: {
+              runtime_tool_keys: ["web.web_fetch", "mission_designer.read_flow"],
+            },
+          }
+
+          expect(agent.reload.runtime_tool_keys).to eq(["web.web_fetch"])
+        end
+
+        it "does not update locked runtime tool keys on builtin agents" do
+          BuiltinAgents::Synchronizer.ensure_present!(keys: ["agent_alpha"])
+          builtin_agent = Agent.find_builtin_by_key("agent_alpha")
+          original_tool_keys = builtin_agent.runtime_tool_keys
+          allow(AgentPolicy).to receive(:new).and_wrap_original do |original, user, record|
+            policy = original.call(user, record)
+            allow(policy).to receive(:update?).and_return(true) if record == builtin_agent
+            policy
+          end
+
+          patch admin_agent_path(builtin_agent), params: {
+            agent: {
+              name: "Updated Alpha",
+              runtime_tool_keys: ["web.web_fetch"],
+            },
+          }
+
+          expect(builtin_agent.reload.runtime_tool_keys).to eq(original_tool_keys)
         end
       end
 

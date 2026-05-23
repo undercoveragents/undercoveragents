@@ -18,6 +18,7 @@ module RuntimeRecords
     "model_routing_config",
     "input_schema",
     "assigned_tool_ids",
+    "runtime_tool_keys",
     "subagent_ids",
     "skill_catalog_ids",
   ].freeze

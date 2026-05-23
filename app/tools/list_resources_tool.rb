@@ -8,7 +8,7 @@ class ListResourcesTool < RubyLLM::Tool
   include ListResourcesToolPluginResources
 
   CORE_KINDS_DESCRIPTION = "Core kinds: agent_types, capabilities, models, default_models, tool_types, " \
-                           "tools, agents, missions, channels, clients, skill_catalogs, skills, " \
+                           "tools, runtime_tools, agents, missions, channels, clients, skill_catalogs, skills, " \
                            "rag_flows, connectors, test_suites."
   DEFAULT_DESCRIPTION = [
     "List operation-scoped resource IDs and values for one or more core or plugin-declared kinds.",
@@ -42,6 +42,7 @@ class ListResourcesTool < RubyLLM::Tool
     "default_models" => :default_models,
     "tool_types" => :tool_types,
     "tools" => :tools,
+    "runtime_tools" => :runtime_tools,
     "agents" => :agents,
     "missions" => :missions,
     "channels" => :channels,

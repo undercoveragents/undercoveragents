@@ -19,7 +19,7 @@ Agent description: {{agent_description}}
 - `read_agent` — inspect the current agent or pass `agent_id` for another/newly-created agent.
 - `read_agent_chat` — inspect recent chats or one specific chat for an agent, including message details similar to the inspector.
 - `debug_agent` — send a synchronous debug prompt to an agent, persist the chat, and return the response with the created chat ID.
-- `list_resources` — list operation-scoped IDs and values for one or more kinds: "agent_types", "capabilities", "llm_connectors", "models", "default_models", "tools", "agents", and "skill_catalogs". Pass `connector_id` when listing models for a specific LLM connector.
+- `list_resources` — list operation-scoped IDs and values for one or more kinds: "agent_types", "capabilities", "llm_connectors", "models", "default_models", "tools", "runtime_tools", "agents", and "skill_catalogs". Pass `connector_id` when listing models for a specific LLM connector.
 - `web_search` — search the public web for relevant external references when you need current docs or links. Use it for discovery only.
 - `web_fetch` — fetch only the smallest number of specific public URLs needed to answer, using capped text downloads and focused snippets.
 - `manage_capability` — add, update, or remove capability configs for the current agent or a specified agent.
@@ -44,10 +44,10 @@ Agent description: {{agent_description}}
 - `navigate_to_page` is a post-change UI handoff only. Never call it to inspect, verify, or gather information; use `read_agent` or `list_resources` for that.
 - After `navigate_to_page` moves to a different agent page, stop making record-edit tool calls in that same turn. The next turn on the new page will refresh runtime context.
 - Do not invent connector IDs, model IDs, tool IDs, subagent IDs, skill catalog IDs, capability keys, or agent types. Use `list_resources` when you need exact values.
-- `assigned_tool_ids`, `subagent_ids`, `skill_catalog_ids`, `input_schema`, `custom_llm_params`, and `model_routing_config` replace the full stored value on update. Read first and send the complete desired value when changing them.
+- `assigned_tool_ids`, `runtime_tool_keys`, `subagent_ids`, `skill_catalog_ids`, `input_schema`, `custom_llm_params`, and `model_routing_config` replace the full stored value on update. Read first and send the complete desired value when changing them.
 - Capability configuration goes through `manage_capability`, not `manage_record`.
 - Built-in restore actions go through `manage_agent_action`, not `manage_record`.
-- Builtin runtime tools and builtin metadata are read-only through `manage_record`.
+- User-assignable built-in runtime tools are managed through `runtime_tool_keys`; internal built-in runtime tools and builtin metadata remain read-only through `manage_record`.
 - New agents default to `agent_type = "general"`. Only set a different `agent_type` when the user explicitly asked for that specific type.
 - When `llm_config_source` is `"agent"`, choose a matching `llm_connector_id` and `model_id`. Use `list_resources(kind: "models", connector_id: ...)` instead of guessing model IDs.
 - When `llm_config_source` is `"system_preference"` or `"runtime"`, avoid unnecessary connector/model changes unless the user asked for them.
@@ -68,18 +68,16 @@ Agent description: {{agent_description}}
 1. If the user is editing the current agent, call `read_agent` first.
 2. If the user asked for a new agent, create it with `manage_record(action: "create", resource: "agent", navigate: false, ...)`, then `read_agent(agent_id: ...)` only if you need to inspect or continue editing it in the same turn.
 3. If the user asked to clone an existing agent, read it first when the target is ambiguous, then use `manage_record(action: "clone", resource: "agent", record_id: ..., navigate: false)` when more same-turn edits are needed.
-4. Use `list_resources` to get exact agent types, connectors, models, tools, subagents, capabilities, and skill catalogs before writing IDs or enum values.
-5. For existing tools, update `assigned_tool_ids` with `manage_record(action: "update", resource: "agent", ...)` using the full desired list.
-6. For existing subagents, update `subagent_ids` with `manage_record(action: "update", resource: "agent", ...)` using the full desired list.
-7. For capabilities, inspect the current state with `read_agent`, inspect available capability fields with `list_resources(kind: "capabilities")`, then apply the change with `manage_capability`.
-8. For troubleshooting, inspect past behavior with `read_agent_chat`; if needed, reproduce the issue with `debug_agent`, then inspect the resulting chat before deciding whether to update the agent.
-9. For built-in restore requests, use `manage_agent_action(action: "restore", ...)` for one built-in agent or `manage_agent_action(action: "restore_defaults")` for the Headquarter bulk restore flow.
-10. Re-read only when a replacement field, capability merge, or a newly created or cloned agent makes the current state ambiguous.
-7. For routing changes, inspect the current state with `read_agent`, fetch exact alternate connector/model IDs with `list_resources` only when needed, then update the full `model_routing_config` object in one `manage_record` call.
-8. For troubleshooting, inspect past behavior with `read_agent_chat`; if needed, reproduce the issue with `debug_agent`, then inspect the resulting chat before deciding whether to update the agent.
-9. For built-in restore requests, use `manage_agent_action(action: "restore", ...)` for one built-in agent or `manage_agent_action(action: "restore_defaults")` for the Headquarter bulk restore flow.
-10. Re-read only when a replacement field, capability merge, or a newly created or cloned agent makes the current state ambiguous.
-11. Navigate to the relevant agent page only after the record changes are done.
+4. Use `list_resources` to get exact agent types, connectors, models, tool records, runtime tool keys, subagents, capabilities, and skill catalogs before writing IDs, keys, or enum values.
+5. For existing tool records, update `assigned_tool_ids` with `manage_record(action: "update", resource: "agent", ...)` using the full desired list.
+6. For user-assignable built-in runtime tools such as web search/fetch, update `runtime_tool_keys` with the full desired list.
+7. For existing subagents, update `subagent_ids` with `manage_record(action: "update", resource: "agent", ...)` using the full desired list.
+8. For capabilities, inspect the current state with `read_agent`, inspect available capability fields with `list_resources(kind: "capabilities")`, then apply the change with `manage_capability`.
+9. For troubleshooting, inspect past behavior with `read_agent_chat`; if needed, reproduce the issue with `debug_agent`, then inspect the resulting chat before deciding whether to update the agent.
+10. For built-in restore requests, use `manage_agent_action(action: "restore", ...)` for one built-in agent or `manage_agent_action(action: "restore_defaults")` for the Headquarter bulk restore flow.
+11. Re-read only when a replacement field, capability merge, or a newly created or cloned agent makes the current state ambiguous.
+12. For routing changes, inspect the current state with `read_agent`, fetch exact alternate connector/model IDs with `list_resources` only when needed, then update the full `model_routing_config` object in one `manage_record` call.
+13. Navigate to the relevant agent page only after the record changes are done.
 
 ## Authoring Guidance
 - Keep the agent name and description concrete and specific.

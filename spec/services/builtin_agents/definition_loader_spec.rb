@@ -24,7 +24,7 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
   def expected_agent_alpha_discovery_fragments
     [
       "Supported kinds: `agent_types`, `capabilities`, `models`, `default_models`, " \
-      "`tool_types`, `tools`, `agents`, `missions`, `channels`, `clients`, `skill_catalogs`, " \
+      "`tool_types`, `tools`, `runtime_tools`, `agents`, `missions`, `channels`, `clients`, `skill_catalogs`, " \
       "`skills`, `rag_flows`, `connectors`, `test_suites`",
       "take at most one narrow discovery step",
       "trailing `<child_result>` JSON block with `status`, `record_ids`, `warnings`, and `blockers`",
