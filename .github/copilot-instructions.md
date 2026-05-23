@@ -316,6 +316,7 @@ Each node class under `app/models/missions/nodes/` is **self-contained** — all
 - Test run pages use transient `turbo_stream_from` updates plus a Stimulus catch-up poll against the show route's `.turbo_stream` format; keep the run page `turbo-cache-control` meta set to `no-cache`.
 - Per-test usage includes execution (`execution_context: :test`) and evaluation chats (`execution_context: :system`, linked via `parent_chat_id`).
 - Show tokens as separate **input** / **output** values — never only a sum.
+- Inspector-promoted test cases use `source_type: "chat"` with source metadata pointing back to the chat, prompt message, assistant message, promoter, and feedback annotation. Keep this production-feedback-to-evaluation path on the normal `TestSuite`/`TestCase` records instead of adding a separate dataset table.
 - Builtin test suites live in `config/builtin_tests/*.toml`, sync into Headquarter, and remain normal editable `TestSuite`/`TestCase` records. Preserve editable suite/case changes on ensure/sync and use explicit restore flows for shipped defaults.
 - Agent-style behavior assertions live on `TestCase` and persisted evidence/debug data lives on `TestCaseResult`/`TestSuiteRun`; do not reintroduce external JSON benchmark reports.
 - `TestSuites::CreateRunService` should keep accepting an optional `test_cases:` subset so runtime tools can run either a whole suite or a single selected test without cloning the execution path.

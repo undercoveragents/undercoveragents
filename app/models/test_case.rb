@@ -43,7 +43,7 @@
 #
 class TestCase < ApplicationRecord
   EXPECTED_STATUSES = ["completed", "failed"].freeze
-  SOURCE_TYPES = ["manual", "builtin"].freeze
+  SOURCE_TYPES = ["manual", "chat", "builtin"].freeze
   COMPLEXITIES = ["low", "medium", "high"].freeze
   enum :match_type, { exact: "exact", semantic: "semantic", partial: "partial" }, default: :semantic
   belongs_to :test_suite, inverse_of: :test_cases

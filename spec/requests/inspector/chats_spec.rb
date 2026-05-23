@@ -187,6 +187,12 @@ RSpec.describe "Inspector::Chats" do
         expect(response.body).to include("I am the assistant")
       end
 
+      it "shows assistant promotion controls" do
+        get admin_inspector_chat_path(chat)
+
+        expect(response.body).to include("Promote to test case")
+      end
+
       it "shows message count" do
         get admin_inspector_chat_path(chat)
         expect(response.body).to include("Messages (2)")
@@ -287,6 +293,46 @@ RSpec.describe "Inspector::Chats" do
         expect(response).to have_http_status(:ok)
         expect(response.body).to include("Child Analysis")
       end
+    end
+  end
+
+  describe "POST /inspector/chats/:id/messages/:message_id/promote_to_test_case" do
+    let(:chat) { create(:chat, agent:, model: model_record, title: "Promotable Chat") }
+    let!(:prompt_message) { create(:message, :user, chat:, content: "How can I publish this agent?") }
+    let!(:assistant_message) { create(:message, :assistant, chat:, content: "Create an API channel.") }
+
+    it "promotes the assistant turn into a test case", :aggregate_failures do
+      expect do
+        post promote_message_to_test_case_admin_inspector_chat_path(chat, message_id: assistant_message.id)
+      end.to change(TestCase, :count).by(1)
+
+      test_case = TestCase.last
+      expect(response).to redirect_to(admin_test_suite_path(test_case.test_suite, anchor: "test-case-#{test_case.id}"))
+      expect(test_case).to have_attributes(
+        prompt: "How can I publish this agent?",
+        expected_answer: "Create an API channel.",
+        source_type: "chat",
+        category: "production",
+      )
+    end
+
+    it "updates an existing promoted test case for the same assistant turn", :aggregate_failures do
+      post promote_message_to_test_case_admin_inspector_chat_path(chat, message_id: assistant_message.id)
+
+      expect do
+        post promote_message_to_test_case_admin_inspector_chat_path(chat, message_id: assistant_message.id)
+      end.not_to change(TestCase, :count)
+
+      follow_redirect!
+      expect(response.body).to include("Updated the promoted test case.")
+    end
+
+    it "redirects back with an alert when the message cannot be promoted", :aggregate_failures do
+      post promote_message_to_test_case_admin_inspector_chat_path(chat, message_id: prompt_message.id)
+
+      expect(response).to redirect_to(admin_inspector_chat_path(chat))
+      follow_redirect!
+      expect(response.body).to include("Only assistant messages can be promoted.")
     end
   end
 end

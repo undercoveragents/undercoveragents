@@ -75,7 +75,7 @@ RSpec.describe TestCase do
       end
     end
 
-    it { is_expected.to validate_inclusion_of(:source_type).in_array(["manual", "builtin"]) }
+    it { is_expected.to validate_inclusion_of(:source_type).in_array(["manual", "chat", "builtin"]) }
     it { is_expected.to validate_presence_of(:position) }
     it { is_expected.to validate_numericality_of(:position).only_integer.is_greater_than_or_equal_to(0) }
   end
