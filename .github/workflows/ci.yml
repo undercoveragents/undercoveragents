@@ -102,7 +102,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libvips
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: 9
           run_install: false
