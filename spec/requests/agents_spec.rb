@@ -328,7 +328,7 @@ RSpec.describe "Agents" do
         end
         clone_button = document.at_css("button[data-confirm-title-value='Clone Agent']")
 
-        expect(action_groups).to eq([["Delete"], ["Clone"], ["Edit"]])
+        expect(action_groups).to eq([["Delete"], ["Clone", "Preview Prompt"], ["Edit"]])
         expect(document.css(".page-hero__control-separator").size).to eq(2)
         expect(clone_button&.[]("data-controller")).to eq("confirm")
         expect(document.at_css(".page-hero__action-group a.btn-primary")&.text).to include("Edit")
@@ -364,6 +364,14 @@ RSpec.describe "Agents" do
         expect(configuration_card).to be_present
         expect(configuration_card.text).to include("Reasoning", "High", "Thinking Budget", "42")
         expect(configuration_card.text).not_to include("Created")
+      end
+
+      it "shows response format metadata in the configuration card" do
+        agent.update!(response_format: "json_schema", response_schema: { "type" => "object" })
+
+        get admin_agent_path(agent)
+
+        expect(response.body).to include("Response Format", "JSON Schema", "object schema")
       end
 
       it "shows the input parameters card even when the agent has no schema" do
@@ -476,6 +484,7 @@ RSpec.describe "Agents" do
 
         expect(response.body).to include("Basic Information")
         expect(response.body).to include("Model Configuration")
+        expect(response.body).to include("Response Format")
         expect(response.body).not_to include("System Instructions")
         expect(response.body).not_to include("Input Parameters")
       end
@@ -568,6 +577,19 @@ RSpec.describe "Agents" do
           expect(agent.description).to eq("Updated description")
           expect(agent.input_schema).to eq([])
         end
+
+        it "persists structured response format settings" do
+          patch admin_agent_path(agent), params: {
+            agent: {
+              response_format: "json_schema",
+              response_schema: '{"type":"object"}',
+            },
+          }
+
+          agent.reload
+          expect(agent.response_format).to eq("json_schema")
+          expect(agent.response_schema).to eq({ "type" => "object" })
+        end
       end
 
       context "with invalid params" do
@@ -589,6 +611,36 @@ RSpec.describe "Agents" do
           expect(response).to have_http_status(:unprocessable_content)
           expect(response.body).to include("Input Parameters")
         end
+
+        it "re-renders when response schema JSON is invalid" do
+          patch admin_agent_path(agent), params: {
+            agent: {
+              response_format: "json_schema",
+              response_schema: "not-json",
+            },
+          }
+
+          expect(response).to have_http_status(:unprocessable_content)
+          expect(response.body).to include("Response schema must be valid JSON")
+        end
+      end
+    end
+
+    describe "GET /agents/:id/prompt_preview" do
+      let(:agent) { create(:agent, name: "Preview Agent", instructions: "Hello {{account_id}}") }
+
+      it "renders a prompt preview without creating a chat" do
+        agent.update!(input_schema: [
+                        { "variable_name" => "account_id", "label" => "Account ID", "field_type" => "string" },
+                      ])
+
+        expect do
+          get prompt_preview_admin_agent_path(agent)
+        end.not_to change(Chat, :count)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("Prompt Preview", "Rendered Instructions", "Hello Sample Account ID")
+        expect(response.body).to match(/Digest [0-9a-f]{12}/)
       end
     end
 

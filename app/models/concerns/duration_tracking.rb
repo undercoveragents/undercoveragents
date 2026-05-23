@@ -81,6 +81,15 @@ module DurationTracking
     tool_call_record = ToolCall.find_by(tool_call_id: @_tracking_tool_id)
     tool_call_record&.sync_display_metadata!
     tool_call_record&.update_column(:duration_ms, duration) # rubocop:disable Rails/SkipsModelValidations
+    Llm::GenerationInstrumentation.instrument_tool_call(
+      chat: self,
+      tool_call: tool_call_record,
+      metadata: {
+        tool_call_id: @_tracking_tool_id,
+        tool_name: @_tracking_tool_name,
+      },
+      duration_ms: duration,
+    )
     @_after_tool_call_execution_observers&.each { |cb| cb.call(@_tracking_tool_id, @_tracking_tool_name, duration) }
     @_tracking_tool_start = nil
     @_tracking_tool_id = nil

@@ -14,6 +14,8 @@ module AgentDesigner
     "temperature",
     "thinking_effort",
     "thinking_budget",
+    "response_format",
+    "response_schema",
     "custom_llm_params",
     "model_routing_config",
     "input_schema",
@@ -76,6 +78,7 @@ module AgentDesigner
       [
         summary_section(agent),
         llm_section(agent),
+        response_contract_section(agent),
         model_routing_section(agent),
         relation_section("Assigned Tools", agent.assigned_tools.order(:name)),
         runtime_tools_section(agent),
@@ -108,6 +111,22 @@ module AgentDesigner
       end
 
       "## Model Routing\n```json\n#{JSON.pretty_generate(routing)}\n```"
+    end
+
+    def response_contract_section(agent)
+      lines = [
+        "## Response Contract",
+        "- Response format: `#{agent.response_format}`",
+      ]
+
+      if agent.response_format == "json_schema"
+        lines << "- Response schema summary: #{Llm::ResponseFormat.schema_summary(agent.response_schema)}"
+        lines << "```json\n#{JSON.pretty_generate(agent.response_schema)}\n```"
+      else
+        lines << "- Response schema: Not required"
+      end
+
+      lines.join("\n")
     end
 
     def relation_section(title, relation)
@@ -181,11 +200,17 @@ module AgentDesigner
         *AgentDesigner::READ_AGENT_EDITABLE_FIELDS.map { |field| "- `#{field}`" },
         "- Array and hash fields replace the full stored value on update, so reread first and send the " \
         "complete desired value when changing `input_schema`, `assigned_tool_ids`, `subagent_ids`, " \
-        "`skill_catalog_ids`, `custom_llm_params`, or `model_routing_config`.",
+        "`skill_catalog_ids`, `response_schema`, `custom_llm_params`, or `model_routing_config`.",
         "- Use `manage_record(action: \"clone\", resource: \"agent\", record_id: #{agent.id})` to clone this agent.",
+        prompt_preview_navigation_hint(agent),
         "- Capability configuration goes through `manage_capability`, not `manage_record`.",
         "- Builtin runtime tools and builtin metadata are read-only in `manage_record`.",
       ].join("\n")
+    end
+
+    def prompt_preview_navigation_hint(agent)
+      "- Use `navigate_to_page(resource: \"agent\", page: \"prompt_preview\", " \
+        "record_id: #{agent.id})` to open the prompt preview page after configuration changes."
     end
   end
 end

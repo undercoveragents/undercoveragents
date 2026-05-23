@@ -99,6 +99,24 @@ RSpec.describe ManageRecordTool do
     }]
   end
 
+  def expected_agent_response_schema
+    {
+      "type" => "object",
+      "properties" => {
+        "answer" => { "type" => "string" },
+      },
+    }
+  end
+
+  def agent_update_dependencies
+    {
+      helper_tool: create(:tool, :mission_tool, :enabled, operation:, name: "Agent Helper"),
+      helper_subagent: create(:agent, :enabled, operation:, name: "Research Wing", model_id: "gpt-4.1"),
+      skill_catalog: create(:skill_catalog, operation:, name: "Agent Playbook"),
+      llm_connector: create(:connector, :llm_provider, :enabled, tenant:, name: "Primary LLM"),
+    }
+  end
+
   def agent_update_payload(helper_tool:, helper_subagent:, skill_catalog:, llm_connector:)
     {
       description: "Updated by the builtin agent designer",
@@ -106,6 +124,13 @@ RSpec.describe ManageRecordTool do
       subagent_ids: [helper_subagent.id],
       skill_catalog_ids: [skill_catalog.id],
       input_schema: agent_input_schema_payload,
+      response_format: "json_schema",
+      response_schema: {
+        type: "object",
+        properties: {
+          answer: { type: "string" },
+        },
+      },
       custom_llm_params: { "top_p" => 0.4 },
       model_routing_config: {
         strategy: "fallback",
@@ -309,16 +334,13 @@ RSpec.describe ManageRecordTool do
     end
 
     it "updates agent configuration fields and replacement arrays" do
-      helper_tool = create(:tool, :mission_tool, :enabled, operation:, name: "Agent Helper")
-      helper_subagent = create(:agent, :enabled, operation:, name: "Research Wing", model_id: "gpt-4.1")
-      skill_catalog = create(:skill_catalog, operation:, name: "Agent Playbook")
-      llm_connector = create(:connector, :llm_provider, :enabled, tenant:, name: "Primary LLM")
+      dependencies = agent_update_dependencies
 
       result = tool.execute(
         resource: "agent",
         action: "update",
         record_id: agent_record.id,
-        attributes: agent_update_payload(helper_tool:, helper_subagent:, skill_catalog:, llm_connector:),
+        attributes: agent_update_payload(**dependencies),
       )
 
       updated_agent = agent_record.reload
@@ -326,13 +348,15 @@ RSpec.describe ManageRecordTool do
       expect(result).to include("Agent updated successfully.")
       expect(updated_agent).to have_attributes(
         description: "Updated by the builtin agent designer",
-        assigned_tool_ids: [helper_tool.id],
-        subagent_ids: [helper_subagent.id],
-        skill_catalog_ids: [skill_catalog.id],
+        assigned_tool_ids: [dependencies[:helper_tool].id],
+        subagent_ids: [dependencies[:helper_subagent].id],
+        skill_catalog_ids: [dependencies[:skill_catalog].id],
+        response_format: "json_schema",
+        response_schema: expected_agent_response_schema,
         custom_llm_params: { "top_p" => 0.4 },
         model_routing_config: {
           "strategy" => "fallback",
-          "fallback_models" => [{ "connector_id" => llm_connector.id, "model_id" => "gpt-4.1-mini" }],
+          "fallback_models" => [{ "connector_id" => dependencies[:llm_connector].id, "model_id" => "gpt-4.1-mini" }],
         },
       )
       expect(updated_agent.input_schema).to eq(expected_agent_input_schema)
@@ -374,6 +398,21 @@ RSpec.describe ManageRecordTool do
       expect(result).to include(
         "- Path: `#{Rails.application.routes.url_helpers.edit_admin_mission_path(mission.reload)}`",
       )
+    end
+
+    it "navigates an agent update to the prompt preview page" do
+      allow(ActionCable.server).to receive(:broadcast)
+
+      result = tool.execute(
+        resource: "agent",
+        action: "update",
+        record_id: agent_record.id,
+        attributes: { description: "Preview me" },
+        page: "prompt_preview",
+      )
+
+      expect(result).to include("Agent updated successfully.")
+      expect_navigation_to(chat, Rails.application.routes.url_helpers.prompt_preview_admin_agent_path(agent_record))
     end
 
     it "clones a mission and returns same-turn designer guidance", :aggregate_failures do

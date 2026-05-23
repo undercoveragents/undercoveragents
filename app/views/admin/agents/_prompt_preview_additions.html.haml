@@ -1,0 +1,21 @@
+- schema = preview.dig(:response_format, :schema)
+- if schema.present?
+  .card.mb-6
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-code.mr-2.text-accent
+        Response Schema
+    .card-body
+      %pre.bg-surface-secondary.p-4.rounded-lg.text-xs.overflow-auto= JSON.pretty_generate(schema)
+
+- if preview[:prompt_additions].any?
+  .card
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-layer-group.mr-2.text-accent
+        Prompt Additions
+    .card-body.space-y-3
+      - preview[:prompt_additions].each do |addition|
+        .rounded-lg.bg-surface-secondary.p-3
+          .text-xs.font-semibold.uppercase.tracking-wide.text-text-muted.mb-2= addition[:source].to_s.humanize
+          %pre.text-xs.whitespace-pre-wrap= addition[:content]

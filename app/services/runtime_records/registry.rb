@@ -14,6 +14,8 @@ module RuntimeRecords
     "temperature",
     "thinking_effort",
     "thinking_budget",
+    "response_format",
+    "response_schema",
     "custom_llm_params",
     "model_routing_config",
     "input_schema",

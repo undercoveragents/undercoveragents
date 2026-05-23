@@ -209,21 +209,24 @@ module AgentRuntime
   end
 
   def runtime_llm_options(preference)
-    if preference&.configured?
-      return preference.llm_runtime_settings.slice(
-        :thinking_effort,
-        :thinking_budget,
-        :custom_params,
-        :model_routing_config,
-      )
-    end
+    options =
+      if preference&.configured?
+        preference.llm_runtime_settings.slice(
+          :thinking_effort,
+          :thinking_budget,
+          :custom_params,
+          :model_routing_config,
+        )
+      else
+        {
+          thinking_effort:,
+          thinking_budget:,
+          custom_params: custom_llm_params,
+          model_routing_config:,
+        }
+      end
 
-    {
-      thinking_effort:,
-      thinking_budget:,
-      custom_params: custom_llm_params,
-      model_routing_config:,
-    }
+    options.merge(response_format:, response_schema:)
   end
 
   def runtime_llm_overrides(runtime_context)
@@ -284,6 +287,8 @@ module AgentRuntime
       thinking_effort: runtime_config[:thinking_effort],
       thinking_budget: runtime_config[:thinking_budget],
       custom_params: runtime_config[:custom_params],
+      response_format: runtime_config[:response_format],
+      response_schema: runtime_config[:response_schema],
     )
   end
 
@@ -300,6 +305,8 @@ module AgentRuntime
       thinking_effort: runtime_config[:thinking_effort],
       thinking_budget: runtime_config[:thinking_budget],
       custom_params: runtime_config[:custom_params],
+      response_format: runtime_config[:response_format],
+      response_schema: runtime_config[:response_schema],
       tools_present: combined_tools.any?,
     )
   end

@@ -27,6 +27,7 @@ module Llm
       apply_temperature(chat, settings[:temperature], resolved_model)
       apply_thinking(chat, resolved_model, thinking_settings, tools_present:)
       apply_custom_params(chat, custom_params)
+      apply_response_format(chat, settings[:response_format], settings[:response_schema])
 
       resolved_model
     end
@@ -93,6 +94,11 @@ module Llm
       chat.with_params(**custom_params.deep_symbolize_keys)
     end
     private_class_method :apply_custom_params
+
+    def self.apply_response_format(chat, response_format, response_schema)
+      Llm::ResponseFormat.apply_to_chat(chat:, response_format:, response_schema:)
+    end
+    private_class_method :apply_response_format
 
     def self.provider_disabled_thinking_params(custom_params, model_record, thinking_effort)
       return custom_params unless thinking_effort.to_s == "none"

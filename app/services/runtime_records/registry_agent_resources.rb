@@ -49,12 +49,16 @@ module RuntimeRecords
     def agent_page_path(page, record:, context:)
       _context = context
       helpers = Rails.application.routes.url_helpers
+      page_name = page.to_s
 
-      case page.to_s
-      when "index"
-        helpers.admin_agents_path
-      when "new"
-        helpers.new_admin_agent_path
+      return helpers.admin_agents_path if page_name == "index"
+      return helpers.new_admin_agent_path if page_name == "new"
+
+      agent_record_page_path(page_name, record, helpers)
+    end
+
+    def agent_record_page_path(page_name, record, helpers)
+      case page_name
       when "show"
         raise ArgumentError, "Agent page 'show' requires a record." unless record
 
@@ -63,8 +67,12 @@ module RuntimeRecords
         raise ArgumentError, "Agent page 'edit' requires a record." unless record
 
         helpers.edit_admin_agent_path(record)
+      when "prompt_preview"
+        raise ArgumentError, "Agent page 'prompt_preview' requires a record." unless record
+
+        helpers.prompt_preview_admin_agent_path(record)
       else
-        raise ArgumentError, "Unknown page '#{page}' for agent. Use index, new, show, or edit."
+        raise ArgumentError, "Unknown page '#{page_name}' for agent. Use index, new, show, edit, or prompt_preview."
       end
     end
 

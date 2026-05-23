@@ -1,0 +1,135 @@
+- content_for(:title, "Prompt Preview — #{@agent.name} — #{APP_NAME}")
+- back_link = { label: "Back to #{@agent.name}", url: admin_agent_path(@agent) }
+- digest_label = "Digest #{@preview[:digest].first(12)}"
+- meta = [tag.span(digest_label, class: "badge badge-neutral")]
+= render_page_hero(title: "Prompt Preview", variant: :compact, title_icon: "fa-solid fa-eye", record_title: @agent.name, back_link:, meta:)
+
+.grid.grid-cols-1.lg:grid-cols-2.gap-6.mb-6
+  .card.h-full
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-sliders.mr-2.text-accent
+        Runtime Contract
+    .card-body
+      .detail-grid
+        .detail-item
+          .detail-label LLM Source
+          .detail-value= agent_llm_source_label(@agent)
+        .detail-item
+          .detail-label LLM Connection
+          .detail-value= agent_llm_connector_display(@agent)
+        .detail-item
+          .detail-label Model
+          .detail-value= agent_model_display(@agent)
+        .detail-item
+          .detail-label Routing
+          .detail-value= agent_model_routing_label(@preview.dig(:model, :model_routing))
+        .detail-item
+          .detail-label Temperature
+          .detail-value= @preview.dig(:model, :temperature)
+        .detail-item
+          .detail-label Reasoning
+          .detail-value= agent_thinking_effort_label(@preview.dig(:model, :thinking_effort))
+        .detail-item
+          .detail-label Response Format
+          .detail-value= agent_response_format_label(@agent)
+        .detail-item
+          .detail-label Response Schema
+          .detail-value= agent_response_schema_label(@agent)
+
+  .card.h-full
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-keyboard.mr-2.text-accent
+        Sample Inputs
+    .card-body
+      - if @preview[:inputs].any?
+        .space-y-2
+          - @preview[:inputs].each do |input|
+            .flex.items-start.justify-between.gap-3.p-2.rounded-lg.bg-surface-secondary
+              .min-w-0
+                .text-sm.font-medium.text-text-primary= input[:label].presence || input[:name]
+                .text-xs.text-text-secondary= input[:name]
+              .text-right.shrink-0
+                .badge.badge-neutral= input[:type]
+                .text-xs.text-text-muted.mt-1= input[:required] ? "Required" : "Optional"
+      - else
+        .text-center.py-6
+          %i.fa-solid.fa-keyboard.text-2xl.text-text-muted.mb-2
+          %p.text-sm.text-text-muted No input parameters defined.
+
+.card.mb-6
+  .card-header
+    %h3.text-sm.font-semibold.text-text-primary
+      %i.fa-solid.fa-scroll.mr-2.text-accent
+      Rendered Instructions
+  .card-body
+    - if @preview[:instructions].present?
+      %div{ class: "markdown-body bg-surface-secondary p-4 rounded-lg text-[11px] leading-5", data: { controller: "markdown-render", markdown_render_content_value: @preview[:instructions] } }
+    - else
+      .text-center.py-6
+        %i.fa-solid.fa-scroll.text-2xl.text-text-muted.mb-2
+        %p.text-sm.text-text-muted No rendered instructions.
+
+.grid.grid-cols-1.lg:grid-cols-2.gap-6.mb-6
+  .card.h-full
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-wrench.mr-2.text-accent
+        Tools And Sub-Agents
+    .card-body.space-y-4
+      .space-y-2
+        %div{ class: "text-xs font-semibold uppercase tracking-[0.2em] text-text-muted" } Assigned Tools
+        - tools = @preview[:tools] + @preview[:builtin_tools]
+        - if tools.any?
+          .space-y-2
+            - tools.each do |tool|
+              .flex.items-center.gap-2.p-2.rounded-lg.bg-surface-secondary
+                .entity-card__icon
+                  %i.fa-solid.fa-wrench
+                .min-w-0.flex-1
+                  .text-sm.font-medium.text-text-primary.truncate= tool[:name]
+                  .text-xs.text-text-secondary= tool[:type].presence || tool[:key]
+        - else
+          %p.text-sm.text-text-muted No tools assigned.
+      .border-t.border-border-default.pt-4.space-y-2
+        %div{ class: "text-xs font-semibold uppercase tracking-[0.2em] text-text-muted" } Sub-Agents
+        - if @preview[:subagents].any?
+          .space-y-2
+            - @preview[:subagents].each do |subagent|
+              .flex.items-center.gap-2.p-2.rounded-lg.bg-surface-secondary
+                .entity-card__icon
+                  %i.fa-solid.fa-user-secret
+                .min-w-0.flex-1
+                  .text-sm.font-medium.text-text-primary.truncate= subagent[:name]
+                  .text-xs.text-text-secondary= subagent[:type].to_s.humanize
+        - else
+          %p.text-sm.text-text-muted No sub-agents assigned.
+
+  .card.h-full
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i.fa-solid.fa-book-open.mr-2.text-accent
+        Knowledge And Capabilities
+    .card-body.space-y-4
+      .space-y-2
+        %div{ class: "text-xs font-semibold uppercase tracking-[0.2em] text-text-muted" } Skill Catalogs
+        - if @preview[:skill_catalogs].any?
+          .space-y-2
+            - @preview[:skill_catalogs].each do |catalog|
+              .flex.items-center.justify-between.gap-3.p-2.rounded-lg.bg-surface-secondary
+                .min-w-0
+                  .text-sm.font-medium.text-text-primary.truncate= catalog[:name]
+                  .text-xs.text-text-secondary= pluralize(catalog[:skills], "skill")
+        - else
+          %p.text-sm.text-text-muted No skill catalogs assigned.
+      .border-t.border-border-default.pt-4.space-y-2
+        %div{ class: "text-xs font-semibold uppercase tracking-[0.2em] text-text-muted" } Capabilities
+        - if @preview[:capabilities].any?
+          .flex.flex-wrap.gap-2
+            - @preview[:capabilities].each do |capability|
+              %span.badge.badge-neutral= capability[:label]
+        - else
+          %p.text-sm.text-text-muted No capabilities enabled.
+
+= render "agents/prompt_preview_additions", preview: @preview
