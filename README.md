@@ -89,7 +89,7 @@ bundle install
 pnpm install
 ```
 
-The repo checks in [pnpm-workspace.yaml](pnpm-workspace.yaml) to approve `esbuild` build scripts for pnpm 11, so fresh installs should not need a separate `pnpm approve-builds` step.
+The repo checks in [pnpm-workspace.yaml](pnpm-workspace.yaml) with a root `packages` entry plus `allowBuilds.esbuild: true` so pnpm 9 CI cache setup and pnpm 11 local installs both work without a separate `pnpm approve-builds` step.
 
 ### 2. Prepare the App
 
