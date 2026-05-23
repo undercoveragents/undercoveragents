@@ -87,11 +87,18 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
       "records.manage_record",
       "navigation.navigate_to_page",
     )
+    expect_agent_designer_instruction_fragments(definition)
+  end
+
+  def expect_agent_designer_instruction_fragments(definition)
     expect(definition.instructions).to include(
       "manage_capability",
       "assigned_tool_ids",
       "subagent_ids",
       "model_routing_config",
+      "response_format",
+      "response_schema",
+      "prompt_preview",
       "read_agent_chat",
       "debug_agent",
     )

@@ -8,7 +8,8 @@ class ManageRecordTool < RubyLLM::Tool
     "Hash or JSON object string of record attributes for create or update.",
     "Missions support name and description.",
     "Agents support name, description, instructions, agent_type, enabled, selectable, llm_config_source,",
-    "llm_connector_id, model_id, temperature, thinking_effort, thinking_budget, custom_llm_params,",
+    "llm_connector_id, model_id, temperature, thinking_effort, thinking_budget, response_format,",
+    "response_schema, custom_llm_params,",
     "model_routing_config,",
     "input_schema, assigned_tool_ids, subagent_ids, and skill_catalog_ids.",
     "Skill catalogs support name and description.",
@@ -32,7 +33,7 @@ class ManageRecordTool < RubyLLM::Tool
   PAGE_DESCRIPTION = [
     "Optional page to visit after success.",
     "Missions support index, edit, and designer.",
-    "Agents support index, show, and edit.",
+    "Agents support index, show, edit, and prompt_preview.",
     "Skill catalogs support index, show, and edit.",
     "Test suites support index, show, and edit.",
     "Channels support index, show, edit, and preview (preview is client-channel only).",

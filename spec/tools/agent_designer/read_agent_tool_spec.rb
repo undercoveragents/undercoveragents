@@ -23,6 +23,9 @@ RSpec.describe AgentDesigner::ReadAgentTool do
       "## Input Schema",
       "`task`",
       "## Model Routing",
+      "## Response Contract",
+      "`response_format`",
+      "object schema (1 field)",
       '"strategy": "fallback"',
       "## Custom LLM Params",
       '"top_p": 0.2',
@@ -32,6 +35,7 @@ RSpec.describe AgentDesigner::ReadAgentTool do
       "`assigned_tool_ids`",
       "manage_record(action: \"clone\", resource: \"agent\"",
       "`model_routing_config`",
+      "prompt_preview",
       "Capability configuration goes through `manage_capability`",
     ]
   end
@@ -57,16 +61,33 @@ RSpec.describe AgentDesigner::ReadAgentTool do
       model_id: "gpt-4.1",
       agent_type: "code_assistant",
     )
-    agent.assigned_tool_ids = [helper_tool.id]
-    agent.subagent_ids = [helper_subagent.id]
-    agent.skill_catalog_ids = [skill_catalog.id]
-    agent.input_schema = [{ variable_name: "task", label: "Task", field_type: "string", required: true }]
+    assign_agent_relationships(agent, helper_tool:, helper_subagent:, skill_catalog:)
+    agent.input_schema = [configured_input_field]
     agent.custom_llm_params = { "top_p" => 0.2 }
+    agent.response_format = "json_schema"
+    agent.response_schema = configured_response_schema
     agent.model_routing_config = fallback_model_routing_config(llm_connector)
     agent.set_capability_config("chat_title_generator", { "max_length" => 30 })
     agent.runtime_tool_keys = ["records.manage_record"]
     agent.save!
     agent
+  end
+
+  def assign_agent_relationships(agent, helper_tool:, helper_subagent:, skill_catalog:)
+    agent.assigned_tool_ids = [helper_tool.id]
+    agent.subagent_ids = [helper_subagent.id]
+    agent.skill_catalog_ids = [skill_catalog.id]
+  end
+
+  def configured_input_field
+    { variable_name: "task", label: "Task", field_type: "string", required: true }
+  end
+
+  def configured_response_schema
+    {
+      "type" => "object",
+      "properties" => { "answer" => { "type" => "string" } },
+    }
   end
 
   def fallback_model_routing_config(llm_connector)

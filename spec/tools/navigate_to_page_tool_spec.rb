@@ -119,6 +119,23 @@ RSpec.describe NavigateToPageTool do
       )
     end
 
+    it "broadcasts a Turbo navigation payload for an agent prompt preview page" do
+      allow(ActionCable.server).to receive(:broadcast)
+      agent = create(:agent, operation:, model_id: "gpt-4.1")
+
+      result = tool.execute(resource: "agent", page: "prompt_preview", record_id: agent.id)
+
+      expect(result).to include("Navigation target resolved for UI handoff only.")
+      expect(ActionCable.server).to have_received(:broadcast).with(
+        chat.ui_stream_channel_name,
+        hash_including(
+          type: "navigate",
+          chat_id: chat.id,
+          path: Rails.application.routes.url_helpers.prompt_preview_admin_agent_path(agent),
+        ),
+      )
+    end
+
     it "broadcasts a Turbo navigation payload for a client-channel preview page" do
       allow(ActionCable.server).to receive(:broadcast)
 

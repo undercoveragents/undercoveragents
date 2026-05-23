@@ -195,20 +195,28 @@ RSpec.describe RuntimeRecords::Registry do
       expect(definition.path_for("new", record: nil, context:)).to eq(helpers.new_admin_agent_path)
       expect(definition.path_for("show", record: agent, context:)).to eq(helpers.admin_agent_path(agent))
       expect(definition.path_for("edit", record: agent, context:)).to eq(helpers.edit_admin_agent_path(agent))
+      expect(definition.path_for("prompt_preview", record: agent, context:)).to eq(
+        helpers.prompt_preview_admin_agent_path(agent),
+      )
     end
 
-    it "requires a record for show and edit pages" do
+    it "requires a record for show, edit, and prompt preview pages" do
       expect { definition.path_for("show", record: nil, context:) }
         .to raise_error(ArgumentError, "Agent page 'show' requires a record.")
       expect { definition.path_for("edit", record: nil, context:) }
         .to raise_error(ArgumentError, "Agent page 'edit' requires a record.")
+      expect { definition.path_for("prompt_preview", record: nil, context:) }
+        .to raise_error(ArgumentError, "Agent page 'prompt_preview' requires a record.")
     end
 
     it "raises for unknown agent pages" do
       agent = create(:agent, operation:)
 
       expect { definition.path_for("designer", record: agent, context:) }
-        .to raise_error(ArgumentError, "Unknown page 'designer' for agent. Use index, new, show, or edit.")
+        .to raise_error(
+          ArgumentError,
+          "Unknown page 'designer' for agent. Use index, new, show, edit, or prompt_preview.",
+        )
     end
   end
 

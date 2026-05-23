@@ -14,7 +14,7 @@ class NavigateToPageTool < RubyLLM::Tool
   PAGE_DESCRIPTION = [
     "The destination page to show after the create/update work is complete.",
     "Missions support index, new, edit, and designer. Agents support index, new,",
-    "show, and edit. Skill catalogs support index, new, show, and edit.",
+    "show, edit, and prompt_preview. Skill catalogs support index, new, show, and edit.",
     "Test suites support index, new, show, and edit.",
     "Channels support index, new, show, edit, and preview (client-channel only).",
     "Tools support index, new, show, and edit.",
