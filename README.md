@@ -89,6 +89,8 @@ bundle install
 pnpm install
 ```
 
+The repo checks in [pnpm-workspace.yaml](pnpm-workspace.yaml) to approve `esbuild` build scripts for pnpm 11, so fresh installs should not need a separate `pnpm approve-builds` step.
+
 ### 2. Prepare the App
 
 ```bash
