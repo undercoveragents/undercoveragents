@@ -17,6 +17,12 @@ module AgentsHelper
     "datetime_array" => "DateTime[]",
   }.freeze
 
+  RESPONSE_FORMAT_LABELS = {
+    "text" => "Text",
+    "json_object" => "JSON Object",
+    "json_schema" => "JSON Schema",
+  }.freeze
+
   def agent_origin_badge(agent)
     label = agent.builtin? ? "Built-in" : "User"
     color = agent.builtin? ? "secondary" : "brand"
@@ -144,6 +150,20 @@ module AgentsHelper
     else
       "Single Model"
     end
+  end
+
+  def agent_response_format_options_for_select
+    AgentConfiguration::RESPONSE_FORMATS.map { |format| [RESPONSE_FORMAT_LABELS.fetch(format), format] }
+  end
+
+  def agent_response_format_label(agent)
+    RESPONSE_FORMAT_LABELS.fetch(agent.response_format, agent.response_format.to_s.humanize)
+  end
+
+  def agent_response_schema_label(agent)
+    return "Not required" unless agent.response_format == "json_schema"
+
+    Llm::ResponseFormat.schema_summary(agent.response_schema)
   end
 
   def agent_input_parameter_type_label(field_type)

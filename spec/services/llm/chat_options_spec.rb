@@ -10,6 +10,7 @@ RSpec.describe Llm::ChatOptions do
       allow(chat).to receive(:with_temperature)
       allow(chat).to receive(:with_thinking)
       allow(chat).to receive(:with_params)
+      allow(chat).to receive(:with_schema)
     end
 
     it "applies supported temperature, thinking, and custom params" do
@@ -105,6 +106,23 @@ RSpec.describe Llm::ChatOptions do
 
       expect(chat).to have_received(:with_thinking).with(effort: :high)
       expect(chat).not_to have_received(:with_params)
+    end
+
+    it "applies structured response formats after custom params" do
+      model = build(:model, capabilities: ["temperature"])
+      schema = { "type" => "object" }
+
+      described_class.apply_to_chat(
+        chat:,
+        model_id: model.model_id,
+        model_record: model,
+        custom_params: { "top_p" => 0.8 },
+        response_format: "json_schema",
+        response_schema: schema,
+      )
+
+      expect(chat).to have_received(:with_params).with(top_p: 0.8)
+      expect(chat).to have_received(:with_schema).with(schema)
     end
 
     it "still applies thinking when tools are present but model metadata is unavailable" do

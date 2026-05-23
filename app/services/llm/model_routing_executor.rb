@@ -17,7 +17,7 @@ module Llm
 
     # rubocop:disable Metrics/ParameterLists
     def initialize(chat:, primary_route:, routing_config:, temperature:, thinking_effort:, thinking_budget:,
-                   custom_params:, tools_present:)
+                   custom_params:, tools_present:, response_format: nil, response_schema: nil)
       @chat = chat
       @primary_route = primary_route
       @routing_config = Llm::ModelRoutingConfig.normalize(routing_config)
@@ -25,6 +25,8 @@ module Llm
       @thinking_effort = thinking_effort
       @thinking_budget = thinking_budget
       @custom_params = custom_params
+      @response_format = response_format
+      @response_schema = response_schema
       @tools_present = tools_present
     end
     # rubocop:enable Metrics/ParameterLists
@@ -55,7 +57,8 @@ module Llm
 
     private
 
-    attr_reader :chat, :custom_params, :primary_route, :temperature, :thinking_budget, :thinking_effort, :tools_present
+    attr_reader :chat, :custom_params, :primary_route, :response_format, :response_schema, :temperature,
+                :thinking_budget, :thinking_effort, :tools_present
 
     def strategy
       @routing_config.fetch("strategy", Llm::ModelRoutingConfig::DEFAULT_STRATEGY)
@@ -136,6 +139,8 @@ module Llm
         thinking_effort:,
         thinking_budget:,
         custom_params:,
+        response_format:,
+        response_schema:,
       )
 
       return unless chat.persisted?
@@ -325,6 +330,8 @@ module Llm
         thinking_effort:,
         thinking_budget:,
         custom_params:,
+        response_format:,
+        response_schema:,
       )
     end
   end

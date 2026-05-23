@@ -146,6 +146,7 @@ Rails.application.routes.draw do
       end
       member do
         post :clone, action: :clone_record
+        get :prompt_preview, to: "agent_prompt_previews#show"
         get :edit_instructions
         patch :toggle
         post :restore

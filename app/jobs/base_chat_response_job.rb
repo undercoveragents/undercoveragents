@@ -214,6 +214,8 @@ class BaseChatResponseJob < ApplicationJob
   end
 
   def broadcast_ui_chunk(chat, content, kind)
+    Llm::GenerationInstrumentation.instrument_stream_chunk(chat:, kind:, content:)
+
     ActionCable.server.broadcast(
       chat.ui_stream_channel_name,
       chat.ui_stream_payload(

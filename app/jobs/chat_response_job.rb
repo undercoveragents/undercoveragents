@@ -17,6 +17,7 @@ class ChatResponseJob < BaseChatResponseJob
     nil
   rescue StandardError => e
     persist_stream_content(chat) if chat
+    Llm::GenerationInstrumentation.instrument_generation_error(chat:, error: e)
     Rails.logger.error "[ChatResponseJob] Error: #{e.message}"
     broadcast_error_message(chat, e)
   ensure

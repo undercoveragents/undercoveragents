@@ -136,22 +136,43 @@ class Chat < ApplicationRecord
     agent&.playground_compatible?
   end
 
-  def ask(...)
+  def ask(message = nil, with: nil, &block)
     setup_duration_tracking unless @duration_tracking_initialized
 
-    with_current_chat_context do
-      return perform_chat_ask(...) if bypass_model_routing?
-
-      @model_routing_executor.ask(...)
+    Llm::GenerationInstrumentation.instrument_generation(chat: self, streaming: block.present?) do
+      with_current_chat_context do
+        if bypass_model_routing?
+          perform_chat_ask(message, with:, &block)
+        else
+          @model_routing_executor.ask(message, with:, &block)
+        end
+      end
     end
   end
 
   # rubocop:disable Metrics/ParameterLists
   def configure_model_routing!(primary_connector:, primary_model_id:, primary_model_record:, routing_config:,
-                               temperature:, thinking_effort:, thinking_budget:, custom_params:, tools_present:)
+                               temperature:, thinking_effort:, thinking_budget:, custom_params:, tools_present:,
+                               response_format: nil, response_schema: nil)
     return @model_routing_executor = nil if primary_connector.blank? || primary_model_id.blank?
 
-    primary_route = Llm::ModelRoutingExecutor::Route.new(
+    @model_routing_executor = Llm::ModelRoutingExecutor.new(
+      chat: self,
+      primary_route: model_routing_primary_route(primary_connector, primary_model_id, primary_model_record),
+      routing_config:,
+      temperature:,
+      thinking_effort:,
+      thinking_budget:,
+      custom_params:,
+      response_format:,
+      response_schema:,
+      tools_present:,
+    )
+  end
+  # rubocop:enable Metrics/ParameterLists
+
+  def model_routing_primary_route(primary_connector, primary_model_id, primary_model_record)
+    Llm::ModelRoutingExecutor::Route.new(
       label: "primary",
       connector_id: primary_connector.id,
       connector: primary_connector,
@@ -159,19 +180,7 @@ class Chat < ApplicationRecord
       model_record: primary_model_record,
       role: "primary",
     )
-
-    @model_routing_executor = Llm::ModelRoutingExecutor.new(
-      chat: self,
-      primary_route:,
-      routing_config:,
-      temperature:,
-      thinking_effort:,
-      thinking_budget:,
-      custom_params:,
-      tools_present:,
-    )
   end
-  # rubocop:enable Metrics/ParameterLists
 
   def complete(...)
     @_duration_complete_start = duration_monotonic_now

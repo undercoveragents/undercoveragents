@@ -59,6 +59,8 @@ RSpec.describe Llm::ModelRoutingExecutor do
         thinking_effort: "medium",
         thinking_budget: 256,
         custom_params: { "top_p" => 0.9 },
+        response_format: "json_schema",
+        response_schema: { "type" => "object" },
         tools_present: false,
       )
 
@@ -68,6 +70,9 @@ RSpec.describe Llm::ModelRoutingExecutor do
       expect(call_count).to eq(2)
       expect(chat).to have_received(:with_model).with(primary_model.model_id)
       expect(chat).to have_received(:with_model).with(fallback_model.model_id)
+      expect(Llm::ChatOptions).to have_received(:apply_to_chat).with(
+        hash_including(response_format: "json_schema", response_schema: { "type" => "object" }),
+      ).at_least(:once)
 
       routing = chat.messages.assistant.last.content_raw.fetch("model_routing")
       expect(routing["strategy"]).to eq("fallback")

@@ -240,6 +240,24 @@ RSpec.describe Message do
     end
   end
 
+  describe "#parsed_json_content" do
+    let(:chat) { create(:chat) }
+
+    it "returns parsed content for assistant JSON messages" do
+      message = build(:message, :assistant, chat:, content: 'The result is {"ok":true}.')
+
+      expect(message.parsed_json_content).to eq({ "ok" => true })
+      expect(message.parsed_json_result).to be_success
+    end
+
+    it "returns nil and a clear result for non-assistant messages" do
+      message = build(:message, :user, chat:, content: '{"ok":true}')
+
+      expect(message.parsed_json_content).to be_nil
+      expect(message.parsed_json_result.error).to eq("Only assistant messages can be parsed")
+    end
+  end
+
   describe "chat reference payloads" do
     let(:chat) { create(:chat) }
     let(:packed_content) do

@@ -89,6 +89,40 @@ module AgentLlmConfiguration
     config == Llm::ModelRoutingConfig.default ? "" : JSON.pretty_generate(config)
   end
 
+  def response_format
+    configuration["response_format"].presence || AgentConfiguration::DEFAULT_RESPONSE_FORMAT
+  end
+
+  def response_format=(value)
+    normalized = value.to_s.presence || AgentConfiguration::DEFAULT_RESPONSE_FORMAT
+    self.configuration = (configuration || {}).merge("response_format" => normalized)
+  end
+
+  def response_schema
+    Llm::ResponseFormat.normalize_schema(configuration["response_schema"])
+  rescue Llm::ResponseFormat::InvalidSchemaError
+    {}
+  end
+
+  def response_schema=(value)
+    @response_schema_error = nil
+
+    normalized = Llm::ResponseFormat.normalize_schema(value)
+    @response_schema_json_input = normalized.present? ? JSON.pretty_generate(normalized) : ""
+    merged = (configuration || {}).merge("response_schema" => normalized)
+    merged.delete("response_schema") if normalized.blank?
+    self.configuration = merged
+  rescue Llm::ResponseFormat::InvalidSchemaError => e
+    @response_schema_json_input = response_schema_json_input(value)
+    @response_schema_error = e.message
+  end
+
+  def response_schema_json
+    return @response_schema_json_input if defined?(@response_schema_json_input)
+
+    Llm::ResponseFormat.schema_json(response_schema)
+  end
+
   def llm_config_source
     configuration["llm_config_source"].presence || AgentConfiguration::DEFAULT_LLM_CONFIG_SOURCE
   end
@@ -192,5 +226,14 @@ module AgentLlmConfiguration
 
   def formatted_model_routing_config_input(normalized)
     normalized == Llm::ModelRoutingConfig.default ? "" : JSON.pretty_generate(normalized)
+  end
+
+  def response_schema_json_input(value)
+    return value if value.is_a?(String)
+    return "" if value.blank?
+
+    JSON.pretty_generate(value)
+  rescue JSON::JSONError
+    value.to_s
   end
 end

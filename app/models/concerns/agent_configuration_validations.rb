@@ -15,6 +15,7 @@ module AgentConfigurationValidations
 
   included do
     before_validation :ensure_configuration
+    before_validation :normalize_response_format_configuration
     validate :validate_configuration_fields
     validate :llm_connector_must_be_llm_provider
   end
@@ -35,6 +36,8 @@ module AgentConfigurationValidations
     validate_thinking_budget
     validate_custom_llm_params
     validate_model_routing_config
+    validate_response_format
+    validate_response_schema
     validate_input_schema
     validate_builtin_metadata
   end
@@ -94,6 +97,21 @@ module AgentConfigurationValidations
     errors.add(:model_routing_config, @model_routing_config_error)
   end
 
+  def validate_response_format
+    return if response_format.in?(AgentConfiguration::RESPONSE_FORMATS)
+
+    errors.add(:response_format, "is not included in the list")
+  end
+
+  def validate_response_schema
+    return unless response_format == "json_schema"
+    return errors.add(:response_schema, @response_schema_error) if @response_schema_error.present?
+
+    schema = response_schema
+    errors.add(:response_schema, "can't be blank") if schema.blank?
+    errors.add(:response_schema, "must include a type") if schema.present? && schema["type"].blank?
+  end
+
   def llm_connector_must_be_llm_provider
     return if llm_connector_id.blank?
     return if llm_connector&.connector_type == "llm_provider"
@@ -121,5 +139,9 @@ module AgentConfigurationValidations
     return if builtin_key.present?
 
     errors.add(:builtin_key, "can't be blank for builtin agents")
+  end
+
+  def normalize_response_format_configuration
+    configuration.delete("response_schema") unless configuration["response_format"] == "json_schema"
   end
 end

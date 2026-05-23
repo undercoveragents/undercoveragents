@@ -155,6 +155,37 @@ RSpec.describe Agent do
       expect(agent).not_to be_valid
       expect(agent.errors[:model_routing_config].first).to include("must be valid JSON")
     end
+
+    it "validates response format inclusion" do
+      agent.response_format = "xml"
+
+      expect(agent).not_to be_valid
+      expect(agent.errors[:response_format]).to include("is not included in the list")
+    end
+
+    it "validates JSON schema syntax" do
+      agent.response_format = "json_schema"
+      agent.response_schema = "not-json"
+
+      expect(agent).not_to be_valid
+      expect(agent.errors[:response_schema].first).to include("valid JSON")
+    end
+
+    it "validates JSON schema shape" do
+      agent.response_format = "json_schema"
+      agent.response_schema = { properties: { answer: { type: "string" } } }
+
+      expect(agent).not_to be_valid
+      expect(agent.errors[:response_schema]).to include("must include a type")
+    end
+
+    it "requires a schema for JSON schema response format" do
+      agent.response_format = "json_schema"
+      agent.response_schema = ""
+
+      expect(agent).not_to be_valid
+      expect(agent.errors[:response_schema]).to include("can't be blank")
+    end
   end
 
   describe "scopes" do
@@ -266,6 +297,49 @@ RSpec.describe Agent do
       agent = build(:agent)
 
       expect(agent.custom_llm_params_json).to eq("")
+    end
+
+    it "normalizes response format and schema configuration" do
+      agent = build(:agent)
+
+      expect(agent.response_format).to eq("text")
+
+      agent.response_format = "json_schema"
+      agent.response_schema = '{"type":"object"}'
+
+      expect(agent.response_schema).to eq({ "type" => "object" })
+      expect(agent.response_schema_json).to include('"type": "object"')
+
+      agent.response_format = "text"
+      expect(agent).to be_valid
+      expect(agent.configuration).not_to have_key("response_schema")
+    end
+
+    it "echoes invalid response schema input and ignores it outside schema mode" do
+      agent = build(:agent)
+
+      agent.response_schema = "not-json"
+
+      expect(agent.response_schema_json).to eq("not-json")
+      expect(agent).to be_valid
+    end
+
+    it "falls back when a persisted response schema is invalid" do
+      agent = build(:agent)
+      agent.configuration = agent.configuration.merge("response_schema" => "not-json")
+
+      expect(agent.response_schema).to eq({})
+    end
+
+    it "returns a safe response schema input for non-string values" do
+      agent = build(:agent)
+      broken_schema = Object.new
+
+      def broken_schema.to_json(*) = raise(JSON::JSONError, "bad schema")
+
+      expect(agent.send(:response_schema_json_input, {})).to eq("")
+      expect(agent.send(:response_schema_json_input, { type: "object" })).to include('"type": "object"')
+      expect(agent.send(:response_schema_json_input, broken_schema)).to eq(broken_schema.to_s)
     end
 
     it "pretty prints persisted custom llm params when no form input override exists" do
@@ -703,6 +777,8 @@ RSpec.describe Agent do
           thinking_effort: agent.thinking_effort,
           thinking_budget: agent.thinking_budget,
           custom_params: agent.custom_llm_params,
+          response_format: agent.response_format,
+          response_schema: agent.response_schema,
         },
         build_full_instructions: "",
         tools: [],
@@ -776,6 +852,8 @@ RSpec.describe Agent do
         thinking_effort: "high",
         thinking_budget: 256,
         custom_params: { "top_p" => 0.9 },
+        response_format: "text",
+        response_schema: {},
       )
     end
 
@@ -1340,6 +1418,8 @@ RSpec.describe Agent do
         thinking_budget: 2048,
         custom_params: { "top_p" => 0.8 },
         model_routing_config: Llm::ModelRoutingConfig.default,
+        response_format: "text",
+        response_schema: {},
       )
     end
 

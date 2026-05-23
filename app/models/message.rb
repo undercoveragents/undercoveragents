@@ -133,6 +133,17 @@ class Message < ApplicationRecord
     input_tokens.to_i + cached_tokens.to_i + cache_creation_tokens.to_i
   end
 
+  def parsed_json_result
+    return Llm::JsonResponseParser.failure("Only assistant messages can be parsed") unless assistant?
+
+    Llm::JsonResponseParser.parse(content)
+  end
+
+  def parsed_json_content
+    result = parsed_json_result
+    result.data if result.success?
+  end
+
   def calculate_input_cost(pricing)
     (input_tokens.to_i * price_per_million(pricing, "input_per_million")) / 1_000_000
   end

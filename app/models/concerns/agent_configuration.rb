@@ -15,9 +15,11 @@ module AgentConfiguration
 
   TEMPERATURE_RANGE = (0.0..2.0)
   THINKING_EFFORTS = Llm::ChatOptions::THINKING_EFFORTS
+  RESPONSE_FORMATS = ["text", "json_object", "json_schema"].freeze
   DEFAULT_TEMPERATURE = 0.7
   DEFAULT_AGENT_TYPE = "general"
   DEFAULT_LLM_CONFIG_SOURCE = "agent"
+  DEFAULT_RESPONSE_FORMAT = "text"
   LLM_CONFIG_SOURCES = ["agent", "system_preference", "runtime"].freeze
 
   # ── Scalar accessors ──
