@@ -3,7 +3,8 @@
 module Admin
   module Inspector
     class ChatsController < BaseController
-      before_action :set_chat, only: [:show]
+      before_action :set_chat, only: [:show, :promote_message_to_test_case]
+      before_action :set_message, only: [:promote_message_to_test_case]
 
       def index
         base_scope = tenant_scoped_chats
@@ -23,10 +24,33 @@ module Admin
         @token_totals = compute_token_totals_with_children
       end
 
+      def promote_message_to_test_case
+        authorize TestSuite.new(agent: @chat.agent, suite_type: "agent"), :create?
+
+        result = TestSuites::ChatPromotionService.call(
+          chat: @chat,
+          assistant_message: @message,
+          user: current_user,
+        )
+
+        redirect_to admin_test_suite_path(result.test_suite, anchor: "test-case-#{result.test_case.id}"),
+                    notice: promotion_notice(result)
+      rescue ArgumentError => e
+        redirect_to admin_inspector_chat_path(@chat), alert: e.message
+      end
+
       private
 
       def set_chat
         @chat = tenant_scoped_chats.includes(:agent, :model, :parent_chat, :user).find(params.expect(:id))
+      end
+
+      def set_message
+        @message = @chat.messages.find(params.expect(:message_id))
+      end
+
+      def promotion_notice(result)
+        result.created? ? "Promoted chat message to a test case." : "Updated the promoted test case."
       end
 
       def permitted_q_params

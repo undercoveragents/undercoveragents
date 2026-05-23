@@ -261,7 +261,13 @@ Rails.application.routes.draw do
 
     # Inspector — Chat debug UI
     namespace :inspector do
-      resources :chats, only: [:index, :show]
+      resources :chats, only: [:index, :show] do
+        member do
+          post "messages/:message_id/promote_to_test_case",
+               to: "chats#promote_message_to_test_case",
+               as: :promote_message_to_test_case
+        end
+      end
     end
 
     # Mission Control — Mission runs monitoring
