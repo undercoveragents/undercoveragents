@@ -1,7 +1,11 @@
 - can_update_record = policy_allows?(record, :update?)
 - disabled_title = can_update_record ? empty_message : policy_tooltip(record, :update?)
+- options = local_assigns.fetch(:options, [])
+- option_groups = local_assigns.fetch(:option_groups, nil)
+- option_groups ||= options.any? ? [{ label: nil, options: }] : []
+- has_options = option_groups.any? { |group| Array(group[:options]).any? }
 
-- if can_update_record && options.any?
+- if can_update_record && has_options
   .relative{ data: { controller: "add-select-dropdown" } }
     = form_with url:, method:, data: { add_select_dropdown_target: "form" } do
       = hidden_field_tag field_name, "", data: { add_select_dropdown_target: "valueField" }
@@ -12,9 +16,15 @@
       .inline-dropdown-search
         %input.inline-dropdown-search-input{ type: "text", placeholder: "Search…", autocomplete: "off", data: { add_select_dropdown_target: "search", action: "input->add-select-dropdown#filter" } }
       .inline-dropdown-list
-        - options.each do |label, value|
-          %button.inline-dropdown-item{ type: "button", data: { action: "click->add-select-dropdown#select", add_select_dropdown_target: "item", add_select_dropdown_label: label, add_select_dropdown_value_param: value } }
-            = label
+        - option_groups.each do |group|
+          - group_options = Array(group[:options])
+          - next if group_options.empty?
+
+          - if group[:label].present?
+            %div{ class: "px-3 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-wide text-text-muted" }= group[:label]
+          - group_options.each do |label, value|
+            %button.inline-dropdown-item{ type: "button", data: { action: "click->add-select-dropdown#select", add_select_dropdown_target: "item", add_select_dropdown_label: label, add_select_dropdown_value_param: value } }
+              = label
 - else
   %button{ type: "button", class: disabled_action_classes("btn btn-secondary btn-xs", disabled: true), disabled: true, title: disabled_title }
     %i.fa-solid.fa-plus.mr-1

@@ -6,15 +6,33 @@ module AgentAssociations
 
   def add_tool
     authorize @agent, :update?
-    tool = scoped_tools.find(params.expect(:tool_id))
-    @agent.tool_ids = (@agent.tool_ids + [tool.id]).uniq
+
+    case params[:tool_ref].to_s
+    when /\Atool:(.+)\z/
+      add_persisted_tool(::Regexp.last_match(1))
+    when /\Aruntime_tool:(.+)\z/
+      add_runtime_tool_key(::Regexp.last_match(1))
+    else
+      if params[:runtime_tool_key].present?
+        add_runtime_tool_key(params.expect(:runtime_tool_key))
+      else
+        add_persisted_tool(params.expect(:tool_id))
+      end
+    end
+
     @agent.save!
     redirect_to admin_agent_path(@agent), notice: t("agents.tool_added")
   end
 
   def remove_tool
     authorize @agent, :update?
-    @agent.tool_ids = @agent.tool_ids - [params.expect(:tool_id).to_i]
+
+    if params[:runtime_tool_key].present?
+      remove_runtime_tool_key(params.expect(:runtime_tool_key))
+    else
+      @agent.tool_ids = @agent.tool_ids - [params.expect(:tool_id).to_i]
+    end
+
     @agent.save!
     redirect_to admin_agent_path(@agent), notice: t("agents.tool_removed"), status: :see_other
   end
@@ -62,5 +80,29 @@ module AgentAssociations
     @agent.skill_catalog_ids = @agent.skill_catalog_ids - [params.expect(:skill_catalog_id).to_i]
     @agent.save!
     redirect_to admin_agent_path(@agent), notice: t("agents.skill_catalog_removed"), status: :see_other
+  end
+
+  private
+
+  def add_persisted_tool(tool_id)
+    tool = scoped_tools.find(tool_id)
+    @agent.tool_ids = (@agent.tool_ids + [tool.id]).uniq
+  end
+
+  def add_runtime_tool_key(tool_key)
+    return if @agent.builtin?
+
+    normalized_tool_key = tool_key.to_s
+    unless BuiltinTools::Registry.user_assignable_keys.include?(normalized_tool_key)
+      raise ActiveRecord::RecordNotFound, "Unknown built-in tool"
+    end
+
+    @agent.runtime_tool_keys = (@agent.runtime_tool_keys + [normalized_tool_key]).uniq
+  end
+
+  def remove_runtime_tool_key(tool_key)
+    return if @agent.builtin?
+
+    @agent.runtime_tool_keys = @agent.runtime_tool_keys - [tool_key.to_s]
   end
 end

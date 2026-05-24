@@ -99,6 +99,15 @@ RSpec.describe "Agents" do
         expect(response.body).not_to include("Input Parameters")
       end
 
+      it "does not render the tool selector on the form page" do
+        BuiltinTools::Registrations.register_all!
+
+        get new_admin_agent_path
+
+        expect(response.body).not_to include("Select the tools this agent can use.")
+        expect(response.body).not_to include("Built-in Runtime Tools")
+      end
+
       it "renders cancel and submit in the header and drops footer buttons" do
         get new_admin_agent_path
 
@@ -309,6 +318,23 @@ RSpec.describe "Agents" do
         expect(response.body).to include("Configuration")
       end
 
+      it "separates add-tool options into user-made and built-in groups" do
+        BuiltinTools::Registrations.register_all!
+        connector = create(:connector, :sql_database, :enabled)
+        sql_query = build(:tools_sql_query, connector:)
+        create(:tool, :enabled, operation: agent.operation, toolable: sql_query, name: "Workspace Search")
+
+        get admin_agent_path(agent)
+
+        document = response.parsed_body
+        dropdown = document.at_css("[data-controller='add-select-dropdown']")
+        option_labels = dropdown.css(".inline-dropdown-item").map { |node| node.text.squish }
+
+        expect(dropdown).to be_present
+        expect(dropdown.text).to include("User-Made Tools", "Built-in Tools")
+        expect(option_labels).to include("Workspace Search", "Web Search", "Web Fetch")
+      end
+
       it "renders the shared compact header with the agent name inline" do
         get admin_agent_path(agent)
 
@@ -499,15 +525,13 @@ RSpec.describe "Agents" do
         expect(response.body).not_to include("grid grid-cols-1 lg:grid-cols-2")
       end
 
-      it "shows user-selectable built-in runtime tools" do
+      it "does not show the tool selector on the edit page" do
         BuiltinTools::Registrations.register_all!
 
         get edit_admin_agent_path(agent)
 
-        expect(response.body).to include("Built-in Runtime Tools")
-        expect(response.body).to include("Web Search")
-        expect(response.body).to include("Web Fetch")
-        expect(response.body).not_to include("Read Mission Flow")
+        expect(response.body).not_to include("Select the tools this agent can use.")
+        expect(response.body).not_to include("Built-in Runtime Tools")
       end
     end
 
@@ -850,6 +874,51 @@ RSpec.describe "Agents" do
         expect(response).to redirect_to(admin_agent_path(agent))
         expect(flash[:notice]).to eq(I18n.t("agents.tool_added"))
       end
+
+      it "assigns the tool from the grouped tool dropdown" do
+        post add_tool_admin_agent_path(agent), params: { tool_ref: "tool:#{tool.id}" }
+
+        expect(agent.reload.tool_ids).to include(tool.id)
+      end
+
+      it "assigns a built-in runtime tool from the grouped tool dropdown" do
+        BuiltinTools::Registrations.register_all!
+
+        post add_tool_admin_agent_path(agent), params: { tool_ref: "runtime_tool:web.web_search" }
+
+        expect(agent.reload.runtime_tool_keys).to eq(["web.web_search"])
+      end
+
+      it "assigns a built-in runtime tool from the direct runtime_tool_key param" do
+        BuiltinTools::Registrations.register_all!
+
+        post add_tool_admin_agent_path(agent), params: { runtime_tool_key: "web.web_fetch" }
+
+        expect(agent.reload.runtime_tool_keys).to eq(["web.web_fetch"])
+      end
+
+      it "does not change locked runtime tools on builtin agents" do
+        BuiltinAgents::Synchronizer.ensure_present!(keys: ["agent_alpha"])
+        builtin_agent = Agent.find_builtin_by_key("agent_alpha")
+        original_tool_keys = builtin_agent.runtime_tool_keys
+        allow(AgentPolicy).to receive(:new).and_wrap_original do |original, user, record|
+          policy = original.call(user, record)
+          allow(policy).to receive(:update?).and_return(true) if record == builtin_agent
+          policy
+        end
+
+        post add_tool_admin_agent_path(builtin_agent), params: { runtime_tool_key: "web.web_search" }
+
+        expect(builtin_agent.reload.runtime_tool_keys).to eq(original_tool_keys)
+      end
+
+      it "returns not found for an unknown built-in runtime tool key" do
+        BuiltinTools::Registrations.register_all!
+
+        post add_tool_admin_agent_path(agent), params: { runtime_tool_key: "missing.runtime_tool" }
+
+        expect(response).to have_http_status(:not_found)
+      end
     end
 
     describe "DELETE /agents/:id/remove_tool" do
@@ -865,6 +934,29 @@ RSpec.describe "Agents" do
         delete remove_tool_admin_agent_path(agent), params: { tool_id: agent.tool_ids.first }
         expect(response).to redirect_to(admin_agent_path(agent))
         expect(flash[:notice]).to eq(I18n.t("agents.tool_removed"))
+      end
+
+      it "removes a built-in runtime tool from the agent" do
+        agent.update!(runtime_tool_keys: ["web.web_search"])
+
+        delete remove_tool_admin_agent_path(agent), params: { runtime_tool_key: "web.web_search" }
+
+        expect(agent.reload.runtime_tool_keys).to eq([])
+      end
+
+      it "does not remove locked runtime tools from builtin agents" do
+        BuiltinAgents::Synchronizer.ensure_present!(keys: ["agent_alpha"])
+        builtin_agent = Agent.find_builtin_by_key("agent_alpha")
+        original_tool_keys = builtin_agent.runtime_tool_keys
+        allow(AgentPolicy).to receive(:new).and_wrap_original do |original, user, record|
+          policy = original.call(user, record)
+          allow(policy).to receive(:update?).and_return(true) if record == builtin_agent
+          policy
+        end
+
+        delete remove_tool_admin_agent_path(builtin_agent), params: { runtime_tool_key: original_tool_keys.first }
+
+        expect(builtin_agent.reload.runtime_tool_keys).to eq(original_tool_keys)
       end
     end
 

@@ -162,9 +162,18 @@ module Admin
     def load_agent_association_options
       {
         available_tools: scoped_tools.where.not(id: @agent.tool_ids).ordered,
+        available_builtin_tools:,
         available_agents: scoped_agents.enabled.selectable.ordered.where.not(id: [@agent.id] + @agent.subagent_ids),
         available_skill_catalogs: scoped_skill_catalogs.where.not(id: @agent.skill_catalog_ids).ordered,
       }.each { |name, value| instance_variable_set(:"@#{name}", value) }
+    end
+
+    def available_builtin_tools
+      return [] if @agent.builtin?
+
+      BuiltinTools::Registry.user_assignable_definitions.reject do |definition|
+        @agent.runtime_tool_keys.include?(definition.key)
+      end
     end
 
     def builtin_tool_entries
@@ -182,8 +191,6 @@ module Admin
     end
 
     def load_form_data
-      @available_tools = scoped_tools.enabled.ordered
-      @available_builtin_tools = BuiltinTools::Registry.user_assignable_definitions
       @available_agents = scoped_agents.enabled.selectable.ordered.where.not(id: @agent.id)
       @available_llm_connectors = scoped_connectors.llm_providers.enabled.ordered
       provider_connector = @agent.llm_connector
