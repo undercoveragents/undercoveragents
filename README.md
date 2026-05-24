@@ -35,6 +35,7 @@ It is designed for teams that want more than a thin SDK. You can configure agent
 - Plugin-first architecture for connectors, tools, channels, capabilities, web-search clients, and RAG modules
 - Builtin product-manual skill catalogs for admin, agents, missions, channels, test suites, skills, tools, and RAG
 - Built-in admin assistant, playground, inspector, API docs, and job dashboard
+- Generic automation triggers for cron schedules and authenticated webhooks across Missions and RAG flows
 - Agent Alpha can now inspect agent chat history and run synchronous debug prompts against agents through the agent-designer runtime tools, using the same persisted chats/messages the inspector shows.
 - Rails-native stack with Hotwire, Haml, Tailwind, Solid Queue, and Falcon
 
@@ -54,6 +55,7 @@ Undercover Agents is built on [ruby_llm](https://github.com/crmne/ruby_llm), so 
 | Tool | A runtime ability exposed to agents or missions |
 | Skill Catalog | A library of packaged knowledge that agents can activate on demand |
 | Channel | A published invocation surface for agents or missions |
+| Automation Trigger | A reusable schedule or webhook that runs a Mission or RAG flow inside an operation |
 
 ## Tech Stack
 
@@ -141,6 +143,7 @@ To enable the full AI feature set:
 3. Add a tool backed by a connector.
 4. Create a skill catalog and attach it to an agent.
 5. Publish an experience through a channel.
+6. Add a schedule or webhook trigger to automate a Mission or RAG flow.
 
 ## Repository Guide
 

@@ -5,11 +5,11 @@ class NavigateToPageTool < RubyLLM::Tool
     "Point the admin UI to a supported page after you finish a create or update.",
     "This tool does not read page content or return record information, so never use it",
     "to inspect, verify, or gather information. Currently supports mission, agent, skill catalog,",
-    "test suite, channel, and tool pages.",
+    "test suite, channel, automation trigger, and tool pages.",
   ].join(" ")
   RESOURCE_DESCRIPTION = [
     "The resource type for the page you want to show the user after the change.",
-    "Supported values: 'mission', 'agent', 'skill_catalog', 'test_suite', 'channel', or 'tool'.",
+    "Supported values: 'mission', 'agent', 'skill_catalog', 'test_suite', 'channel', 'automation_trigger', or 'tool'.",
   ].join(" ")
   PAGE_DESCRIPTION = [
     "The destination page to show after the create/update work is complete.",
@@ -17,6 +17,7 @@ class NavigateToPageTool < RubyLLM::Tool
     "show, and edit. Skill catalogs support index, new, show, and edit.",
     "Test suites support index, new, show, and edit.",
     "Channels support index, new, show, edit, and preview (client-channel only).",
+    "Automation triggers support index, new, and edit.",
     "Tools support index, new, show, and edit.",
   ].join(" ")
   RECORD_PAGE_DESCRIPTION = "Required when pointing the user to a specific record page such as show, edit, " \

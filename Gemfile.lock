@@ -860,6 +860,7 @@ DEPENDENCIES
   faker
   falcon-rails
   friendly_id (~> 5.5)
+  fugit
   groupdate
   haml-rails
   haml_lint

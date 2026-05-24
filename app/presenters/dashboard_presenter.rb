@@ -180,7 +180,6 @@ class DashboardPresenter
 
     preload_records(@recent_chats, :agent)
     preload_records(@recent_mission_runs, :mission)
-    preload_records(@recent_test_runs, :test_suite)
   end
 
   def load_getting_started

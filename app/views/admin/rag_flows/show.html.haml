@@ -4,6 +4,7 @@
 - run_title = all_configured ? policy_tooltip(@rag_flow, :execute?) : "Configure all 4 stages before running"
 - actions = []
 - actions << { label: "Run", url: execute_admin_rag_flow_path(@rag_flow), icon: "fa-solid fa-play", style: :primary, method: :post, title: run_title, disabled: !all_configured || !can_execute_rag_flow }
+- actions << policy_page_hero_action(AutomationTrigger.new(operation: @rag_flow.operation, schedulable: @rag_flow), :index?, label: "Automation", url: admin_rag_flow_automation_triggers_path(@rag_flow), icon: "fa-solid fa-clock", style: :secondary)
 - actions << policy_page_hero_action(@rag_flow, :update?, label: "Edit", url: edit_admin_rag_flow_path(@rag_flow), icon: "fa-solid fa-pen", style: :secondary)
 - actions << policy_page_hero_action(@rag_flow, :toggle?, label: (@rag_flow.enabled? ? "Disable" : "Enable"), url: toggle_admin_rag_flow_path(@rag_flow), icon: (@rag_flow.enabled? ? "fa-solid fa-toggle-on" : "fa-solid fa-toggle-off"), style: :secondary, method: :patch)
 - actions << policy_page_hero_action(@rag_flow, :destroy?, label: "Delete", url: admin_rag_flow_path(@rag_flow), icon: "fa-solid fa-trash", style: :danger_outline, method: :delete, data: { controller: "confirm", confirm_title_value: "Delete RAG", confirm_message_value: "Are you sure you want to delete this RAG? This action cannot be undone.", confirm_confirm_text_value: "Delete" })

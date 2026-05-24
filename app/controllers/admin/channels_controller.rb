@@ -122,7 +122,7 @@ module Admin
       ).call
       ActiveRecord::Associations::Preloader.new(
         records: channels,
-        associations: { logo_attachment: :blob },
+        associations: :logo_attachment,
       ).call
     end
 

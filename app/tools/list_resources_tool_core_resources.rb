@@ -153,6 +153,20 @@ module ListResourcesToolCoreResources
     lines.join("\n")
   end
 
+  def automation_triggers
+    scope = scoped_operation ? AutomationTrigger.where(operation: scoped_operation) : AutomationTrigger.none
+    scope = scope.includes(:schedulable).ordered
+    return "No automation triggers available." if scope.empty?
+
+    lines = ["## Automation Triggers"]
+    scope.each do |trigger|
+      target = "#{trigger.schedulable_label}: #{trigger.schedulable&.name || "Unknown"}"
+      detail = trigger.trigger_schedule? ? "#{trigger.cron_expression} (#{trigger.timezone})" : "webhook"
+      lines << "- `#{trigger.id}` — #{trigger.name} — #{target} — #{detail}"
+    end
+    lines.join("\n")
+  end
+
   def connectors
     scope = tenant.connectors.ordered
     return "No connectors available." if scope.empty?

@@ -45,7 +45,7 @@ module Chats
     end
 
     def child_chats
-      @child_chats ||= chat.child_chats.includes(:agent).order(:created_at, :id).to_a
+      @child_chats ||= chat.child_chats.order(:created_at, :id).to_a
     end
 
     def empty_assignments

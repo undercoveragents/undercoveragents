@@ -1,0 +1,91 @@
+- action = mission_trigger.persisted? ? admin_mission_mission_trigger_path(mission, mission_trigger) : admin_mission_mission_triggers_path(mission)
+- method = mission_trigger.persisted? ? :patch : :post
+
+= form_with model: [:admin, mission, mission_trigger], url: action, method:, local: true, html: { id: "mission-trigger-form", novalidate: true } do |f|
+  = render "shared/forms/validation_errors", record: mission_trigger, resource_name: "automation trigger"
+  = f.hidden_field :trigger_type unless mission_trigger.persisted?
+
+  .card.mb-6
+    .card-header
+      %h3.text-sm.font-semibold.text-text-primary
+        %i{ class: "#{mission_trigger_icon(mission_trigger)} mr-2 text-accent" }
+        Trigger Basics
+    .card-body
+      .form-grid
+        .form-group
+          = f.label :name, class: "form-label" do
+            Name
+            %span.text-danger-500.ml-0.5 *
+          = f.text_field :name, class: "form-input", required: true, autofocus: true, placeholder: (mission_trigger.trigger_schedule? ? "Daily digest at 9 AM" : "Stripe webhook")
+          .form-hint Use a clear name so you can spot this automation quickly in Mission Control.
+        .form-group
+          .form-check
+            = f.check_box :enabled, class: "form-check-input"
+            = f.label :enabled, "Enabled", class: "form-check-label"
+
+  - if mission_trigger.trigger_schedule?
+    .card.mb-6
+      .card-header
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-calendar-days.mr-2.text-accent
+          Schedule
+      .card-body
+        .form-grid
+          .form-group
+            = f.label :cron_expression, class: "form-label" do
+              Cron Expression
+              %span.text-danger-500.ml-0.5 *
+            = f.text_field :cron_expression, class: "form-input", required: true, placeholder: "0 9 * * *"
+            .form-hint Examples: `0 * * * *` every hour, `0 9 * * *` daily at 9 AM, `*/15 * * * *` every 15 minutes.
+          .form-group
+            = f.label :timezone, class: "form-label" do
+              Timezone
+              %span.text-danger-500.ml-0.5 *
+            = f.text_field :timezone, class: "form-input", required: true, placeholder: "UTC"
+            .form-hint Use an IANA timezone such as `UTC`, `Europe/Rome`, or `America/New_York`.
+
+    .card.mb-6
+      .card-header
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-box-open.mr-2.text-accent
+          Trigger Payload
+      .card-body
+        .form-group
+          %label.form-label{ for: "mission_trigger_payload" } Payload JSON
+          = text_area_tag "mission_trigger[payload]", mission_trigger.payload_json, id: "mission_trigger_payload", rows: 8, class: "form-input form-textarea", placeholder: '{"report_type": "daily"}'
+          .form-hint Optional JSON object merged into the mission input every time the schedule fires.
+
+  - else
+    .card.mb-6
+      .card-header
+        %h3.text-sm.font-semibold.text-text-primary
+          %i.fa-solid.fa-globe.mr-2.text-accent
+          Webhook Endpoint
+      .card-body.space-y-4
+        - if mission_trigger.persisted?
+          .detail-grid
+            .detail-item
+              .detail-label Endpoint URL
+              .detail-value
+                %code.break-all= mission_trigger_webhook_url(mission_trigger)
+            .detail-item
+              .detail-label Header Name
+              .detail-value
+                %code= MissionTrigger::WEBHOOK_SECRET_HEADER
+            .detail-item
+              .detail-label Current Secret
+              .detail-value
+                %code.break-all= mission_trigger.masked_webhook_secret
+        - else
+          %p.text-sm.text-text-secondary
+            Save this trigger to generate the stable webhook URL and one-time secret.
+
+        .form-group
+          %label.form-label{ for: "mission_trigger_payload" } Default Payload JSON
+          = text_area_tag "mission_trigger[payload]", mission_trigger.payload_json, id: "mission_trigger_payload", rows: 8, class: "form-input form-textarea", placeholder: '{"source": "stripe"}'
+          .form-hint Optional JSON object merged with the incoming webhook body. Incoming keys override matching defaults.
+
+        .rounded-lg.border.border-border-default.bg-surface-secondary.p-4
+          %p.text-sm.font-semibold.text-text-primary.mb-2 Delivery Example
+          - curl_example = mission_trigger_curl_example(mission_trigger, webhook_secret: flash[:mission_trigger_webhook_secret])
+          %pre.text-xs.text-text-secondary.whitespace-pre-wrap.break-all= curl_example

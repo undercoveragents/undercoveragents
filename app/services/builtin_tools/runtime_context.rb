@@ -12,6 +12,7 @@ module BuiltinTools
       "Skill",
       "RagFlow",
       "TestSuite",
+      "AutomationTrigger",
     ].freeze
     CURRENT_OBJECT_SCOPE_BUILDERS = {
       "Operation" => :tenant_operations,
@@ -22,6 +23,7 @@ module BuiltinTools
       "Skill" => :tenant_skills,
       "RagFlow" => :tenant_rag_flows,
       "TestSuite" => :tenant_test_suites,
+      "AutomationTrigger" => :tenant_automation_triggers,
     }.freeze
 
     def self.build(...)
@@ -163,6 +165,10 @@ module BuiltinTools
     end
 
     def tenant_test_suites(tenant) = tenant_scoped_test_suites(tenant)
+
+    def tenant_automation_triggers(tenant)
+      AutomationTrigger.joins(:operation).where(operations: { tenant_id: tenant.id })
+    end
 
     def tenant_scoped_test_suites(tenant)
       TestSuite.where(agent_id: tenant.agents.select(:id))

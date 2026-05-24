@@ -48,6 +48,16 @@ en:
     updated: "Mission updated."
     deleted: "Mission deleted."
     saved: "Mission saved."
+  automation_triggers:
+    created: "Automation trigger created successfully."
+    updated: "Automation trigger updated successfully."
+    deleted: "Automation trigger deleted."
+    secret_regenerated: "Webhook secret regenerated."
+  mission_triggers:
+    created: "Automation trigger created successfully."
+    updated: "Automation trigger updated successfully."
+    deleted: "Automation trigger deleted."
+    secret_regenerated: "Webhook secret regenerated."
   models:
     refresh_started: "Model refresh started. This may take a few moments."
   preferences:

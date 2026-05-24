@@ -193,6 +193,26 @@ RSpec.describe BuiltinTools::RuntimeContext do
       expect(context.tenant).to eq(tenant)
       expect(context.operation).to eq(operation)
     end
+
+    it "derives the operation from the current automation trigger record" do
+      tenant.ensure_core_resources!
+      mission = create(:mission, operation:)
+      trigger = create(:automation_trigger, target: mission)
+
+      context = described_class.build(
+        ui_context: {
+          "current_object" => {
+            "class_name" => "AutomationTrigger",
+            "type" => "Automation trigger",
+            "id" => trigger.id,
+          },
+        },
+        agent: build(:agent, operation: tenant.headquarter_operation),
+      )
+
+      expect(context.tenant).to eq(tenant)
+      expect(context.operation).to eq(operation)
+    end
   end
 
   describe "private helper behavior" do

@@ -1,0 +1,20 @@
+- content_for(:title, "New Automation Trigger — #{@mission.name} — #{APP_NAME}")
+- if @mission_trigger.present?
+  - title = @mission_trigger.trigger_schedule? ? "New Schedule Trigger" : "New Webhook Trigger"
+  = render_page_hero(title:, variant: :compact, title_icon: mission_trigger_icon(@mission_trigger), record_title: @mission.name, back_link: { label: "Back to Automation", url: admin_mission_mission_triggers_path(@mission) }, actions: [page_hero_form_action(label: "Create Trigger", form_id: "mission-trigger-form", icon: "fa-solid fa-plus")])
+
+  = render "form", mission: @mission, mission_trigger: @mission_trigger
+- else
+  = render_page_hero(title: "Choose Automation Trigger Type", description: "Start with how the mission should fire, then configure the details for that trigger.", variant: :compact, title_icon: "fa-solid fa-clock", record_title: @mission.name, back_link: { label: "Back to Automation", url: admin_mission_mission_triggers_path(@mission) })
+
+  .connector-wizard
+    %h2.text-lg.font-semibold.mb-6.text-text-primary Choose Trigger Type
+
+    .grid.grid-cols-1.md:grid-cols-2.gap-6
+      - @trigger_types.each do |trigger_type|
+        = link_to new_admin_mission_mission_trigger_path(@mission, type: trigger_type[:key]), class: "connector-type-card", data: { turbo_frame: "app-content-frame" } do
+          .flex.items-start.justify-between.gap-3.mb-4
+            .connector-type-icon.mb-0
+              %i{ class: "#{trigger_type[:icon]} text-2xl" }
+          %h3.text-lg.font-semibold.mb-1.text-text-primary= trigger_type[:label]
+          %p.text-sm.text-text-secondary= trigger_type[:description]

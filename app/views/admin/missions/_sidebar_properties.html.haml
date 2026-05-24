@@ -94,6 +94,10 @@
       %i.fa-solid.fa-arrow-left
       %span Back to Missions
     -# spacer between sibling links
+    = link_to admin_mission_automation_triggers_path(mission), class: "ms-props-btn", data: { turbo_frame: "app-content-frame" } do
+      %i.fa-solid.fa-clock
+      %span Automation
+    -# spacer between sibling links
     = link_to edit_admin_mission_path(mission), class: "ms-props-btn", data: { turbo_frame: "app-content-frame" } do
       %i.fa-solid.fa-pen-to-square
       %span Edit Mission

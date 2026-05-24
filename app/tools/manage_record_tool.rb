@@ -17,13 +17,15 @@ class ManageRecordTool < RubyLLM::Tool
     "Channels support name, channel_type, description, enabled, default, connector_id, agent_id, mission_id,",
     "agent_ids, mission_ids, access_scope, response_mode, callback_url, title, welcome_message, footer, and",
     "the configuration-backed label fields.",
+    "Automation triggers support name, trigger_type, enabled, cron_expression, timezone, payload, and optional",
+    "target_type plus target_id when you are not already on the mission or RAG flow page being scheduled.",
     "Tools support tool_type, name, description, enabled, and nested toolable_attributes for the type-specific",
     "configuration.",
   ].join(" ")
   DESCRIPTION = [
     "Create, update, delete, or clone a supported admin record inside the current tenant and operation.",
     "Clone is supported for missions, agents, and tools.",
-    "Currently supports missions, agents, skill catalogs, test suites, channels, and tools.",
+    "Currently supports missions, agents, skill catalogs, test suites, channels, automation triggers, and tools.",
   ].join(" ")
   NAVIGATE_DESCRIPTION = [
     "Whether to navigate the admin UI after success.",
@@ -36,6 +38,7 @@ class ManageRecordTool < RubyLLM::Tool
     "Skill catalogs support index, show, and edit.",
     "Test suites support index, show, and edit.",
     "Channels support index, show, edit, and preview (preview is client-channel only).",
+    "Automation triggers support index, new, and edit.",
     "Tools support index, new, show, and edit.",
   ].join(" ")
 
@@ -44,7 +47,8 @@ class ManageRecordTool < RubyLLM::Tool
   param :resource,
         desc: [
           "The resource type.",
-          "Supported values: 'mission', 'agent', 'skill_catalog', 'test_suite', 'channel', or 'tool'.",
+          "Supported values: 'mission', 'agent', 'skill_catalog', 'test_suite', 'channel', " \
+          "'automation_trigger', or 'tool'.",
         ].join(" ")
 
   param :action,
