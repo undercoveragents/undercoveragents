@@ -14,7 +14,9 @@ module ListResourcesToolCoreResources
     return "No models found for connector `#{connector.id}`." if scope.empty?
 
     lines = ["## Models for #{connector.name} (`#{connector.id}`)"]
-    scope.each { |model_record| lines << "- `#{model_record.model_id}` — #{model_record.name}" }
+    scope.each do |model_record|
+      lines << "- record `#{model_record.id}` — `#{model_record.model_id}` — #{model_record.name}"
+    end
     lines.join("\n")
   end
 
@@ -65,6 +67,24 @@ module ListResourcesToolCoreResources
       description = type.fetch(:description).to_s.presence || "No description."
       lines << "- `#{type.fetch(:key)}` — #{type.fetch(:label)} — #{description}"
     end
+    lines.join("\n")
+  end
+
+  def operations
+    scope = tenant.operations.headquarter_first
+    return "No operations available." if scope.empty?
+
+    lines = ["## Operations"]
+    scope.each { |operation| lines << "- `#{operation.id}` — #{operation.name} (slug: `#{operation.slug}`)" }
+    lines.join("\n")
+  end
+
+  def users
+    scope = tenant.users.order(:email)
+    return "No users available." if scope.empty?
+
+    lines = ["## Users"]
+    scope.each { |user| lines << "- `#{user.id}` — #{user.email} (#{user.role})" }
     lines.join("\n")
   end
 

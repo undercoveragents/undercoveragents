@@ -1,0 +1,48 @@
+- content_for(:title, "Cost Limits — #{APP_NAME}")
+- actions = [{ label: "New Limit", url: new_admin_cost_limit_path, icon: "fa-solid fa-plus", style: :primary }]
+
+= render_page_hero(title: "Cost Limits", variant: :compact, title_icon: "fa-solid fa-shield-halved", sticky: true, actions:)
+
+.cost-limit-index
+  - if @limit_results.any?
+    .card-grid.card-grid--entities
+      - @limit_results.each do |result|
+        .card.entity-card.cost-limit-card
+          .card-body.entity-card__body
+            .entity-card__header
+              .entity-card__identity
+                .entity-card__icon
+                  %i.fa-solid.fa-shield-halved
+                .entity-card__identity-copy
+                  %h3.entity-card__title= result.limit.name
+                  %p.entity-card__subtitle #{result.limit.target_type.humanize}: #{result.limit.target_label}
+              .entity-card__status
+                = cost_status_badge(result.status)
+            .cost-limit-progress
+              .cost-limit-progress__bar
+                %progress.cost-limit-progress__native{ value: [result.percent_used, 100].min, max: 100 }
+              .cost-limit-progress__meta
+                %span #{cost_currency(result.spend)} / #{cost_currency(result.amount)}
+                %strong= cost_percent(result.percent_used)
+            .entity-card__metrics
+              .entity-card__metric
+                %i.fa-solid.fa-calendar
+                %span= result.period.label
+              .entity-card__metric
+                %i.fa-solid.fa-bell
+                %span Warning at #{result.limit.warning_threshold_percent}%
+              .entity-card__metric
+                %i.fa-solid.fa-hand
+                %span= result.limit.enforcement_mode.humanize
+              .entity-card__metric
+                %i.fa-solid.fa-toggle-on
+                %span= result.limit.enabled? ? "Enabled" : "Disabled"
+            .entity-card__footer
+              = link_to "Open", admin_cost_limit_path(result.limit), class: "btn btn-secondary btn-sm", data: { turbo_frame: "app-content-frame" }
+              = link_to "Edit", edit_admin_cost_limit_path(result.limit), class: "btn btn-ghost btn-sm", data: { turbo_frame: "app-content-frame" }
+              = button_to toggle_admin_cost_limit_path(result.limit), method: :patch, class: "btn btn-ghost btn-sm" do
+                - toggle_label = result.limit.enabled? ? "Disable" : "Enable"
+                = toggle_label
+  - else
+    = render_page_empty_state(title: "No cost limits yet", body: "Create warning or hard-stop budgets for tenants, operations, users, agents, missions, channels, models, and execution contexts.") do
+      = link_to "Create limit", new_admin_cost_limit_path, class: "btn btn-primary", data: { turbo_frame: "app-content-frame" }

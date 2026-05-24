@@ -1,0 +1,125 @@
+- content_for(:title, "Cost Analysis — #{APP_NAME}")
+- operation_options = [["All operations", "all"]] + @operations.map { |operation| [operation.name, operation.slug] }
+- period_options = cost_period_options
+- actions = [{ label: "New Limit", url: new_admin_cost_limit_path, icon: "fa-solid fa-plus", style: :primary }]
+
+= render_page_hero(title: "Cost Analysis", variant: :compact, title_icon: "fa-solid fa-chart-pie", sticky: true, actions:)
+
+.cost-dashboard
+  .card.cost-command-card
+    .card-body
+      .cost-command-card__copy
+        .cost-command-card__eyebrow
+          %i.fa-solid.fa-coins
+          %span Spend command center
+        %h2.cost-command-card__title Track every LLM dollar before it surprises you.
+        %p.cost-command-card__subtitle
+          Monitor tenant, operation, user, agent, mission, channel, model, and context spend with warning and hard-stop limits.
+      = form_with url: admin_costs_path, method: :get, class: "cost-filter-form", data: { turbo_frame: "app-content-frame" } do
+        .form-group
+          = label_tag :operation, "Operation", class: "form-label"
+          = select_tag :operation, options_for_select(operation_options, @selected_operation&.slug || "all"), class: "form-select"
+        .form-group
+          = label_tag :period, "Period", class: "form-label"
+          = select_tag :period, options_for_select(period_options, @period), class: "form-select"
+        = button_tag type: :submit, class: "btn btn-primary" do
+          %i.fa-solid.fa-filter
+          %span Apply
+
+  .cost-metric-grid
+    .card.cost-metric-card.cost-metric-card--primary
+      .card-body
+        %span.cost-metric-card__label Total spend
+        %strong.cost-metric-card__value= cost_currency(@presenter.summary.total_cost)
+        %span.cost-metric-card__meta= @presenter.period_result.label
+    .card.cost-metric-card
+      .card-body
+        %span.cost-metric-card__label Projected month
+        %strong.cost-metric-card__value= cost_currency(@presenter.projected_monthly_cost)
+        %span.cost-metric-card__meta Based on current pace
+    .card.cost-metric-card
+      .card-body
+        %span.cost-metric-card__label Input tokens
+        %strong.cost-metric-card__value= number_with_delimiter(@presenter.summary.input_tokens)
+        %span.cost-metric-card__meta Includes cache read/write tokens
+    .card.cost-metric-card
+      .card-body
+        %span.cost-metric-card__label Output tokens
+        %strong.cost-metric-card__value= number_with_delimiter(@presenter.summary.output_tokens)
+        %span.cost-metric-card__meta #{@presenter.summary.chat_count} chats
+    .card.cost-metric-card
+      .card-body
+        %span.cost-metric-card__label Average / chat
+        %strong.cost-metric-card__value= cost_currency(@presenter.summary.average_chat_cost)
+        %span.cost-metric-card__meta #{@presenter.summary.message_count} costed messages
+    .card.cost-metric-card
+      .card-body
+        %span.cost-metric-card__label Active limits
+        %strong.cost-metric-card__value= number_with_delimiter(@presenter.active_limit_count)
+        %span.cost-metric-card__meta #{@presenter.warning_limit_count} warning · #{@presenter.exceeded_limit_count} exceeded
+
+  .card.cost-chart-card
+    .card-header
+      .cost-section-heading
+        %i.fa-solid.fa-chart-line
+        %span Spend over time
+    .card-body
+      - if @presenter.cost_by_day.any?
+        = line_chart @presenter.cost_by_day.transform_values { |value| value.to_f.round(6) }, prefix: "$", thousands: ",", points: false, height: "260px"
+      - else
+        .cost-empty-state No costed messages found for this period.
+
+  .cost-section-grid
+    - @presenter.dimension_groups.each do |dimension, groups|
+      .card.cost-breakdown-card
+        .card-header
+          .cost-section-heading
+            %i.fa-solid.fa-layer-group
+            %span Top #{dimension.humanize}
+        .card-body
+          - if groups.any?
+            .cost-table
+              - groups.each do |group|
+                .cost-table__row
+                  .cost-table__main
+                    %strong= group.label
+                    %span #{number_with_delimiter(group.input_tokens)} in · #{number_with_delimiter(group.output_tokens)} out
+                  .cost-table__amount= cost_currency(group.cost)
+          - else
+            .cost-empty-state No spend in this dimension yet.
+
+  .cost-section-grid.cost-section-grid--wide
+    .card
+      .card-header
+        .cost-section-heading
+          %i.fa-solid.fa-shield-halved
+          %span Limit health
+      .card-body
+        - if @presenter.limit_results.any?
+          .cost-limit-stack
+            - @presenter.limit_results.first(6).each do |result|
+              = link_to admin_cost_limit_path(result.limit), class: "cost-limit-pill", data: { turbo_frame: "app-content-frame" } do
+                = cost_status_badge(result.status)
+                .cost-limit-pill__copy
+                  %strong= result.limit.name
+                  %span #{cost_currency(result.spend)} / #{cost_currency(result.amount)} · #{cost_percent(result.percent_used)}
+        - else
+          .cost-empty-state
+            No limits yet.
+            = link_to "Create the first one", new_admin_cost_limit_path, data: { turbo_frame: "app-content-frame" }
+    .card
+      .card-header
+        .cost-section-heading
+          %i.fa-solid.fa-fire
+          %span Most expensive recent messages
+      .card-body
+        - if @presenter.recent_expensive_messages.any?
+          .cost-table
+            - @presenter.recent_expensive_messages.each do |message|
+              .cost-table__row
+                .cost-table__main
+                  %strong= message.chat&.display_title_for_ui(max_length: 64) || "Chat ##{message.chat_id}"
+                  %span #{message.role} · #{message.model&.model_id || message.chat&.model&.model_id || "unknown model"} · #{l(message.created_at, format: :short)}
+                .cost-table__amount= cost_currency(message.effective_cost)
+        - else
+          .cost-empty-state No recent costed messages.

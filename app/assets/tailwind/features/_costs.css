@@ -1,0 +1,314 @@
+/* ==========================================================================
+   Cost Analysis
+   ========================================================================== */
+
+.cost-dashboard,
+.cost-limit-index,
+.cost-limit-show {
+  display: flex;
+  flex-direction: column;
+  gap: var(--page-padding);
+}
+
+.cost-command-card {
+  overflow: clip;
+  background:
+    radial-gradient(circle at top right, rgb(from var(--accent) r g b / 0.18), transparent 36rem),
+    linear-gradient(135deg, rgb(from var(--surface-card) r g b / 0.98), rgb(from var(--surface-card) r g b / 0.92));
+}
+
+.cost-command-card .card-body {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.25rem;
+}
+
+.cost-command-card__copy {
+  display: grid;
+  gap: 0.5rem;
+  max-width: 48rem;
+}
+
+.cost-command-card__eyebrow,
+.cost-section-heading {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.cost-command-card__eyebrow i,
+.cost-section-heading i {
+  color: var(--accent);
+}
+
+.cost-command-card__title {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: clamp(1.35rem, 2vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+
+.cost-command-card__subtitle {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.cost-filter-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  min-width: min(100%, 30rem);
+}
+
+.cost-metric-grid {
+  display: grid;
+  gap: var(--page-padding);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+}
+
+.cost-metric-card {
+  overflow: clip;
+}
+
+.cost-metric-card--primary {
+  border-color: rgb(from var(--accent) r g b / 0.35);
+  background:
+    radial-gradient(circle at 80% 10%, rgb(from var(--accent) r g b / 0.2), transparent 12rem),
+    var(--surface-card);
+}
+
+.cost-metric-card .card-body {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.cost-metric-card__label,
+.cost-metric-card__meta {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.cost-metric-card__value {
+  color: var(--text-primary);
+  font-size: clamp(1.35rem, 2.4vw, 2.15rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.cost-chart-card .card-body {
+  min-height: 18rem;
+}
+
+.cost-section-grid {
+  display: grid;
+  gap: var(--page-padding);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+}
+
+.cost-section-grid--wide {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 28rem), 1fr));
+}
+
+.cost-breakdown-card .card-body,
+.cost-limit-stack,
+.cost-table {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.cost-table__row,
+.cost-limit-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem;
+  border: 1px solid rgb(from var(--border-default) r g b / 0.72);
+  border-radius: var(--radius-md);
+  background: rgb(from var(--surface-primary) r g b / 0.64);
+}
+
+.cost-limit-pill {
+  color: inherit;
+  text-decoration: none;
+}
+
+.cost-table__main,
+.cost-limit-pill__copy {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.cost-table__main strong,
+.cost-limit-pill__copy strong {
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.cost-table__main span,
+.cost-limit-pill__copy span {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.cost-table__amount {
+  flex: 0 0 auto;
+  color: var(--text-primary);
+  font-weight: 800;
+}
+
+.cost-empty-state {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
+.cost-limit-progress {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.cost-limit-progress__bar {
+  overflow: hidden;
+  height: 0.65rem;
+  border-radius: 9999px;
+  background: rgb(from var(--border-default) r g b / 0.6);
+}
+
+.cost-limit-progress__native {
+  width: 100%;
+  height: 100%;
+  appearance: none;
+  border: 0;
+  background: transparent;
+}
+
+.cost-limit-progress__native::-webkit-progress-bar {
+  border-radius: inherit;
+  background: transparent;
+}
+
+.cost-limit-progress__native::-webkit-progress-value {
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--color-warning-500));
+}
+
+.cost-limit-progress__native::-moz-progress-bar {
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--color-warning-500));
+}
+
+.cost-limit-progress__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.cost-limit-hero .card-body {
+  display: grid;
+  gap: 1rem;
+}
+
+.cost-limit-hero h2 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 850;
+  letter-spacing: -0.05em;
+}
+
+.cost-limit-hero p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.cost-limit-hero__status {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.cost-detail-grid {
+  display: grid;
+  gap: 0.875rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+}
+
+.cost-detail-grid div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.cost-detail-grid span {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.cost-detail-grid strong {
+  color: var(--text-primary);
+}
+
+.cost-form-card {
+  max-width: 68rem;
+}
+
+.cost-limit-form {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.cost-reference-panel {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px dashed rgb(from var(--border-default) r g b / 0.8);
+  border-radius: var(--radius-md);
+  background: rgb(from var(--surface-primary) r g b / 0.56);
+}
+
+.cost-reference-panel__grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+}
+
+.cost-reference-panel__grid div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.cost-reference-panel span {
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.cost-reference-panel code {
+  color: var(--text-primary);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 780px) {
+  .cost-command-card .card-body {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .cost-filter-form {
+    min-width: 0;
+  }
+}

@@ -5,11 +5,13 @@
 class ListResourcesTool < RubyLLM::Tool
   include ListResourcesToolContext
   include ListResourcesToolCoreResources
+  include ListResourcesToolCostResources
   include ListResourcesToolPluginResources
 
   CORE_KINDS_DESCRIPTION = "Core kinds: agent_types, capabilities, models, default_models, tool_types, " \
-                           "tools, runtime_tools, agents, missions, channels, clients, skill_catalogs, skills, " \
-                           "rag_flows, connectors, test_suites."
+                           "operations, users, tools, runtime_tools, agents, missions, channels, clients, " \
+                           "skill_catalogs, skills, rag_flows, connectors, test_suites, cost_limits, " \
+                           "cost_target_types."
   DEFAULT_DESCRIPTION = [
     "List operation-scoped resource IDs and values for one or more core or plugin-declared kinds.",
     "Use this when you need exact IDs, enums, available kinds, or workspace inventory.",
@@ -41,6 +43,8 @@ class ListResourcesTool < RubyLLM::Tool
     "models" => :models,
     "default_models" => :default_models,
     "tool_types" => :tool_types,
+    "operations" => :operations,
+    "users" => :users,
     "tools" => :tools,
     "runtime_tools" => :runtime_tools,
     "agents" => :agents,
@@ -52,6 +56,8 @@ class ListResourcesTool < RubyLLM::Tool
     "rag_flows" => :rag_flows,
     "connectors" => :connectors,
     "test_suites" => :test_suites,
+    "cost_limits" => :cost_limits,
+    "cost_target_types" => :cost_target_types,
   }.freeze
 
   def initialize(mission = nil, runtime_context: nil, current_agent: nil)

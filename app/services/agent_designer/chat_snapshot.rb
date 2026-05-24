@@ -72,7 +72,7 @@ module AgentDesigner
     end
 
     def message_cost(records)
-      records.sum { |message| message.calculate_cost || 0 }
+      records.sum(&:effective_cost)
     end
 
     def token_totals_for(records)

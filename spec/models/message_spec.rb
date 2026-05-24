@@ -5,30 +5,40 @@
 # Table name: messages
 # Database name: primary
 #
-#  id                    :bigint           not null, primary key
-#  cache_creation_tokens :integer
-#  cached_tokens         :integer
-#  content               :text
-#  content_raw           :json
-#  duration_ms           :integer
-#  input_tokens          :integer
-#  output_tokens         :integer
-#  role                  :string           not null
-#  thinking_signature    :text
-#  thinking_text         :text
-#  thinking_tokens       :integer
-#  created_at            :datetime         not null
-#  updated_at            :datetime         not null
-#  chat_id               :bigint           not null
-#  model_id              :bigint
-#  tool_call_id          :bigint
+#  id                      :bigint           not null, primary key
+#  cache_creation_cost_usd :decimal(18, 8)
+#  cache_creation_tokens   :integer
+#  cached_input_cost_usd   :decimal(18, 8)
+#  cached_tokens           :integer
+#  content                 :text
+#  content_raw             :json
+#  cost_calculated_at      :datetime
+#  cost_currency           :string           default("USD"), not null
+#  cost_pricing_snapshot   :jsonb            not null
+#  cost_usd                :decimal(18, 8)
+#  duration_ms             :integer
+#  input_cost_usd          :decimal(18, 8)
+#  input_tokens            :integer
+#  output_cost_usd         :decimal(18, 8)
+#  output_tokens           :integer
+#  role                    :string           not null
+#  thinking_signature      :text
+#  thinking_text           :text
+#  thinking_tokens         :integer
+#  created_at              :datetime         not null
+#  updated_at              :datetime         not null
+#  chat_id                 :bigint           not null
+#  model_id                :bigint
+#  tool_call_id            :bigint
 #
 # Indexes
 #
-#  index_messages_on_chat_id       (chat_id)
-#  index_messages_on_model_id      (model_id)
-#  index_messages_on_role          (role)
-#  index_messages_on_tool_call_id  (tool_call_id)
+#  index_messages_on_chat_id             (chat_id)
+#  index_messages_on_cost_calculated_at  (cost_calculated_at)
+#  index_messages_on_cost_usd            (cost_usd)
+#  index_messages_on_model_id            (model_id)
+#  index_messages_on_role                (role)
+#  index_messages_on_tool_call_id        (tool_call_id)
 #
 # Foreign Keys
 #
@@ -147,6 +157,37 @@ RSpec.describe Message do
                       cache_creation_tokens: 5,)
 
       expect(message.total_input_activity_tokens).to eq(130)
+    end
+  end
+
+  describe "cost snapshots" do
+    let(:model_record) { create(:model) }
+    let(:chat) { create(:chat, model: model_record) }
+
+    it "persists the calculated cost breakdown when token usage is saved", :aggregate_failures do
+      message = create(
+        :message,
+        chat:,
+        model: model_record,
+        input_tokens: 1_000_000,
+        output_tokens: 1_000_000,
+        cached_tokens: 500_000,
+        cache_creation_tokens: 0,
+      )
+
+      expect(message.cost_usd).to eq(BigDecimal("18.75"))
+      expect(message.input_cost_usd).to eq(BigDecimal("3.0"))
+      expect(message.cached_input_cost_usd).to eq(BigDecimal("0.75"))
+      expect(message.output_cost_usd).to eq(BigDecimal("15.0"))
+      expect(message.cost_pricing_snapshot).to include("input_per_million" => "3.00")
+      expect(message.cost_calculated_at).to be_present
+    end
+
+    it "falls back to dynamic pricing when a legacy row has no snapshot" do
+      message = create(:message, chat:, model: model_record, input_tokens: 1_000_000, output_tokens: 0)
+      message.update_columns(cost_usd: nil, cost_calculated_at: nil) # rubocop:disable Rails/SkipsModelValidations
+
+      expect(message.reload.effective_cost).to eq(BigDecimal("3.0"))
     end
   end
 
