@@ -3,4 +3,8 @@
 - back_link = { label: "Back to #{@agent.name}", url: admin_agent_path(@agent) }
 = render_page_hero(title: "Edit Agent", variant: :compact, title_icon: "fa-solid fa-user-secret", record_title: @agent.name, back_link:, actions: [page_hero_form_action(label: "Update Agent", form_id:)])
 
-= render "agents/form", agent: @agent, form_id:, available_models: @available_models, available_llm_connectors: @available_llm_connectors
+= render "agents/form",
+         agent: @agent,
+         form_id:,
+         available_models: @available_models,
+         available_llm_connectors: @available_llm_connectors

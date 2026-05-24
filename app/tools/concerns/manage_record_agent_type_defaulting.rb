@@ -11,10 +11,7 @@ module ManageRecordAgentTypeDefaulting
     return attributes unless parsed_attributes.is_a?(Hash)
 
     requested_type = parsed_attributes["agent_type"].to_s.presence
-    return parsed_attributes if requested_type.blank? || requested_type == AgentConfiguration::DEFAULT_AGENT_TYPE
-    return parsed_attributes if explicit_agent_type_request?(requested_type)
-
-    parsed_attributes.merge("agent_type" => AgentConfiguration::DEFAULT_AGENT_TYPE)
+    normalized_agent_type_attributes(parsed_attributes, requested_type)
   end
 
   def agent_designer_create?
@@ -59,5 +56,21 @@ module ManageRecordAgentTypeDefaulting
 
   def normalize_agent_type_text(text)
     text.to_s.downcase.gsub(/[^a-z0-9]+/, " ").squish
+  end
+
+  def provider_agent_type?(value)
+    AgentConfiguration.provider_agent_type?(value)
+  end
+
+  def normalized_agent_type_attributes(parsed_attributes, requested_type)
+    return parsed_attributes if requested_type.blank? || requested_type == AgentConfiguration::DEFAULT_AGENT_TYPE
+    return default_agent_type_attributes(parsed_attributes) if provider_agent_type?(requested_type)
+    return parsed_attributes if explicit_agent_type_request?(requested_type)
+
+    default_agent_type_attributes(parsed_attributes)
+  end
+
+  def default_agent_type_attributes(parsed_attributes)
+    parsed_attributes.merge("agent_type" => AgentConfiguration::DEFAULT_AGENT_TYPE)
   end
 end

@@ -5,7 +5,9 @@ module AgentRuntime
   extend ActiveSupport::Concern
 
   def playground_compatible?
-    runtime_tool_keys.empty?
+    assignable_keys = BuiltinTools::Registry.user_assignable_keys
+
+    runtime_tool_keys.all? { |tool_key| assignable_keys.include?(tool_key) }
   end
 
   def tools(parent_chat: nil, runtime_context: {})

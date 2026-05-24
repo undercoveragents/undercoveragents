@@ -18,6 +18,9 @@
 
 .grid.grid-cols-1.lg:grid-cols-2.gap-6.mb-6
   .card.h-full
+    - tool_option_groups = []
+    - tool_option_groups << { label: "User-Made Tools", options: @available_tools.map { |tool| [tool.name, "tool:#{tool.id}"] } }
+    - tool_option_groups << { label: "Built-in Tools", options: @available_builtin_tools.map { |tool| [tool.name, "runtime_tool:#{tool.key}"] } }
     .card-header
       .flex.items-center.justify-between
         %h3.text-sm.font-semibold.text-text-primary
@@ -27,8 +30,8 @@
                  record: @agent,
                  url: add_tool_admin_agent_path(@agent),
                  method: :post,
-                 field_name: :tool_id,
-                 options: @available_tools.map { |tool| [tool.name, tool.id] },
+                 field_name: :tool_ref,
+                 option_groups: tool_option_groups,
                  empty_message: "All tools already assigned."
     .card-body
       - tools = @agent.assigned_tools
@@ -52,15 +55,23 @@
           - builtin_tools.each do |tool|
             .flex.items-center.gap-2.p-2.rounded-lg.bg-surface-secondary
               .entity-card__icon
-                %i.fa-solid.fa-wrench
+                %i{ class: tool[:icon] }
               .flex-1.min-w-0
                 .text-sm.font-medium.text-text-primary.leading-snug= tool[:name]
                 .text-xs.text-text-secondary= tool[:description]
                 .text-text-muted.mt-1{ class: "text-[11px]" }= tool[:key]
+                - if tool[:configuration_hint].present?
+                  .text-xs.text-text-muted.mt-1= tool[:configuration_hint]
               - if tool[:missing]
                 .badge.badge-danger Missing
               - else
                 .badge.badge-info Built-in
+              - if can_update_agent && !@agent.builtin?
+                = button_to remove_tool_admin_agent_path(@agent), method: :delete, params: { runtime_tool_key: tool[:key] }, class: "btn btn-ghost btn-xs text-danger-400 hover:text-danger-600 shrink-0", title: "Remove tool", data: { controller: "confirm", confirm_title_value: "Remove Tool", confirm_message_value: "Remove \"#{tool[:name]}\" from this agent?" } do
+                  %i.fa-solid.fa-xmark
+              - elsif can_update_agent
+                %button{ type: "button", class: disabled_action_classes("btn btn-ghost btn-xs text-danger-400 hover:text-danger-600 shrink-0", disabled: true), disabled: true, title: update_agent_title }
+                  %i.fa-solid.fa-xmark
       - else
         .text-center.py-6
           %i.fa-solid.fa-wrench.text-2xl.text-text-muted.mb-2

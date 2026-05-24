@@ -76,6 +76,25 @@ RSpec.describe WebSearch::HttpClient do
       end.to raise_error(WebSearch::Error, /Network request failed/)
     end
 
+    it "normalizes protocol-level HTTP failures while reading the response body" do
+      binary_message = "wrong chunk size line: \xAFU".dup.force_encoding(Encoding::ASCII_8BIT)
+
+      allow_any_instance_of(Net::HTTP).to receive(:request) # rubocop:disable RSpec/AnyInstance
+        .and_raise(Net::HTTPBadResponse, binary_message)
+
+      expect do
+        client.fetch_text(
+          "https://example.com/bad-chunked-response",
+          max_bytes: 50,
+          allowed_content_types: ["text/html"],
+        )
+      end.to raise_error(WebSearch::Error) { |error|
+        expect(error.message).to include("Network request failed: wrong chunk size line")
+        expect(error.message.encoding).to eq(Encoding::UTF_8)
+        expect(error.message).to be_valid_encoding
+      }
+    end
+
     it "supports custom headers and can disable range requests" do
       stub_request(:get, "https://example.com/api/search")
         .with(headers: { "X-Test-Token" => "secret-token", "Accept" => "application/json" })

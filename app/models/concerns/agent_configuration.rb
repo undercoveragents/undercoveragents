@@ -8,6 +8,15 @@ module AgentConfiguration
   include AgentLinkConfiguration
   include AgentConfigurationValidations
 
+  class << self
+    def provider_agent_type?(value)
+      normalized_value = value.to_s.presence
+      return false if normalized_value.blank?
+
+      Connectors::LlmProvider::PROVIDER_KEYS.include?(normalized_value)
+    end
+  end
+
   def self.extended(base)
     base.extend AgentLlmConfiguration
     base.extend AgentLinkConfiguration

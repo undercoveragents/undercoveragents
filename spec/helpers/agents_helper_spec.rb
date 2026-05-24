@@ -123,6 +123,18 @@ RSpec.describe AgentsHelper do
 
       expect(helper.agent_type_options_for_select(agent)).to include(["Custom specialist", "custom_specialist"])
     end
+
+    it "does not duplicate builtin agent types in the select options" do
+      agent = build(:agent, agent_type: "mission_designer")
+
+      expect(helper.agent_type_options_for_select(agent).count(["Mission designer", "mission_designer"])).to eq(1)
+    end
+
+    it "does not preserve provider names as selectable agent types" do
+      agent = build(:agent, agent_type: "openai")
+
+      expect(helper.agent_type_options_for_select(agent)).not_to include(["Openai", "openai"])
+    end
   end
 
   describe "#agent_model_routing_label" do

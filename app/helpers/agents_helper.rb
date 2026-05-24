@@ -186,6 +186,9 @@ module AgentsHelper
 
   def agent_type_values_for_select(current_type)
     builtin_agent_types.tap do |types|
+      next if current_type.blank?
+      next if AgentConfiguration.provider_agent_type?(current_type)
+
       types << current_type if current_type.present? && types.exclude?(current_type)
     end
   end

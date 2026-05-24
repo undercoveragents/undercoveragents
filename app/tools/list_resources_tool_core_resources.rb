@@ -81,6 +81,22 @@ module ListResourcesToolCoreResources
     lines.join("\n")
   end
 
+  def runtime_tools
+    definitions = BuiltinTools::Registry.user_assignable_definitions
+    return "No user-assignable built-in runtime tools available." if definitions.empty?
+
+    lines = ["## Built-in Runtime Tools (use these keys in `runtime_tool_keys`)"]
+    definitions.each do |definition|
+      desc = definition.description.to_s.squish.presence || "No description."
+      hint = definition.configuration_hint.to_s.squish.presence
+      lines << [
+        "- `#{definition.key}` — #{definition.name} — #{desc}",
+        ("Configuration: #{hint}" if hint),
+      ].compact.join(" — ")
+    end
+    lines.join("\n")
+  end
+
   def agents
     scope = Agent.enabled.selectable
     scope = scope.where(operation: scoped_operation) if scoped_operation

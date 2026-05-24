@@ -39,7 +39,79 @@ RSpec.describe WebFetch::Client do
       )
   end
 
+  def http_response_for(uri:, body: guides_page_body, content_type: "text/html", truncated: false)
+    WebSearch::HttpClient::Response.new(
+      uri: uri.to_s,
+      body:,
+      content_type:,
+      truncated:,
+    )
+  end
+
+  def request_options(headers:, range_request:)
+    {
+      max_bytes: described_class::MAX_PAGE_BYTES,
+      allowed_content_types: described_class::ALLOWED_PAGE_CONTENT_TYPES,
+      headers:,
+      range_request:,
+    }
+  end
+
+  def build_client_with_http_spy(url)
+    http_client = instance_spy(WebSearch::HttpClient)
+    uri = URI(url)
+    allow(WebSearch::Safety).to receive(:validate_public_url!).with(url).and_return(uri)
+
+    [described_class.new(http_client:), http_client, uri]
+  end
+
+  def expect_guides_page(page)
+    expect(page.title).to eq("Rails Guides")
+    expect(page.snippets.first).to include("deployment")
+  end
+
   describe "#read" do
+    it "tries identity encoding first and falls back to the default request" do
+      client, http_client, uri = build_client_with_http_spy("https://example.com/page")
+      allow(http_client).to receive(:fetch_text)
+        .with(uri, **request_options(headers: described_class::IDENTITY_ENCODING_HEADERS, range_request: true))
+        .and_raise(WebSearch::Error, "Network request failed: end of file reached")
+      allow(http_client).to receive(:fetch_text)
+        .with(uri, **request_options(headers: {}, range_request: true))
+        .and_return(http_response_for(uri:))
+
+      page = client.read(urls: ["https://example.com/page"], focus: "Rails deployment defaults").first
+
+      expect_guides_page(page)
+      expect(http_client).to have_received(:fetch_text)
+        .with(uri, **request_options(headers: described_class::IDENTITY_ENCODING_HEADERS, range_request: true))
+      expect(http_client).to have_received(:fetch_text)
+        .with(uri, **request_options(headers: {}, range_request: true))
+    end
+
+    it "retries without the range header after network failures" do
+      client, http_client, uri = build_client_with_http_spy("https://example.com/page")
+      allow(http_client).to receive(:fetch_text)
+        .with(uri, **request_options(headers: described_class::IDENTITY_ENCODING_HEADERS, range_request: true))
+        .and_raise(WebSearch::Error, "Network request failed: end of file reached")
+      allow(http_client).to receive(:fetch_text)
+        .with(uri, **request_options(headers: {}, range_request: true))
+        .and_raise(WebSearch::Error, "Network request failed: wrong chunk size line")
+      allow(http_client).to receive(:fetch_text)
+        .with(uri, **request_options(headers: {}, range_request: false))
+        .and_return(http_response_for(uri:))
+
+      page = client.read(urls: ["https://example.com/page"], focus: "Rails deployment defaults").first
+
+      expect_guides_page(page)
+      expect(http_client).to have_received(:fetch_text)
+        .with(uri, **request_options(headers: described_class::IDENTITY_ENCODING_HEADERS, range_request: true))
+      expect(http_client).to have_received(:fetch_text)
+        .with(uri, **request_options(headers: {}, range_request: true))
+      expect(http_client).to have_received(:fetch_text)
+        .with(uri, **request_options(headers: {}, range_request: false))
+    end
+
     it "extracts focused snippets, same-site links, and truncation hints from HTML pages", :aggregate_failures do
       stub_guides_page
 
@@ -85,7 +157,10 @@ RSpec.describe WebFetch::Client do
 
       expect do
         client.read(urls: ["https://example.com/failure"])
-      end.to raise_error(WebFetch::Error, "HTTP request failed with status 500.")
+      end.to raise_error(
+        WebFetch::Error,
+        "Failed to fetch https://example.com/failure: HTTP request failed with status 500.",
+      )
     end
   end
 end

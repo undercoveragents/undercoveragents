@@ -76,9 +76,11 @@ RSpec.describe WebFetchTool do
     end
 
     it "surfaces fetch failures" do
-      allow(client).to receive(:read).and_raise(WebFetch::Error, "boom")
+      allow(client).to receive(:read).and_raise(WebFetch::Error, "Failed to fetch https://example.com: boom")
 
-      expect(tool.execute(url: "https://example.com")).to eq("Web fetch failed: boom")
+      expect(tool.execute(url: "https://example.com")).to eq(
+        "Web fetch failed: Failed to fetch https://example.com: boom",
+      )
     end
   end
 end

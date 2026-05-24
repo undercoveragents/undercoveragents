@@ -126,11 +126,22 @@ module Admin
                 :llm_connector_id, :thinking_effort, :thinking_budget, :custom_llm_params,
                 :model_routing_config,
                 :input_schema, :edit_context,
-                { assigned_tool_ids: [], subagent_ids: [], skill_catalog_ids: [] },],
+                { assigned_tool_ids: [], runtime_tool_keys: [], subagent_ids: [], skill_catalog_ids: [] },],
       )
+      normalize_runtime_tool_params!(permitted)
       @agent.name = permitted[:name] if permitted.key?(:name)
       permitted.except(:name, :input_schema, :edit_context).each { |k, v| @agent.public_send(:"#{k}=", v) }
       @agent.input_schema = parse_input_schema(permitted[:input_schema]) if permitted.key?(:input_schema)
+    end
+
+    def normalize_runtime_tool_params!(permitted)
+      return unless permitted.key?(:runtime_tool_keys)
+
+      if @agent.builtin?
+        permitted.delete(:runtime_tool_keys)
+      else
+        permitted[:runtime_tool_keys] = permitted[:runtime_tool_keys] & BuiltinTools::Registry.user_assignable_keys
+      end
     end
 
     def build_agent_skill_counts(agents)
@@ -151,9 +162,18 @@ module Admin
     def load_agent_association_options
       {
         available_tools: scoped_tools.where.not(id: @agent.tool_ids).ordered,
+        available_builtin_tools:,
         available_agents: scoped_agents.enabled.selectable.ordered.where.not(id: [@agent.id] + @agent.subagent_ids),
         available_skill_catalogs: scoped_skill_catalogs.where.not(id: @agent.skill_catalog_ids).ordered,
       }.each { |name, value| instance_variable_set(:"@#{name}", value) }
+    end
+
+    def available_builtin_tools
+      return [] if @agent.builtin?
+
+      BuiltinTools::Registry.user_assignable_definitions.reject do |definition|
+        @agent.runtime_tool_keys.include?(definition.key)
+      end
     end
 
     def builtin_tool_entries
@@ -163,13 +183,14 @@ module Admin
           key: tool_key,
           name: definition&.name || tool_key,
           description: definition&.description || "Missing built-in tool definition.",
+          icon: definition&.icon || "fa-solid fa-wrench",
+          configuration_hint: definition&.configuration_hint,
           missing: definition.nil?,
         }
       end
     end
 
     def load_form_data
-      @available_tools = scoped_tools.enabled.ordered
       @available_agents = scoped_agents.enabled.selectable.ordered.where.not(id: @agent.id)
       @available_llm_connectors = scoped_connectors.llm_providers.enabled.ordered
       provider_connector = @agent.llm_connector
