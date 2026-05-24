@@ -143,7 +143,26 @@ RSpec.describe "Playground::Messages", :unauthenticated do
       end
     end
 
-    context "when the chat agent uses built-in tools" do
+    context "when the chat agent uses a user-assignable built-in tool" do
+      before do
+        agent.update!(runtime_tool_keys: ["web.web_search"])
+      end
+
+      it "returns success and enqueues the response job" do
+        expect do
+          post admin_playground_chat_messages_path(chat), params: { message: { content: "Hello" } }
+        end.to have_enqueued_job(ChatResponseJob).with(
+          chat.id,
+          "Hello",
+          [],
+          tenant_id: chat.send(:response_job_tenant_id),
+        )
+
+        expect(response).to have_http_status(:ok)
+      end
+    end
+
+    context "when the chat agent uses a non-user-assignable built-in tool" do
       before do
         agent.update!(runtime_tool_keys: ["mission_designer.validate_flow"])
       end

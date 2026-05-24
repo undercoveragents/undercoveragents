@@ -40,6 +40,18 @@ RSpec.describe RuntimeRecords::AgentAttributesNormalizer do
       expect(attributes).to eq({ "thinking_effort" => "none", "thinking_budget" => nil })
     end
 
+    it "defaults provider-like agent types back to general" do
+      attributes = described_class.call(record: agent, attributes: { agent_type: "openai" })
+
+      expect(attributes).to eq({ "agent_type" => AgentConfiguration::DEFAULT_AGENT_TYPE })
+    end
+
+    it "leaves blank agent_type values unchanged" do
+      attributes = described_class.call(record: agent, attributes: { agent_type: nil })
+
+      expect(attributes).to eq({ "agent_type" => nil })
+    end
+
     it "keeps only user-assignable runtime tool keys for user agents" do
       BuiltinTools::Registrations.register_all!
 

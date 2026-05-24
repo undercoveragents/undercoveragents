@@ -308,6 +308,26 @@ RSpec.describe ManageRecordTool do
       expect(created_agent.configuration["agent_type"]).to eq("mission_designer")
     end
 
+    it "defaults provider-like type requests back to general for agent designer creates" do
+      allow(ActionCable.server).to receive(:broadcast)
+      chat.messages.create!(role: :user, content: "Create an OpenAI-powered agent for support triage")
+      agent_designer = create(:agent, operation:, name: "Agent Designer", agent_type: "agent_designer")
+      agent_designer_tool = described_class.new(agent: agent_designer, parent_chat: chat, mission:)
+
+      agent_designer_tool.execute(
+        resource: "agent",
+        action: "create",
+        attributes: {
+          name: "Support Triage",
+          model_id: "gpt-4.1",
+          agent_type: "openai",
+        },
+      )
+
+      created_agent = Agent.order(:id).last
+      expect(created_agent.configuration["agent_type"]).to eq(AgentConfiguration::DEFAULT_AGENT_TYPE)
+    end
+
     it "updates agent configuration fields and replacement arrays" do
       helper_tool = create(:tool, :mission_tool, :enabled, operation:, name: "Agent Helper")
       helper_subagent = create(:agent, :enabled, operation:, name: "Research Wing", model_id: "gpt-4.1")

@@ -136,7 +136,6 @@ module BuiltinTools
         description: "Safely fetch a very small number of public pages and return focused snippets.",
         visible_in_headquarter: true,
         user_assignable: true,
-        configuration_hint: "No per-agent setup; safety limits and fetch behavior are application controlled.",
         runtime_name: "web_fetch",
         icon: "fa-solid fa-file-lines",
         compaction_policy: :replace_on_assistant_reply,

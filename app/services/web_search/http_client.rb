@@ -7,6 +7,16 @@ module WebSearch
   class HttpClient
     Response = Data.define(:uri, :body, :content_type, :truncated)
 
+    NETWORK_ERROR_CLASSES = [
+      IOError,
+      Net::OpenTimeout,
+      Net::ReadTimeout,
+      Net::HTTPBadResponse,
+      Net::ProtocolError,
+      OpenSSL::SSL::SSLError,
+      SocketError,
+    ].freeze
+
     USER_AGENT = "UndercoverAgentsSafeWebSearch/1.0"
     REDIRECT_LIMIT = 3
     OPEN_TIMEOUT = 5
@@ -29,8 +39,10 @@ module WebSearch
         request_options: { max_bytes:, allowed_content_types: }.merge(request_options),
         redirects_remaining:,
       )
-    rescue Net::OpenTimeout, Net::ReadTimeout, IOError, OpenSSL::SSL::SSLError, SocketError => e
-      raise Error, "Network request failed: #{e.message}"
+    rescue StandardError => e
+      raise unless network_error?(e)
+
+      raise_network_error(e)
     end
 
     private
@@ -49,6 +61,14 @@ module WebSearch
       end
 
       payload
+    end
+
+    def raise_network_error(error)
+      raise Error, "Network request failed: #{sanitize_text_body(error.message)}"
+    end
+
+    def network_error?(error)
+      NETWORK_ERROR_CLASSES.any? { |error_class| error.is_a?(error_class) }
     end
 
     def http_client_for(uri)

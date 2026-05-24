@@ -70,7 +70,7 @@ class ChatResponseJob < BaseChatResponseJob
     raise "No agent is configured for this chat." unless agent
 
     if require_playground_support && !chat.playground_agent_supported?
-      raise "Playground does not support agents with built-in tools."
+      raise "Playground does not support agents with non-user-assignable built-in tools."
     end
 
     chat.configure_for_agent(agent, runtime_context:)

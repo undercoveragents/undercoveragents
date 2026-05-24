@@ -66,7 +66,18 @@ RSpec.describe "Playground::Chats", :unauthenticated do
       expect(response.body).to include("Select an agent to start chatting")
     end
 
-    it "does not list agents with built-in tools as available" do
+    it "lists agents with user-assignable built-in tools as available" do
+      agent = create(:agent, enabled: true)
+      agent.update!(runtime_tool_keys: ["web.web_search"])
+
+      get admin_playground_chats_path
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(agent.name)
+      expect(response.body).to include("Select an agent to start chatting")
+    end
+
+    it "does not list agents with non-user-assignable built-in tools as available" do
       agent = create(:agent, enabled: true)
       agent.update!(runtime_tool_keys: ["mission_designer.validate_flow"])
 
@@ -173,7 +184,30 @@ RSpec.describe "Playground::Chats", :unauthenticated do
       end
     end
 
-    context "when the chat agent uses built-in tools" do
+    context "when the chat agent uses a user-assignable built-in tool" do
+      let(:agent) do
+        create(:agent).tap do |record|
+          record.update!(runtime_tool_keys: ["web.web_search"])
+        end
+      end
+      let(:chat) { create(:chat, agent:, user:) }
+
+      it "renders the playground chat" do
+        get admin_playground_chat_path(chat)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include(agent.name)
+      end
+
+      it "returns turbo-stream catch-up updates" do
+        get admin_playground_chat_path(chat, format: :turbo_stream)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+      end
+    end
+
+    context "when the chat agent uses a non-user-assignable built-in tool" do
       let(:agent) do
         create(:agent).tap do |record|
           record.update!(runtime_tool_keys: ["mission_designer.validate_flow"])
@@ -233,7 +267,17 @@ RSpec.describe "Playground::Chats", :unauthenticated do
       expect(response).to redirect_to(admin_playground_chat_path(Chat.last))
     end
 
-    it "rejects agents with built-in tools" do
+    it "creates chats for agents with user-assignable built-in tools" do
+      agent.update!(runtime_tool_keys: ["web.web_search"])
+
+      expect do
+        post admin_playground_chats_path, params: { agent_id: agent.id }
+      end.to change(Chat, :count).by(1)
+
+      expect(response).to redirect_to(admin_playground_chat_path(Chat.last))
+    end
+
+    it "rejects agents with non-user-assignable built-in tools" do
       agent.update!(runtime_tool_keys: ["mission_designer.validate_flow"])
 
       expect do

@@ -365,13 +365,24 @@ RSpec.describe ChatResponseJob do
     context "when the chat is a playground chat" do
       let(:chat) { create(:chat, :with_agent, :playground_context, agent:) }
 
-      it "rejects agents with built-in tools" do
+      it "allows agents with user-assignable built-in tools" do
+        agent.update!(runtime_tool_keys: ["web.web_search"])
+        allow(Chat).to receive(:find).with(chat.id).and_return(chat)
+        allow(chat).to receive(:configure_for_agent)
+        allow(chat).to receive(:ask).and_return(nil)
+
+        described_class.new.perform(chat.id, "Hello")
+
+        expect(chat).to have_received(:configure_for_agent).with(agent, runtime_context: {})
+      end
+
+      it "rejects agents with non-user-assignable built-in tools" do
         agent.update!(runtime_tool_keys: ["mission_designer.validate_flow"])
         allow(ActionCable.server).to receive(:broadcast)
 
         described_class.new.perform(chat.id, "Hello")
 
-        expect_error_broadcast(chat, /Playground does not support agents with built-in tools/)
+        expect_error_broadcast(chat, /Playground does not support agents with non-user-assignable built-in tools/)
       end
     end
 
