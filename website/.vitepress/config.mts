@@ -72,7 +72,7 @@ export default defineConfig({
       provider: "local",
     },
     footer: {
-      message: "Open source AI automation platform built with Ruby on Rails by Mirko Mignini. For information: <a href=\"mailto:info@undercoveragents.ai\">info@undercoveragents.ai</a>",
+      message: `Open source AI automation platform built with Ruby on Rails by Mirko Mignini. For information: <a href="${githubUrl}">${githubUrl}</a>`,
       copyright: "Copyright © 2026 Undercover Agents",
     },
   },
