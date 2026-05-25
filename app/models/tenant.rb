@@ -37,7 +37,9 @@ class Tenant < ApplicationRecord
 
   has_many :clients, dependent: :restrict_with_error
   has_many :channels, dependent: :restrict_with_error
+  has_many :chats, dependent: :nullify
   has_many :connectors, dependent: :restrict_with_error
+  has_many :cost_limits, dependent: :destroy
   has_many :api_clients, dependent: :restrict_with_error
   has_many :users, dependent: :restrict_with_error
   has_many :operations, dependent: :destroy

@@ -1,0 +1,6 @@
+en:
+  cost_limits:
+    created: "Cost limit created."
+    updated: "Cost limit updated."
+    deleted: "Cost limit deleted."
+    toggled: "Cost limit %{state}."

@@ -10,6 +10,7 @@ module BuiltinTools
     AGENT_DESIGNER_GROUP_TITLE = "Working on the agent configuration"
     CHANNEL_DESIGNER_GROUP_TITLE = "Working on the channel configuration"
     CLIENT_DESIGNER_GROUP_TITLE = "Working on the client configuration"
+    COST_DESIGNER_GROUP_TITLE = "Working on cost controls"
     MISSION_DESIGNER_GROUP_TITLE = "Working on the mission flow"
     RESOURCE_DISCOVERY_GROUP_TITLE = "Looking up configuration resources"
     SKILL_CATALOG_DESIGNER_GROUP_TITLE = "Working on the skill catalog"
@@ -30,6 +31,7 @@ module BuiltinTools
       register_skill_catalog_designer_tools
       register_test_suite_designer_tools
       register_client_designer_tools
+      register_cost_designer_tools
       register_tool_designer_tools
       register_record_admin_tools
       register_plugin_builtin_tools
@@ -1032,6 +1034,86 @@ module BuiltinTools
       ) do |**tool_context|
         runtime_context = designer_runtime_context_from(tool_context)
         ToolDesigner::ManageToolActionTool.new(runtime_context:, current_tool: tool_context[:current_tool])
+      end
+    end
+
+    def register_cost_designer_tools
+      Registry.register(
+        "cost_designer.read_cost_analysis",
+        name: "Read Cost Analysis",
+        description: "Read cost dashboard summaries, spend breakdowns, and active limit health.",
+        visible_in_headquarter: true,
+        runtime_name: "read_cost_analysis",
+        icon: "fa-solid fa-chart-line",
+        compaction_policy: :replace_by_time,
+        tool_call_presentation: tool_call_presentation(
+          running_messages: [
+            "Reading cost analysis data…",
+            "Aggregating spend and token usage…",
+            "Checking active cost limits…",
+          ],
+          complete_messages: [
+            "Cost analysis loaded.",
+            "Spend breakdown is ready.",
+            "Limit health collected.",
+          ],
+          group_title: COST_DESIGNER_GROUP_TITLE,
+        ),
+      ) do |**tool_context|
+        runtime_context = designer_runtime_context_from(tool_context)
+        CostDesigner::ReadCostAnalysisTool.new(runtime_context:)
+      end
+
+      Registry.register(
+        "cost_designer.read_cost_limit",
+        name: "Read Cost Limit",
+        description: "Read a cost limit or list all limits with current spend status.",
+        visible_in_headquarter: true,
+        runtime_name: "read_cost_limit",
+        icon: "fa-solid fa-gauge-high",
+        compaction_policy: :replace_by_args,
+        tool_call_presentation: tool_call_presentation(
+          running_messages: [
+            "Reading cost limit status…",
+            "Calculating budget usage…",
+            "Loading cost guardrail details…",
+          ],
+          complete_messages: [
+            "Cost limit status loaded.",
+            "Budget usage is ready.",
+            "Cost guardrail details collected.",
+          ],
+          group_title: COST_DESIGNER_GROUP_TITLE,
+        ),
+      ) do |**tool_context|
+        runtime_context = designer_runtime_context_from(tool_context)
+        CostDesigner::ReadCostLimitTool.new(runtime_context:)
+      end
+
+      Registry.register(
+        "cost_designer.manage_cost_limit",
+        name: "Manage Cost Limit",
+        description: "Create, update, delete, or toggle cost limits in the current tenant.",
+        visible_in_headquarter: true,
+        runtime_name: "manage_cost_limit",
+        icon: "fa-solid fa-sliders",
+        compaction_policy: :drop_all,
+        tool_call_presentation: tool_call_presentation(
+          running_messages: [
+            "Applying the cost limit change…",
+            "Validating the budget guardrail…",
+            "Saving cost control settings…",
+          ],
+          complete_messages: [
+            "Cost limit change applied.",
+            "Budget guardrail saved.",
+            "Cost control settings updated.",
+          ],
+          group_title: COST_DESIGNER_GROUP_TITLE,
+        ),
+      ) do |**tool_context|
+        runtime_context = designer_runtime_context_from(tool_context)
+        CostDesigner::ManageCostLimitTool.new(runtime_context:)
       end
     end
 

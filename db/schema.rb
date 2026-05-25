@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_20_140000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_24_000100) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "vector"
@@ -245,9 +245,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_140000) do
     t.integer "messages_count", default: 0, null: false
     t.bigint "mission_id"
     t.bigint "model_id"
+    t.bigint "operation_id"
     t.bigint "parent_chat_id"
     t.string "status", default: "idle", null: false
     t.bigint "telegram_chat_id"
+    t.bigint "tenant_id"
     t.string "title"
     t.datetime "updated_at", null: false
     t.bigint "user_id"
@@ -259,8 +261,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_140000) do
     t.index ["execution_context"], name: "index_chats_on_execution_context"
     t.index ["mission_id"], name: "index_chats_on_mission_id"
     t.index ["model_id"], name: "index_chats_on_model_id"
+    t.index ["operation_id"], name: "index_chats_on_operation_id"
     t.index ["parent_chat_id"], name: "index_chats_on_parent_chat_id"
     t.index ["telegram_chat_id"], name: "index_chats_on_telegram_chat_id"
+    t.index ["tenant_id", "operation_id"], name: "index_chats_on_tenant_id_and_operation_id"
+    t.index ["tenant_id"], name: "index_chats_on_tenant_id"
     t.index ["user_id"], name: "index_chats_on_user_id"
   end
 
@@ -297,6 +302,28 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_140000) do
     t.index ["tenant_id"], name: "index_connectors_on_tenant_id"
   end
 
+  create_table "cost_limits", force: :cascade do |t|
+    t.decimal "amount_usd", precision: 18, scale: 6, null: false
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.boolean "enabled", default: true, null: false
+    t.string "enforcement_mode", default: "warn_only", null: false
+    t.string "name", null: false
+    t.bigint "operation_id"
+    t.string "period", null: false
+    t.bigint "target_id"
+    t.string "target_key"
+    t.string "target_type", null: false
+    t.bigint "tenant_id", null: false
+    t.datetime "updated_at", null: false
+    t.integer "warning_threshold_percent", default: 80, null: false
+    t.index ["operation_id"], name: "index_cost_limits_on_operation_id"
+    t.index ["tenant_id", "enabled"], name: "index_cost_limits_on_tenant_id_and_enabled"
+    t.index ["tenant_id", "operation_id"], name: "index_cost_limits_on_tenant_id_and_operation_id"
+    t.index ["tenant_id", "target_type", "target_id", "target_key"], name: "idx_cost_limits_on_target"
+    t.index ["tenant_id"], name: "index_cost_limits_on_tenant_id"
+  end
+
   create_table "memory_blocks", force: :cascade do |t|
     t.integer "char_limit", default: 5000, null: false
     t.datetime "created_at", null: false
@@ -325,15 +352,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_140000) do
   end
 
   create_table "messages", force: :cascade do |t|
+    t.decimal "cache_creation_cost_usd", precision: 18, scale: 8
     t.integer "cache_creation_tokens"
+    t.decimal "cached_input_cost_usd", precision: 18, scale: 8
     t.integer "cached_tokens"
     t.bigint "chat_id", null: false
     t.text "content"
     t.json "content_raw"
+    t.datetime "cost_calculated_at"
+    t.string "cost_currency", default: "USD", null: false
+    t.jsonb "cost_pricing_snapshot", default: {}, null: false
+    t.decimal "cost_usd", precision: 18, scale: 8
     t.datetime "created_at", null: false
     t.integer "duration_ms"
+    t.decimal "input_cost_usd", precision: 18, scale: 8
     t.integer "input_tokens"
     t.bigint "model_id"
+    t.decimal "output_cost_usd", precision: 18, scale: 8
     t.integer "output_tokens"
     t.string "role", null: false
     t.text "thinking_signature"
@@ -342,6 +377,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_140000) do
     t.bigint "tool_call_id"
     t.datetime "updated_at", null: false
     t.index ["chat_id"], name: "index_messages_on_chat_id"
+    t.index ["cost_calculated_at"], name: "index_messages_on_cost_calculated_at"
+    t.index ["cost_usd"], name: "index_messages_on_cost_usd"
     t.index ["model_id"], name: "index_messages_on_model_id"
     t.index ["role"], name: "index_messages_on_role"
     t.index ["tool_call_id"], name: "index_messages_on_tool_call_id"
@@ -761,10 +798,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_140000) do
   add_foreign_key "chats", "clients"
   add_foreign_key "chats", "missions"
   add_foreign_key "chats", "models"
+  add_foreign_key "chats", "operations"
+  add_foreign_key "chats", "tenants"
   add_foreign_key "chats", "users"
   add_foreign_key "clients", "agents"
   add_foreign_key "clients", "tenants"
   add_foreign_key "connectors", "tenants"
+  add_foreign_key "cost_limits", "operations"
+  add_foreign_key "cost_limits", "tenants"
   add_foreign_key "message_feedbacks", "chats"
   add_foreign_key "message_feedbacks", "messages"
   add_foreign_key "message_feedbacks", "users"

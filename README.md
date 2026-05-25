@@ -32,6 +32,7 @@ It is designed for teams that want more than a thin SDK. You can configure agent
 
 - Multi-tenant by design, with workspace-style Operations inside each tenant
 - Visual mission designer for orchestrating prompts, APIs, tools, control flow, and outputs
+- Cost analysis dashboard with tenant, operation, user, agent, mission, channel, model, and execution-context spend limits
 - Plugin-first architecture for connectors, tools, channels, capabilities, web-search clients, and RAG modules
 - Builtin product-manual skill catalogs for admin, agents, missions, channels, test suites, skills, tools, and RAG
 - Built-in admin assistant, playground, inspector, API docs, and job dashboard
@@ -54,6 +55,7 @@ Undercover Agents is built on [ruby_llm](https://github.com/crmne/ruby_llm), so 
 | Tool | A runtime ability exposed to agents or missions |
 | Skill Catalog | A library of packaged knowledge that agents can activate on demand |
 | Channel | A published invocation surface for agents or missions |
+| Cost Limit | A tenant-owned budget guardrail for spend warnings or hard stops across supported runtime dimensions |
 
 ## Tech Stack
 

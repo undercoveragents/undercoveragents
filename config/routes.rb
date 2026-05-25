@@ -112,6 +112,14 @@ Rails.application.routes.draw do
     # System Preferences
     resource :preferences, only: [:show, :update]
 
+    # Cost analysis and limits
+    resource :costs, only: [:show], controller: "costs"
+    resources :cost_limits do
+      member do
+        patch :toggle
+      end
+    end
+
     # Build section — missions, agents, tools, rag_flows, test_suites
     resources :missions do
       member do

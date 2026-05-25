@@ -83,7 +83,7 @@ module Admin
       def build_child_chat_metrics(messages)
         messages.group_by(&:chat_id).transform_values do |chat_messages|
           {
-            cost: chat_messages.sum { |m| m.calculate_cost || 0 },
+            cost: chat_messages.sum(&:effective_cost),
             tokens: {
               input: chat_messages.sum(&:total_input_activity_tokens),
               output: chat_messages.sum { |m| m.output_tokens.to_i },
@@ -113,7 +113,7 @@ module Admin
       end
 
       def compute_total_cost_with_children
-        own_cost = @messages.sum { |m| m.calculate_cost || 0 }
+        own_cost = @messages.sum(&:effective_cost)
         children_cost = @child_chat_metrics.values.sum { |metrics| metrics[:cost] }
         own_cost + children_cost
       end

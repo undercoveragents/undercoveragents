@@ -43,6 +43,7 @@
 @import "./features/_auth.css";
 @import "./features/_chat.css";
 @import "./features/_connectors.css";
+@import "./features/_costs.css";
 @import "./features/_dashboard.css";
 @import "./features/_version-tree.css";
 @import "./features/_playground.css";

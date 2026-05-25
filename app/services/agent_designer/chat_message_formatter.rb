@@ -29,7 +29,7 @@ module AgentDesigner
         "- created_at: #{format_time(message.created_at)}",
         "- model: #{message.model&.model_id || message.chat&.model&.model_id || "-"}",
         "- duration_ms: #{message.duration_ms || "-"}",
-        "- cost_usd: #{format_cost(message.calculate_cost)}",
+        "- cost_usd: #{format_cost(message.effective_cost)}",
         "- input_tokens: #{message.input_tokens.to_i}",
         "- output_tokens: #{message.output_tokens.to_i}",
         "- cached_tokens: #{message.cached_tokens.to_i}",

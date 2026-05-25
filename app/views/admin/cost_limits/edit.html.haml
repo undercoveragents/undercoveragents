@@ -1,0 +1,13 @@
+- content_for(:title, "Edit #{@cost_limit.name} — #{APP_NAME}")
+- actions = [page_hero_form_action(label: "Save Changes", form_id: "cost-limit-form", icon: "fa-solid fa-save")]
+
+= render_page_hero(title: "Edit Cost Limit", record_title: @cost_limit.name, variant: :compact, title_icon: "fa-solid fa-shield-halved", sticky: true, actions:)
+
+= render "form",
+         cost_limit: @cost_limit,
+         operation_options: @operation_options,
+         user_options: @user_options,
+         agent_options: @agent_options,
+         mission_options: @mission_options,
+         channel_options: @channel_options,
+         model_options: @model_options
