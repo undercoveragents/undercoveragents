@@ -4,6 +4,7 @@
 # across builtin designer runtimes.
 class ListResourcesTool < RubyLLM::Tool
   include ListResourcesToolContext
+  include ListResourcesToolScopeContext
   include ListResourcesToolCoreResources
   include ListResourcesToolCostResources
   include ListResourcesToolPluginResources
