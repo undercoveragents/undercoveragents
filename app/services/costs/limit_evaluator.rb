@@ -27,7 +27,7 @@ module Costs
 
     def call
       amount = BigDecimal(@limit.amount_usd.to_s)
-      spend = Costs::AggregateQuery.new(Costs::Scope.new(tenant: @limit.tenant).for_limit(@limit)).summary.total_cost
+      spend = BigDecimal(scoped_messages.sum(:cost_usd).to_s.presence || "0")
 
       Result.new(
         limit: @limit,
@@ -42,6 +42,10 @@ module Costs
     end
 
     private
+
+    def scoped_messages
+      Costs::Scope.new(tenant: @limit.tenant).for_limit(@limit).where.not(cost_usd: nil)
+    end
 
     def status_for(spend, amount)
       return "exceeded" if spend >= amount

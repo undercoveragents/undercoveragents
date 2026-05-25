@@ -22,14 +22,15 @@ module Costs
     end
 
     def chats
-      scoped = tenant_chats
-      scoped = scoped.where(operation:) if operation
+      scoped = Chat.where(tenant_id: tenant.id)
+      scoped = scoped.where(operation_id: operation.id) if operation
       scoped = scoped.where(created_at: range) if range
       scoped
     end
 
     def messages
-      scoped = Message.joins(:chat).where(chats: { id: chats.select(:id) })
+      scoped = Message.joins(:chat).where(chats: { tenant_id: tenant.id })
+      scoped = scoped.where(chats: { operation_id: operation.id }) if operation
       scoped = scoped.where(messages: { created_at: range }) if range
       scoped
     end
@@ -43,15 +44,6 @@ module Costs
     end
 
     private
-
-    def tenant_chats
-      direct = Chat.where(tenant_id: tenant.id)
-      fallback = Chat.where(user_id: tenant.users.select(:id))
-                     .or(Chat.where(agent_id: tenant.agents.select(:id)))
-                     .or(Chat.where(mission_id: tenant.missions.select(:id)))
-
-      direct.or(fallback)
-    end
 
     def apply_limit_target(relation, limit)
       handler = LIMIT_TARGET_HANDLERS[limit.target_type]

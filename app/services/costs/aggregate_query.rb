@@ -11,98 +11,149 @@ module Costs
       :average_chat_cost,
     )
     Group = Data.define(:key, :label, :cost, :input_tokens, :output_tokens, :message_count, :chat_count)
-    DIMENSION_METHODS = {
-      "operation" => :operation_dimension_key,
-      "user" => :user_dimension_key,
-      "agent" => :agent_dimension_key,
-      "mission" => :mission_dimension_key,
-      "channel" => :channel_dimension_key,
-      "model" => :model_dimension_key,
-      "execution_context" => :execution_context_dimension_key,
+    PERSISTED_COST_SQL = "COALESCE(messages.cost_usd, 0)"
+    DIMENSION_DEFINITIONS = {
+      "operation" => {
+        apply: ->(scope) { scope.left_outer_joins(chat: :operation) },
+        key_sql: Arel.sql("chats.operation_id"),
+        label_sql: Arel.sql("operations.name"),
+        presence_sql: Arel.sql("chats.operation_id IS NOT NULL"),
+      },
+      "user" => {
+        apply: ->(scope) { scope.left_outer_joins(chat: :user) },
+        key_sql: Arel.sql("chats.user_id"),
+        label_sql: Arel.sql("users.email"),
+        presence_sql: Arel.sql("chats.user_id IS NOT NULL"),
+      },
+      "agent" => {
+        apply: ->(scope) { scope.left_outer_joins(chat: :agent) },
+        key_sql: Arel.sql("chats.agent_id"),
+        label_sql: Arel.sql("agents.name"),
+        presence_sql: Arel.sql("chats.agent_id IS NOT NULL"),
+      },
+      "mission" => {
+        apply: ->(scope) { scope.left_outer_joins(chat: :mission) },
+        key_sql: Arel.sql("chats.mission_id"),
+        label_sql: Arel.sql("missions.name"),
+        presence_sql: Arel.sql("chats.mission_id IS NOT NULL"),
+      },
+      "channel" => {
+        apply: ->(scope) { scope.left_outer_joins(chat: :channel) },
+        key_sql: Arel.sql("chats.channel_id"),
+        label_sql: Arel.sql("channels.name"),
+        presence_sql: Arel.sql("chats.channel_id IS NOT NULL"),
+      },
+      "model" => {
+        apply: lambda do |scope|
+          scope.joins(<<~SQL.squish)
+            LEFT JOIN models AS message_models ON message_models.id = messages.model_id
+            LEFT JOIN models AS chat_models ON chat_models.id = chats.model_id
+          SQL
+        end,
+        key_sql: Arel.sql("COALESCE(messages.model_id, chats.model_id)"),
+        label_sql: Arel.sql("COALESCE(message_models.model_id, chat_models.model_id)"),
+        presence_sql: Arel.sql("COALESCE(messages.model_id, chats.model_id) IS NOT NULL"),
+      },
+      "execution_context" => {
+        apply: ->(scope) { scope },
+        key_sql: Arel.sql("chats.execution_context"),
+        label_sql: Arel.sql("INITCAP(REPLACE(chats.execution_context, '_', ' '))"),
+        presence_sql: Arel.sql("chats.execution_context IS NOT NULL"),
+      },
     }.freeze
 
     def initialize(message_scope)
-      @message_scope = message_scope
+      @aggregate_scope = message_scope.where.not(cost_usd: nil).reorder(nil)
     end
 
     def summary
-      records = messages
-      cost = total_cost(records)
-      chat_count = records.map(&:chat_id).uniq.size
+      total_cost, input_tokens, output_tokens, message_count, chat_count = @aggregate_scope.pick(
+        total_cost_sum_sql,
+        sum_input_activity_sql,
+        sum_output_tokens_sql,
+        count_all_sql,
+        count_distinct_chat_sql,
+      )
+      chat_count = chat_count.to_i
 
       Summary.new(
-        total_cost: cost,
-        input_tokens: records.sum(&:total_input_activity_tokens),
-        output_tokens: records.sum { |message| message.output_tokens.to_i },
-        message_count: records.size,
+        total_cost: decimal(total_cost),
+        input_tokens: input_tokens.to_i,
+        output_tokens: output_tokens.to_i,
+        message_count: message_count.to_i,
         chat_count:,
-        average_chat_cost: chat_count.positive? ? cost / chat_count : BigDecimal("0"),
+        average_chat_cost: chat_count.positive? ? decimal(total_cost) / chat_count : BigDecimal("0"),
       )
     end
 
     def by_dimension(dimension, limit: 8)
-      grouped = messages.group_by { |message| dimension_key(message, dimension) }
-      grouped.filter_map { |key, records| build_group(key, records, dimension) }
-             .sort_by { |group| -group.cost }
-             .first(limit)
+      config = DIMENSION_DEFINITIONS[dimension.to_s]
+      return [] unless config
+
+      grouped_rows(config, limit)
     end
 
     def cost_by_day
-      messages.group_by { |message| message.created_at.to_date }
-              .transform_values { |records| total_cost(records) }
-              .sort
-              .to_h
+      @aggregate_scope.group_by_day(:created_at, series: false)
+                      .sum(cost_expression_sql)
+                      .transform_values { |value| decimal(value) }
     end
 
     private
 
-    def messages
-      @messages ||= @message_scope.includes(:model, chat: [:operation, :user, :agent, :mission, :channel, :model]).to_a
+    def grouped_rows(config, limit)
+      relation = config.fetch(:apply).call(@aggregate_scope)
+      grouped_row_data(relation, config, limit).map { |row| build_group(row) }
     end
 
-    def build_group(key, records, _dimension)
-      return if key.blank?
+    def grouped_row_data(relation, config, limit)
+      relation.where(config.fetch(:presence_sql))
+              .group(config.fetch(:key_sql), config.fetch(:label_sql))
+              .order(total_cost_order_sql)
+              .limit(limit)
+              .pluck(*grouped_row_selects(config))
+    end
+
+    def grouped_row_selects(config)
+      [
+        config.fetch(:key_sql),
+        config.fetch(:label_sql),
+        total_cost_sum_sql,
+        sum_input_activity_sql,
+        sum_output_tokens_sql,
+        count_all_sql,
+        count_distinct_chat_sql,
+      ]
+    end
+
+    def build_group(row)
+      key, label, cost, input_tokens, output_tokens, message_count, chat_count = row
 
       Group.new(
-        key: key.first,
-        label: key.second,
-        cost: total_cost(records),
-        input_tokens: records.sum(&:total_input_activity_tokens),
-        output_tokens: records.sum { |message| message.output_tokens.to_i },
-        message_count: records.size,
-        chat_count: records.map(&:chat_id).uniq.size,
+        key:,
+        label:,
+        cost: decimal(cost),
+        input_tokens: input_tokens.to_i,
+        output_tokens: output_tokens.to_i,
+        message_count: message_count.to_i,
+        chat_count: chat_count.to_i,
       )
     end
 
-    def total_cost(records)
-      records.sum(&:effective_cost)
-    end
+    def total_cost_sum_sql = Arel.sql("COALESCE(SUM(#{PERSISTED_COST_SQL}), 0)")
 
-    def dimension_key(message, dimension)
-      method_name = DIMENSION_METHODS[dimension.to_s]
-      send(method_name, message) if method_name
-    end
+    def sum_input_activity_sql = Arel.sql("COALESCE(SUM(#{Message::TOTAL_INPUT_ACTIVITY_SQL}), 0)")
 
-    def operation_dimension_key(message) = record_key(message.chat.operation)
+    def sum_output_tokens_sql = Arel.sql("COALESCE(SUM(COALESCE(messages.output_tokens, 0)), 0)")
 
-    def user_dimension_key(message) = record_key(message.chat.user, label_method: :email)
+    def count_all_sql = Arel.sql("COUNT(*)")
 
-    def agent_dimension_key(message) = record_key(message.chat.agent)
+    def count_distinct_chat_sql = Arel.sql("COUNT(DISTINCT messages.chat_id)")
 
-    def mission_dimension_key(message) = record_key(message.chat.mission)
+    def total_cost_order_sql = Arel.sql("SUM(#{PERSISTED_COST_SQL}) DESC")
 
-    def channel_dimension_key(message) = record_key(message.chat.channel)
+    def cost_expression_sql = Arel.sql(PERSISTED_COST_SQL)
 
-    def model_dimension_key(message) = record_key(message.model || message.chat.model, label_method: :model_id)
-
-    def execution_context_dimension_key(message)
-      [message.chat.execution_context, message.chat.execution_context.humanize]
-    end
-
-    def record_key(record, label_method: :name)
-      return unless record
-
-      [record.id, record.public_send(label_method)]
-    end
+    def decimal(value) = BigDecimal(value.to_s.presence || "0")
   end
 end
