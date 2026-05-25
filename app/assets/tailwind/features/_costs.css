@@ -10,27 +10,6 @@
   gap: var(--page-padding);
 }
 
-.cost-command-card {
-  overflow: clip;
-  background:
-    radial-gradient(circle at top right, rgb(from var(--accent) r g b / 0.18), transparent 36rem),
-    linear-gradient(135deg, rgb(from var(--surface-card) r g b / 0.98), rgb(from var(--surface-card) r g b / 0.92));
-}
-
-.cost-command-card .card-body {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1.25rem;
-}
-
-.cost-command-card__copy {
-  display: grid;
-  gap: 0.5rem;
-  max-width: 48rem;
-}
-
-.cost-command-card__eyebrow,
 .cost-section-heading {
   display: inline-flex;
   align-items: center;
@@ -46,26 +25,40 @@
   color: var(--accent);
 }
 
-.cost-command-card__title {
-  margin: 0;
-  color: var(--text-primary);
-  font-size: clamp(1.35rem, 2vw, 2rem);
-  font-weight: 800;
-  letter-spacing: -0.035em;
-}
-
-.cost-command-card__subtitle {
-  margin: 0;
-  color: var(--text-secondary);
-  line-height: 1.55;
+.cost-filter-panel .card-body {
+  display: grid;
+  gap: 1rem;
 }
 
 .cost-filter-form {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+}
+
+.cost-filter-panel__header {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.cost-filter-panel__title {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: var(--font-size-lg);
+  font-weight: 800;
+}
+
+.cost-filter-panel__subtitle {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.cost-filter-form__actions {
   display: flex;
   align-items: flex-end;
   gap: 0.75rem;
   flex-wrap: wrap;
-  min-width: min(100%, 30rem);
 }
 
 .cost-metric-grid {
@@ -76,13 +69,6 @@
 
 .cost-metric-card {
   overflow: clip;
-}
-
-.cost-metric-card--primary {
-  border-color: rgb(from var(--accent) r g b / 0.35);
-  background:
-    radial-gradient(circle at 80% 10%, rgb(from var(--accent) r g b / 0.2), transparent 12rem),
-    var(--surface-card);
 }
 
 .cost-metric-card .card-body {
@@ -121,7 +107,7 @@
 .cost-limit-stack,
 .cost-table {
   display: grid;
-  gap: 0.75rem;
+  gap: 0.625rem;
 }
 
 .cost-table__row,
@@ -133,7 +119,7 @@
   padding: 0.75rem;
   border: 1px solid rgb(from var(--border-default) r g b / 0.72);
   border-radius: var(--radius-md);
-  background: rgb(from var(--surface-primary) r g b / 0.64);
+  background: rgb(from var(--surface-primary) r g b / 0.48);
 }
 
 .cost-limit-pill {
@@ -303,12 +289,8 @@
 }
 
 @media (max-width: 780px) {
-  .cost-command-card .card-body {
+  .cost-filter-form__actions {
     align-items: stretch;
     flex-direction: column;
-  }
-
-  .cost-filter-form {
-    min-width: 0;
   }
 }

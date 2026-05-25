@@ -106,6 +106,21 @@ RSpec.describe Chat do
       expect(chat.snapshot_cost).to eq(BigDecimal("1.25"))
     end
 
+    it "persists inferred tenant and operation attribution on create" do
+      tenant = create(:tenant).tap(&:ensure_core_resources!)
+      operation = tenant.default_operation
+      chat = create(
+        :chat,
+        tenant: nil,
+        operation: nil,
+        user: create(:user, tenant:),
+        agent: create(:agent, operation:),
+        execution_context: :application,
+      )
+
+      expect(chat.reload).to have_attributes(tenant_id: tenant.id, operation_id: operation.id)
+    end
+
     it "allows limit checks when no tenant can be inferred" do
       chat = build(:chat, tenant: nil, operation: nil, user: nil, agent: nil, mission: nil, channel: nil)
 

@@ -189,6 +189,25 @@ RSpec.describe Message do
 
       expect(message.reload.effective_cost).to eq(BigDecimal("3.0"))
     end
+
+    it "refreshes the persisted cost snapshot when token usage changes after create", :aggregate_failures do
+      message = create(
+        :message,
+        chat:,
+        model: model_record,
+        input_tokens: 0,
+        output_tokens: 0,
+        cached_tokens: 0,
+        cache_creation_tokens: 0,
+      )
+
+      expect do
+        message.update!(input_tokens: 500_000, output_tokens: 250_000)
+      end.to change { message.reload.cost_usd }.from(BigDecimal("0")).to(BigDecimal("5.25"))
+
+      expect(message.cost_calculated_at).to be_present
+      expect(message.cost_pricing_snapshot).to include("input_per_million" => "3.00")
+    end
   end
 
   describe "#cost_pricing" do

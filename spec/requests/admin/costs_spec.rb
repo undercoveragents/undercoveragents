@@ -6,9 +6,20 @@ RSpec.describe "Admin cost analysis" do
   let(:tenant) { default_tenant }
   let(:operation) { default_operation }
   let(:model_record) { create(:model) }
+  let(:agent) { create(:agent, operation:, name: "Primary agent") }
+  let(:user) { create(:user, tenant:, email: "costs@example.com") }
 
   before do
-    chat = create(:chat, tenant:, operation:, model: model_record)
+    chat = create(
+      :chat,
+      tenant:,
+      operation:,
+      model: model_record,
+      agent:,
+      user:,
+      title: "Application spend",
+      execution_context: :application,
+    )
     create(:message, chat:, model: model_record).update_columns( # rubocop:disable Rails/SkipsModelValidations
       cost_usd: 4.25,
       cost_calculated_at: Time.current,
@@ -19,9 +30,8 @@ RSpec.describe "Admin cost analysis" do
     get admin_costs_path
 
     expect(response).to have_http_status(:ok)
-    expect(response.body).to include("Cost Analysis")
-    expect(response.body).to include("Total spend")
-    expect(response.body).to include("Spend over time")
+    expect(response.body).to include("Cost Analysis", "Filters", "Total spend", "Spend over time")
+    expect(response.body).to include("Execution context", "User", "Agent", "Model")
   end
 
   it "renders the cost dashboard filtered by operation" do
@@ -29,6 +39,58 @@ RSpec.describe "Admin cost analysis" do
 
     expect(response).to have_http_status(:ok)
     expect(response.body).to include(operation.name)
+  end
+
+  it "filters the dashboard by additional query filters" do
+    system_chat = create(
+      :chat,
+      tenant:,
+      operation:,
+      model: model_record,
+      agent:,
+      user:,
+      title: "System spend",
+      execution_context: :system,
+    )
+    create(:message, chat: system_chat, model: model_record).update_columns( # rubocop:disable Rails/SkipsModelValidations
+      cost_usd: 9.5,
+      cost_calculated_at: Time.current,
+    )
+
+    get admin_costs_path, params: {
+      operation: operation.slug,
+      execution_context: "application",
+      user_id: user.id,
+      agent_id: agent.id,
+      model_id: model_record.id,
+    }
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include("Application spend")
+    expect(response.body).not_to include("System spend")
+  end
+
+  it "ignores invalid execution context filters" do
+    system_chat = create(
+      :chat,
+      tenant:,
+      operation:,
+      model: model_record,
+      agent:,
+      user:,
+      title: "System spend",
+      execution_context: :system,
+    )
+    create(:message, chat: system_chat, model: model_record).update_columns( # rubocop:disable Rails/SkipsModelValidations
+      cost_usd: 9.5,
+      cost_calculated_at: Time.current,
+    )
+
+    get admin_costs_path, params: { execution_context: "not-a-context" }
+
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include("Application spend")
+    expect(response.body).to include("System spend")
   end
 
   it "renders cost limit index, new, edit, and show pages" do

@@ -1,20 +1,21 @@
 - content_for(:title, "Cost Analysis — #{APP_NAME}")
 - operation_options = [["All operations", "all"]] + @operations.map { |operation| [operation.name, operation.slug] }
 - period_options = cost_period_options
+- execution_context_options = [["All contexts", "all"]] + @execution_context_options
+- user_options = [["All users", "all"]] + @user_options.map { |user| [user.email, user.id] }
+- agent_options = [["All agents", "all"]] + @agent_options.map { |agent| [agent.name, agent.id] }
+- model_options = [["All models", "all"]] + @model_options.map { |model| [model.model_id, model.id] }
 - actions = [{ label: "New Limit", url: new_admin_cost_limit_path, icon: "fa-solid fa-plus", style: :primary }]
 
 = render_page_hero(title: "Cost Analysis", variant: :compact, title_icon: "fa-solid fa-chart-pie", sticky: true, actions:)
 
 .cost-dashboard
-  .card.cost-command-card
+  .card.cost-filter-panel
+    .card-header
+      .cost-filter-panel__header
+        %h2.cost-filter-panel__title Filters
+        %p.cost-filter-panel__subtitle Narrow the spend data shown below without leaving the page.
     .card-body
-      .cost-command-card__copy
-        .cost-command-card__eyebrow
-          %i.fa-solid.fa-coins
-          %span Spend command center
-        %h2.cost-command-card__title Track every LLM dollar before it surprises you.
-        %p.cost-command-card__subtitle
-          Monitor tenant, operation, user, agent, mission, channel, model, and context spend with warning and hard-stop limits.
       = form_with url: admin_costs_path, method: :get, class: "cost-filter-form", data: { turbo_frame: "app-content-frame" } do
         .form-group
           = label_tag :operation, "Operation", class: "form-label"
@@ -22,12 +23,28 @@
         .form-group
           = label_tag :period, "Period", class: "form-label"
           = select_tag :period, options_for_select(period_options, @period), class: "form-select"
-        = button_tag type: :submit, class: "btn btn-primary" do
-          %i.fa-solid.fa-filter
-          %span Apply
+        .form-group
+          = label_tag :execution_context, "Execution context", class: "form-label"
+          = select_tag :execution_context, options_for_select(execution_context_options, @selected_execution_context || "all"), class: "form-select"
+        .form-group
+          = label_tag :user_id, "User", class: "form-label"
+          = select_tag :user_id, options_for_select(user_options, @selected_user&.id || "all"), class: "form-select"
+        .form-group
+          = label_tag :agent_id, "Agent", class: "form-label"
+          = select_tag :agent_id, options_for_select(agent_options, @selected_agent&.id || "all"), class: "form-select"
+        .form-group
+          = label_tag :model_id, "Model", class: "form-label"
+          = select_tag :model_id, options_for_select(model_options, @selected_model&.id || "all"), class: "form-select"
+        .cost-filter-form__actions
+          = button_tag type: :submit, class: "btn btn-primary" do
+            %i.fa-solid.fa-filter
+            %span Apply filters
+          = link_to admin_costs_path, class: "btn btn-secondary", data: { turbo_frame: "app-content-frame" } do
+            %i.fa-solid.fa-rotate-left
+            %span Clear
 
   .cost-metric-grid
-    .card.cost-metric-card.cost-metric-card--primary
+    .card.cost-metric-card
       .card-body
         %span.cost-metric-card__label Total spend
         %strong.cost-metric-card__value= cost_currency(@presenter.summary.total_cost)

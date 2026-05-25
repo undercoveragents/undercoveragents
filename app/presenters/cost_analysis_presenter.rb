@@ -2,14 +2,21 @@
 
 class CostAnalysisPresenter
   DIMENSIONS = ["operation", "user", "agent", "mission", "channel", "model", "execution_context"].freeze
+  FilterSet = Data.define(:execution_context, :user, :agent, :model)
 
   attr_reader :tenant, :operation, :period, :period_result, :summary, :cost_by_day, :dimension_groups,
-              :limit_results, :recent_expensive_messages
+              :limit_results, :recent_expensive_messages, :filters
 
-  def initialize(tenant:, operation: nil, period: "rolling_30_days")
+  def initialize(tenant:, operation: nil, period: "rolling_30_days", filters: FilterSet.new(
+    execution_context: nil,
+    user: nil,
+    agent: nil,
+    model: nil,
+  ))
     @tenant = tenant
     @operation = operation
     @period = period
+    @filters = filters
     @period_result = Costs::Period.resolve(period)
     query = Costs::AggregateQuery.new(message_scope)
     @summary = query.summary
@@ -40,8 +47,27 @@ class CostAnalysisPresenter
 
   private
 
+  def execution_context = filters.execution_context
+
+  def user = filters.user
+
+  def agent = filters.agent
+
+  def model = filters.model
+
   def message_scope
-    Costs::Scope.new(tenant:, operation:, range: period_result.range).messages
+    filter_steps.reduce(Costs::Scope.new(tenant:, operation:, range: period_result.range).messages) do |scope, step|
+      step.call(scope)
+    end
+  end
+
+  def filter_steps
+    [
+      (->(scope) { scope.where(chats: { execution_context: }) } if execution_context.present?),
+      (->(scope) { scope.where(chats: { user_id: user.id }) } if user.present?),
+      (->(scope) { scope.where(chats: { agent_id: agent.id }) } if agent.present?),
+      (->(scope) { scope.where("messages.model_id = :id OR chats.model_id = :id", id: model.id) } if model.present?),
+    ].compact
   end
 
   def load_limit_results
