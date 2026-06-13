@@ -363,7 +363,7 @@ RSpec.describe ChatUiHelper do
     it "formats message times" do
       message = build(:message, created_at: Time.zone.parse("2026-01-15 14:30:00"))
 
-      expect(helper.chat_message_time(message)).to match(/02:30 PM/)
+      expect(helper.chat_message_time(message)).to include("02:30 PM")
     end
 
     it "detects the active chat" do
