@@ -196,7 +196,7 @@ RSpec.describe Missions::FlowEditor do
 
     it "returns error for unknown type" do
       result = editor.add_node(type: "nonexistent")
-      expect(result[:error]).to match(/Unknown node type/)
+      expect(result[:error]).to include("Unknown node type")
     end
 
     it "prevents duplicate singleton nodes" do
@@ -275,7 +275,7 @@ RSpec.describe Missions::FlowEditor do
 
     it "returns error for unknown node" do
       result = editor.update_node(node_id: "nonexistent", data: { "prompt" => "test" })
-      expect(result[:error]).to match(/Node not found/)
+      expect(result[:error]).to include("Node not found")
     end
 
     it "derives variable name from label when name is blank" do
@@ -306,7 +306,7 @@ RSpec.describe Missions::FlowEditor do
 
     it "returns error for unknown node" do
       result = editor.remove_node(node_id: "nonexistent")
-      expect(result[:error]).to match(/Node not found/)
+      expect(result[:error]).to include("Node not found")
     end
   end
 
@@ -330,7 +330,7 @@ RSpec.describe Missions::FlowEditor do
     it "rejects missing source_port for multi-port source nodes" do
       result = editor.add_edge(source_node_id: node2_id, target_node_id: node1_id)
 
-      expect(result[:error]).to match(/Source port is required/)
+      expect(result[:error]).to include("Source port is required")
       expect(result[:error]).to include("true, false")
     end
 
@@ -343,7 +343,7 @@ RSpec.describe Missions::FlowEditor do
 
       result = editor.add_edge(source_node_id: api_id, target_node_id: out_id, source_port: "default")
 
-      expect(result[:error]).to match(/Invalid source port `default`/)
+      expect(result[:error]).to include("Invalid source port `default`")
       expect(result[:error]).to include("success, error")
     end
 
@@ -374,22 +374,22 @@ RSpec.describe Missions::FlowEditor do
     it "prevents duplicate edges" do
       editor.add_edge(source_node_id: node1_id, target_node_id: node2_id)
       result = editor.add_edge(source_node_id: node1_id, target_node_id: node2_id)
-      expect(result[:error]).to match(/already exists/)
+      expect(result[:error]).to include("already exists")
     end
 
     it "returns error for nonexistent source" do
       result = editor.add_edge(source_node_id: "bad", target_node_id: node2_id)
-      expect(result[:error]).to match(/Source node not found/)
+      expect(result[:error]).to include("Source node not found")
     end
 
     it "returns error for nonexistent target" do
       result = editor.add_edge(source_node_id: node1_id, target_node_id: "bad")
-      expect(result[:error]).to match(/Target node not found/)
+      expect(result[:error]).to include("Target node not found")
     end
 
     it "prevents self-loops" do
       result = editor.add_edge(source_node_id: node1_id, target_node_id: node1_id)
-      expect(result[:error]).to match(/Cannot connect a node to itself/)
+      expect(result[:error]).to include("Cannot connect a node to itself")
     end
 
     it "rejects reconnecting a loop body back into its own loop node" do
@@ -429,7 +429,7 @@ RSpec.describe Missions::FlowEditor do
 
     it "returns error when no matching edge" do
       result = editor.remove_edge(source_node_id: "bad", target_node_id: "bad")
-      expect(result[:error]).to match(/No matching edge/)
+      expect(result[:error]).to include("No matching edge")
     end
   end
 
@@ -473,18 +473,18 @@ RSpec.describe Missions::FlowEditor do
 
     it "returns error for blank key" do
       result = editor.add_global_variable(key: "")
-      expect(result[:error]).to match(/Key is required/)
+      expect(result[:error]).to include("Key is required")
     end
 
     it "returns error for invalid type" do
       result = editor.add_global_variable(key: "x", type: "array")
-      expect(result[:error]).to match(/Invalid type/)
+      expect(result[:error]).to include("Invalid type")
     end
 
     it "rejects duplicate keys" do
       editor.add_global_variable(key: "threshold", value: "1")
       result = editor.add_global_variable(key: "threshold", value: "2")
-      expect(result[:error]).to match(/already exists/)
+      expect(result[:error]).to include("already exists")
     end
   end
 
@@ -514,17 +514,17 @@ RSpec.describe Missions::FlowEditor do
 
     it "returns error for missing key" do
       result = editor.update_global_variable(key: "")
-      expect(result[:error]).to match(/Key is required/)
+      expect(result[:error]).to include("Key is required")
     end
 
     it "returns error for not found key" do
       result = editor.update_global_variable(key: "missing", value: "x")
-      expect(result[:error]).to match(/not found/)
+      expect(result[:error]).to include("not found")
     end
 
     it "returns error for invalid type" do
       result = editor.update_global_variable(key: "threshold", type: "array")
-      expect(result[:error]).to match(/Invalid type/)
+      expect(result[:error]).to include("Invalid type")
     end
   end
 
@@ -541,12 +541,12 @@ RSpec.describe Missions::FlowEditor do
 
     it "returns error for blank key" do
       result = editor.remove_global_variable(key: "")
-      expect(result[:error]).to match(/Key is required/)
+      expect(result[:error]).to include("Key is required")
     end
 
     it "returns error for missing variable" do
       result = editor.remove_global_variable(key: "missing")
-      expect(result[:error]).to match(/not found/)
+      expect(result[:error]).to include("not found")
     end
   end
 

@@ -3559,7 +3559,7 @@ RSpec.describe Missions::Runner do
       expect(run).to be_failed
       expect(run.current_node_id).to be_nil
       expect(run.execution_state.dig("node_states", "loop", "status")).to eq("failure")
-      expect(run.execution_state.dig("node_states", "loop", "error")).to match(/Unresolved multi-input join/)
+      expect(run.execution_state.dig("node_states", "loop", "error")).to include("Unresolved multi-input join")
     end
 
     it "preserves variables set before a failure" do

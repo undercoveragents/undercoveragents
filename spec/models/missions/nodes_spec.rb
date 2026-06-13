@@ -252,7 +252,7 @@ RSpec.describe "Missions::Nodes" do
       )
       result = node.execute(ctx)
       expect(result).to be_failure
-      expect(result.output).to match(/exceeds maximum/)
+      expect(result.output).to include("exceeds maximum")
     end
 
     it "raises ExecutionError for a completely undefined variable reference" do
