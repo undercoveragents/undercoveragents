@@ -1,0 +1,50 @@
+.card.cost-form-card
+  .card-body
+    = simple_form_for [:admin, cost_limit], html: { id: "cost-limit-form", class: "cost-limit-form" } do |f|
+      = f.error_notification
+
+      .form-section
+        %h3.form-section-title Identity
+        .form-grid
+          = f.input :name, required: true
+          = f.input :description, as: :text, input_html: { rows: 3 }
+          = f.input :enabled, as: :boolean
+
+      .form-section
+        %h3.form-section-title Target
+        %p.form-section-description Choose the object type to budget. Leave Operation scope blank for tenant-wide limits unless the target itself is an operation.
+        .form-grid
+          = f.input :target_type, collection: cost_target_type_options, include_blank: false
+          = f.input :operation_id, collection: operation_options, include_blank: "All operations"
+          = f.input :target_id, label: "Target ID", hint: "Use for user, agent, mission, channel, or model targets."
+          = f.input :target_key, label: "Target key", hint: "Use an execution context such as application, playground, channel, test, system, user, or mission."
+        .cost-reference-panel
+          %strong Available target IDs
+          .cost-reference-panel__grid
+            %div
+              %span Users
+              %code= user_options.map(&:second).join(", ").presence || "none"
+            %div
+              %span Agents
+              %code= agent_options.map(&:second).join(", ").presence || "none"
+            %div
+              %span Missions
+              %code= mission_options.map(&:second).join(", ").presence || "none"
+            %div
+              %span Channels
+              %code= channel_options.map(&:second).join(", ").presence || "none"
+            %div
+              %span Models
+              %code= model_options.map { |label, id| "#{id}:#{label}" }.join(", ").presence || "none"
+
+      .form-section
+        %h3.form-section-title Budget
+        .form-grid
+          = f.input :period, collection: cost_period_options, include_blank: false
+          = f.input :amount_usd, label: "Amount (USD)", required: true
+          = f.input :warning_threshold_percent, label: "Warning threshold %"
+          = f.input :enforcement_mode, collection: cost_enforcement_mode_options, include_blank: false
+
+      .form-actions
+        = link_to "Cancel", cost_limit.persisted? ? admin_cost_limit_path(cost_limit) : admin_cost_limits_path, class: "btn btn-secondary", data: { turbo_frame: "app-content-frame" }
+        = f.button :submit, cost_limit.persisted? ? "Save Changes" : "Create Limit", class: "btn btn-primary"

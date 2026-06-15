@@ -20,23 +20,28 @@
 #  client_id               :bigint
 #  mission_id              :bigint
 #  model_id                :bigint
+#  operation_id            :bigint
 #  parent_chat_id          :bigint
 #  telegram_chat_id        :bigint
+#  tenant_id               :bigint
 #  user_id                 :bigint
 #
 # Indexes
 #
-#  index_chats_on_agent_id                 (agent_id)
-#  index_chats_on_channel_conversation_id  (channel_conversation_id)
-#  index_chats_on_channel_id               (channel_id)
-#  index_chats_on_channel_target_id        (channel_target_id)
-#  index_chats_on_client_id                (client_id)
-#  index_chats_on_execution_context        (execution_context)
-#  index_chats_on_mission_id               (mission_id)
-#  index_chats_on_model_id                 (model_id)
-#  index_chats_on_parent_chat_id           (parent_chat_id)
-#  index_chats_on_telegram_chat_id         (telegram_chat_id)
-#  index_chats_on_user_id                  (user_id)
+#  index_chats_on_agent_id                    (agent_id)
+#  index_chats_on_channel_conversation_id     (channel_conversation_id)
+#  index_chats_on_channel_id                  (channel_id)
+#  index_chats_on_channel_target_id           (channel_target_id)
+#  index_chats_on_client_id                   (client_id)
+#  index_chats_on_execution_context           (execution_context)
+#  index_chats_on_mission_id                  (mission_id)
+#  index_chats_on_model_id                    (model_id)
+#  index_chats_on_operation_id                (operation_id)
+#  index_chats_on_parent_chat_id              (parent_chat_id)
+#  index_chats_on_telegram_chat_id            (telegram_chat_id)
+#  index_chats_on_tenant_id                   (tenant_id)
+#  index_chats_on_tenant_id_and_operation_id  (tenant_id,operation_id)
+#  index_chats_on_user_id                     (user_id)
 #
 # Foreign Keys
 #
@@ -47,7 +52,9 @@
 #  fk_rails_...  (client_id => clients.id)
 #  fk_rails_...  (mission_id => missions.id)
 #  fk_rails_...  (model_id => models.id)
+#  fk_rails_...  (operation_id => operations.id)
 #  fk_rails_...  (parent_chat_id => chats.id)
+#  fk_rails_...  (tenant_id => tenants.id)
 #  fk_rails_...  (user_id => users.id)
 #
 require "rails_helper"
@@ -89,6 +96,36 @@ RSpec.describe Chat do
         channel: "channel", user: "user", telegram: "telegram", mission: "mission",
       ).backed_by_column_of_type(:string).with_default(:playground)
     }
+  end
+
+  describe "cost accounting" do
+    it "sums persisted cost snapshots" do
+      chat = create(:chat)
+      create(:message, chat:).update_columns(cost_usd: 1.25) # rubocop:disable Rails/SkipsModelValidations
+
+      expect(chat.snapshot_cost).to eq(BigDecimal("1.25"))
+    end
+
+    it "persists inferred tenant and operation attribution on create" do
+      tenant = create(:tenant).tap(&:ensure_core_resources!)
+      operation = tenant.default_operation
+      chat = create(
+        :chat,
+        tenant: nil,
+        operation: nil,
+        user: create(:user, tenant:),
+        agent: create(:agent, operation:),
+        execution_context: :application,
+      )
+
+      expect(chat.reload).to have_attributes(tenant_id: tenant.id, operation_id: operation.id)
+    end
+
+    it "allows limit checks when no tenant can be inferred" do
+      chat = build(:chat, tenant: nil, operation: nil, user: nil, agent: nil, mission: nil, channel: nil)
+
+      expect(chat.check_cost_limits!).to be(true)
+    end
   end
 
   describe "#response_context" do

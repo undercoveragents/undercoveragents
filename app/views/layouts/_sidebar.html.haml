@@ -40,6 +40,7 @@
     .sidebar-section
       .sidebar-section-label Main
       = render "layouts/sidebar_link", path: admin_root_path, label: "Dashboard", icon: "fa-solid fa-gauge-high", active: current_page?(admin_root_path)
+      = render "layouts/sidebar_link", path: admin_costs_path, label: "Cost Analysis", icon: "fa-solid fa-chart-pie", active: request.path.start_with?("/admin/cost")
 
     .sidebar-section
       .sidebar-section-label Build

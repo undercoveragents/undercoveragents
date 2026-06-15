@@ -5,30 +5,40 @@
 # Table name: messages
 # Database name: primary
 #
-#  id                    :bigint           not null, primary key
-#  cache_creation_tokens :integer
-#  cached_tokens         :integer
-#  content               :text
-#  content_raw           :json
-#  duration_ms           :integer
-#  input_tokens          :integer
-#  output_tokens         :integer
-#  role                  :string           not null
-#  thinking_signature    :text
-#  thinking_text         :text
-#  thinking_tokens       :integer
-#  created_at            :datetime         not null
-#  updated_at            :datetime         not null
-#  chat_id               :bigint           not null
-#  model_id              :bigint
-#  tool_call_id          :bigint
+#  id                      :bigint           not null, primary key
+#  cache_creation_cost_usd :decimal(18, 8)
+#  cache_creation_tokens   :integer
+#  cached_input_cost_usd   :decimal(18, 8)
+#  cached_tokens           :integer
+#  content                 :text
+#  content_raw             :json
+#  cost_calculated_at      :datetime
+#  cost_currency           :string           default("USD"), not null
+#  cost_pricing_snapshot   :jsonb            not null
+#  cost_usd                :decimal(18, 8)
+#  duration_ms             :integer
+#  input_cost_usd          :decimal(18, 8)
+#  input_tokens            :integer
+#  output_cost_usd         :decimal(18, 8)
+#  output_tokens           :integer
+#  role                    :string           not null
+#  thinking_signature      :text
+#  thinking_text           :text
+#  thinking_tokens         :integer
+#  created_at              :datetime         not null
+#  updated_at              :datetime         not null
+#  chat_id                 :bigint           not null
+#  model_id                :bigint
+#  tool_call_id            :bigint
 #
 # Indexes
 #
-#  index_messages_on_chat_id       (chat_id)
-#  index_messages_on_model_id      (model_id)
-#  index_messages_on_role          (role)
-#  index_messages_on_tool_call_id  (tool_call_id)
+#  index_messages_on_chat_id             (chat_id)
+#  index_messages_on_cost_calculated_at  (cost_calculated_at)
+#  index_messages_on_cost_usd            (cost_usd)
+#  index_messages_on_model_id            (model_id)
+#  index_messages_on_role                (role)
+#  index_messages_on_tool_call_id        (tool_call_id)
 #
 # Foreign Keys
 #

@@ -24,8 +24,9 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
   def expected_agent_alpha_discovery_fragments
     [
       "Supported kinds: `agent_types`, `capabilities`, `models`, `default_models`, " \
-      "`tool_types`, `tools`, `runtime_tools`, `agents`, `missions`, `channels`, `clients`, `skill_catalogs`, " \
-      "`skills`, `rag_flows`, `connectors`, `test_suites`",
+      "`tool_types`, `operations`, `users`, `tools`, `runtime_tools`, `agents`, `missions`, `channels`, " \
+      "`clients`, `skill_catalogs`, `skills`, `rag_flows`, `connectors`, `test_suites`, `cost_limits`, " \
+      "`cost_target_types`",
       "take at most one narrow discovery step",
       "trailing `<child_result>` JSON block with `status`, `record_ids`, `warnings`, and `blockers`",
       "at most one follow-up step",
@@ -38,7 +39,8 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
   def expected_agent_alpha_delegation_fragments
     [
       "create or clone a mission, create or clone an agent, create or clone a tool, create a channel, " \
-      "create a skill catalog, create a skill, create a test suite, or create a test, delegate directly",
+      "create a skill catalog, create a skill, create a test suite, create a test, " \
+      "create/update/delete/toggle a cost limit, or set a spend warning/cap, delegate directly",
       "Do NOT call `list_resources` first for creation requests",
       "explicitly asks for an inventory, list, or availability check before creation",
       "Requests to configure fallback models, canary rollout, or A/B comparison on an agent are still **Agent** tasks",
@@ -51,6 +53,7 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
       "Channel → Channel Designer",
       "Skill Catalog / Skill → Skill Catalog Designer",
       "Test Suite / Test → Test Suite Designer",
+      "Cost Analysis / Budget / Limit → Cost Designer",
       "preserve those as runtime payload inputs for the Mission Designer",
       "tell the designer to hardcode values unless the user explicitly asked to change the workflow",
     ]
@@ -183,6 +186,7 @@ RSpec.describe BuiltinAgents::DefinitionLoader do
         "channel_designer",
         "skill_catalog_designer",
         "test_suite_designer",
+        "cost_designer",
       ]
 
       expect(definition.capability_configs.keys).to eq(["chat_title_generator"])

@@ -1,0 +1,67 @@
+- content_for(:title, "#{@cost_limit.name} — Cost Limit — #{APP_NAME}")
+- actions = []
+- actions << { label: "Back", url: admin_cost_limits_path, icon: "fa-solid fa-arrow-left", style: :secondary }
+- actions << { label: "Edit", url: edit_admin_cost_limit_path(@cost_limit), icon: "fa-solid fa-pen", style: :primary }
+- actions << { label: "Delete", url: admin_cost_limit_path(@cost_limit), icon: "fa-solid fa-trash", style: :danger_outline, method: :delete, data: { controller: "confirm", confirm_title_value: "Delete Cost Limit", confirm_message_value: "Delete #{@cost_limit.name}? This cannot be undone." } }
+- enabled_label = @cost_limit.enabled? ? "Enabled" : "Disabled"
+
+= render_page_hero(title: "Cost Limit", record_title: @cost_limit.name, variant: :compact, title_icon: "fa-solid fa-shield-halved", sticky: true, actions:)
+
+.cost-limit-show
+  .card.cost-limit-hero
+    .card-body
+      .cost-limit-hero__status
+        = cost_status_badge(@limit_result.status)
+        %span= enabled_label
+      %h2 #{cost_currency(@limit_result.spend)} of #{cost_currency(@limit_result.amount)}
+      %p #{@cost_limit.target_type.humanize}: #{@cost_limit.target_label} · #{@limit_result.period.label} · #{@cost_limit.enforcement_mode.humanize}
+      .cost-limit-progress
+        .cost-limit-progress__bar
+          %progress.cost-limit-progress__native{ value: [@limit_result.percent_used, 100].min, max: 100 }
+        .cost-limit-progress__meta
+          %span Remaining: #{cost_currency(@limit_result.remaining)}
+          %strong= cost_percent(@limit_result.percent_used)
+
+  .cost-section-grid.cost-section-grid--wide
+    .card
+      .card-header
+        .cost-section-heading
+          %i.fa-solid.fa-circle-info
+          %span Configuration
+      .card-body
+        .cost-detail-grid
+          %div
+            %span Target type
+            %strong= @cost_limit.target_type.humanize
+          %div
+            %span Target
+            %strong= @cost_limit.target_label
+          %div
+            %span Period
+            %strong= @limit_result.period.label
+          %div
+            %span Warning threshold
+            %strong #{@cost_limit.warning_threshold_percent}%
+          %div
+            %span Enforcement
+            %strong= @cost_limit.enforcement_mode.humanize
+          %div
+            %span Operation scope
+            %strong= @cost_limit.operation&.name || "All operations"
+    .card
+      .card-header
+        .cost-section-heading
+          %i.fa-solid.fa-list
+          %span Recent contributing messages
+      .card-body
+        - if @recent_messages.any?
+          .cost-table
+            - @recent_messages.each do |message|
+              .cost-table__row
+                .cost-table__main
+                  %strong= message.chat&.display_title_for_ui(max_length: 64) || "Chat ##{message.chat_id}"
+                  - model_label = message.model&.model_id || message.chat&.model&.model_id || "unknown model"
+                  %span #{message.role} · #{model_label} · #{l(message.created_at, format: :short)}
+                .cost-table__amount= cost_currency(message.effective_cost)
+        - else
+          .cost-empty-state No contributing messages in this period.

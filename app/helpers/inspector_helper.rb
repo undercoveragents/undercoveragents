@@ -82,7 +82,7 @@ module InspectorHelper
   end
 
   def inspector_child_chat_cost(child)
-    child.messages.sum { |m| m.calculate_cost || 0 }
+    child.messages.sum(&:effective_cost)
   end
 
   def inspector_child_chat_tokens(child)

@@ -5,30 +5,40 @@
 # Table name: messages
 # Database name: primary
 #
-#  id                    :bigint           not null, primary key
-#  cache_creation_tokens :integer
-#  cached_tokens         :integer
-#  content               :text
-#  content_raw           :json
-#  duration_ms           :integer
-#  input_tokens          :integer
-#  output_tokens         :integer
-#  role                  :string           not null
-#  thinking_signature    :text
-#  thinking_text         :text
-#  thinking_tokens       :integer
-#  created_at            :datetime         not null
-#  updated_at            :datetime         not null
-#  chat_id               :bigint           not null
-#  model_id              :bigint
-#  tool_call_id          :bigint
+#  id                      :bigint           not null, primary key
+#  cache_creation_cost_usd :decimal(18, 8)
+#  cache_creation_tokens   :integer
+#  cached_input_cost_usd   :decimal(18, 8)
+#  cached_tokens           :integer
+#  content                 :text
+#  content_raw             :json
+#  cost_calculated_at      :datetime
+#  cost_currency           :string           default("USD"), not null
+#  cost_pricing_snapshot   :jsonb            not null
+#  cost_usd                :decimal(18, 8)
+#  duration_ms             :integer
+#  input_cost_usd          :decimal(18, 8)
+#  input_tokens            :integer
+#  output_cost_usd         :decimal(18, 8)
+#  output_tokens           :integer
+#  role                    :string           not null
+#  thinking_signature      :text
+#  thinking_text           :text
+#  thinking_tokens         :integer
+#  created_at              :datetime         not null
+#  updated_at              :datetime         not null
+#  chat_id                 :bigint           not null
+#  model_id                :bigint
+#  tool_call_id            :bigint
 #
 # Indexes
 #
-#  index_messages_on_chat_id       (chat_id)
-#  index_messages_on_model_id      (model_id)
-#  index_messages_on_role          (role)
-#  index_messages_on_tool_call_id  (tool_call_id)
+#  index_messages_on_chat_id             (chat_id)
+#  index_messages_on_cost_calculated_at  (cost_calculated_at)
+#  index_messages_on_cost_usd            (cost_usd)
+#  index_messages_on_model_id            (model_id)
+#  index_messages_on_role                (role)
+#  index_messages_on_tool_call_id        (tool_call_id)
 #
 # Foreign Keys
 #
@@ -65,6 +75,7 @@ class Message < ApplicationRecord
   # created empty assistant message flashes during streaming.
 
   before_save :sanitize_content_null_bytes
+  before_save :refresh_cost_snapshot, if: :cost_snapshot_refresh_needed?
 
   # Override extract_content to cache the result.
   # ruby_llm calls this method multiple times per API call (once per message in conversation),
@@ -96,13 +107,30 @@ class Message < ApplicationRecord
   #   - Output tokens: output_tokens * output_per_million / 1_000_000
   # @return [BigDecimal, nil] The cost in USD
   def calculate_cost
+    calculate_cost_breakdown&.fetch(:total)
+  end
+
+  def effective_cost
+    cost_usd || calculate_cost || 0
+  end
+
+  def calculate_cost_breakdown
     pricing = cost_pricing
     return nil unless pricing
 
-    calculate_input_cost(pricing) +
-      calculate_cached_cost(pricing) +
-      calculate_cache_creation_cost(pricing) +
-      calculate_output_cost(pricing)
+    input_cost = calculate_input_cost(pricing)
+    cached_input_cost = calculate_cached_cost(pricing)
+    cache_creation_cost = calculate_cache_creation_cost(pricing)
+    output_cost = calculate_output_cost(pricing)
+
+    {
+      input: input_cost,
+      cached_input: cached_input_cost,
+      cache_creation: cache_creation_cost,
+      output: output_cost,
+      total: input_cost + cached_input_cost + cache_creation_cost + output_cost,
+      pricing: pricing.deep_dup,
+    }
   end
 
   # Sanitizes null bytes from content, thinking_text and content_raw before saving.
@@ -158,6 +186,20 @@ class Message < ApplicationRecord
   end
 
   private
+
+  def refresh_cost_snapshot
+    Costs::MessageCostSnapshotter.call(self)
+  end
+
+  def cost_snapshot_refresh_needed?
+    new_record? ||
+      will_save_change_to_input_tokens? ||
+      will_save_change_to_cached_tokens? ||
+      will_save_change_to_cache_creation_tokens? ||
+      will_save_change_to_output_tokens? ||
+      will_save_change_to_model_id? ||
+      will_save_change_to_chat_id?
+  end
 
   def sanitize_tool_call_arguments_for_llm!(llm_message)
     return unless llm_message.respond_to?(:tool_calls)

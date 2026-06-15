@@ -21,10 +21,10 @@
         %span.inspector-message-duration
           %i.fa-solid.fa-stopwatch
           = inspector_format_duration(message.duration_ms)
-      - if message.calculate_cost&.positive?
+      - if message.effective_cost.positive?
         %span.inspector-message-cost
           %i.fa-solid.fa-dollar-sign
-          = format("%.6f", message.calculate_cost)
+          = format("%.6f", message.effective_cost)
       - if message.input_tokens.to_i.positive? || message.output_tokens.to_i.positive?
         %span.inspector-message-tokens
           %i.fa-solid.fa-arrow-down.text-xs

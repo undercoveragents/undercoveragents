@@ -12,6 +12,7 @@ module BuiltinTools
       "Skill",
       "RagFlow",
       "TestSuite",
+      "CostLimit",
     ].freeze
     CURRENT_OBJECT_SCOPE_BUILDERS = {
       "Operation" => :tenant_operations,
@@ -22,6 +23,7 @@ module BuiltinTools
       "Skill" => :tenant_skills,
       "RagFlow" => :tenant_rag_flows,
       "TestSuite" => :tenant_test_suites,
+      "CostLimit" => :tenant_cost_limits,
     }.freeze
 
     def self.build(...)
@@ -163,6 +165,8 @@ module BuiltinTools
     end
 
     def tenant_test_suites(tenant) = tenant_scoped_test_suites(tenant)
+
+    def tenant_cost_limits(tenant) = tenant.cost_limits
 
     def tenant_scoped_test_suites(tenant)
       TestSuite.where(agent_id: tenant.agents.select(:id))

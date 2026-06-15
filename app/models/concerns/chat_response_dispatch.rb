@@ -29,6 +29,7 @@ module ChatResponseDispatch
     raise unsupported_response_context_message unless response_context
 
     normalize_interrupted_tool_call_history!
+    check_cost_limits!
     streaming_transition = start_response_stream
     broadcast_status_update
 

@@ -144,11 +144,36 @@ RSpec.describe ListResourcesTool do
 
       expect(result).to include("Available resource kinds:")
       expect(result).to include(
-        "Core: agent_types, capabilities, models, default_models, tool_types, tools, runtime_tools, " \
-        "agents, missions, channels, clients, skill_catalogs, skills, rag_flows, connectors, test_suites",
+        "Core: agent_types, capabilities, models, default_models, tool_types, operations, users, tools, " \
+        "runtime_tools, agents, missions, channels, clients, skill_catalogs, skills, rag_flows, " \
+        "connectors, test_suites, cost_limits, cost_target_types",
       )
       expect(result).not_to include("Plugin-defined:")
       expect(result).to include("Use connector_id when kind includes \"models\".")
+    end
+
+    it "lists operations, users, and cost resources" do
+      user = create(:user, tenant:, email: "cost-owner@example.test")
+      create(:cost_limit, tenant:, name: "Cost cap")
+
+      result = tool.execute(kinds: ["operations", "users", "cost_limits", "cost_target_types"])
+
+      expect(result).to include(tenant.default_operation.name)
+      expect(result).to include(user.email)
+      expect(result).to include("Cost cap")
+      expect(result).to include("Cost Target Types")
+    end
+
+    it "reports empty operation, user, and cost resource states" do
+      empty_tenant = create(:tenant)
+      context = build_runtime_context(tenant: empty_tenant, operation: nil)
+      empty_tool = described_class.new(nil, runtime_context: context)
+
+      result = empty_tool.execute(kinds: ["operations", "users", "cost_limits"])
+
+      expect(result).to include("No operations available.")
+      expect(result).to include("No users available.")
+      expect(result).to include("No cost limits configured.")
     end
 
     it "includes the current page object and selected references in the no-arg discovery response" do

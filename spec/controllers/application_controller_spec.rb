@@ -109,6 +109,10 @@ RSpec.describe ApplicationController do
       expect(controller.send(:scoped_operations)).to be_empty
       expect(controller.send(:scoped_connectors)).to be_empty
       expect(controller.send(:scoped_channels)).to be_empty
+      expect(controller.send(:scoped_cost_limits)).to be_empty
+    end
+
+    it "returns empty legacy tenant-owned relations when no tenant is selected" do
       expect(controller.send(:scoped_clients)).to be_empty
       expect(controller.send(:scoped_api_clients)).to be_empty
     end
@@ -122,13 +126,16 @@ RSpec.describe ApplicationController do
       other_agent = create(:agent, operation: other_operation)
       visible_client = create(:client, tenant:, agent: visible_agent)
       visible_api_client = create(:api_client, tenant:)
+      visible_cost_limit = create(:cost_limit, tenant:)
       create(:client, tenant: other_tenant, agent: other_agent)
       create(:api_client, tenant: other_tenant)
+      create(:cost_limit, tenant: other_tenant)
 
       allow(controller).to receive(:current_tenant).and_return(tenant)
 
       expect(controller.send(:scoped_clients)).to contain_exactly(visible_client)
       expect(controller.send(:scoped_api_clients)).to contain_exactly(visible_api_client)
+      expect(controller.send(:scoped_cost_limits)).to contain_exactly(visible_cost_limit)
     end
 
     it "returns empty tenant-derived activity relations when no tenant is selected" do

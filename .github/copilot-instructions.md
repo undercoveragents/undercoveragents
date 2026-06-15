@@ -323,6 +323,16 @@ Each node class under `app/models/missions/nodes/` is **self-contained** — all
 - Benchmark fixture runs such as `fixture_key: "agent_alpha_benchmark"` must delete every scenario-created agent/tool/mission/channel/skill/RAG/test-suite record after the result is evaluated while preserving the run and result rows.
 - With `config.active_support.isolation_level = :fiber`, test suite execution/evaluation services should not introduce explicit DB locks or `Async::Semaphore` guards around ActiveRecord writes.
 
+## Cost Analysis Architecture
+
+- Cost accounting persists per-message USD snapshots on `messages` (`input_cost_usd`, `cached_input_cost_usd`, `cache_creation_cost_usd`, `output_cost_usd`, `cost_usd`, `cost_pricing_snapshot`, `cost_calculated_at`) while `Message#effective_cost` falls back to dynamic pricing for legacy rows.
+- Chats carry nullable `tenant_id` and `operation_id` attribution. Runtime paths should infer and persist those fields from parent chat, agent, mission, channel, user, and `Current.operation` instead of relying only on associations.
+- Tenant-owned `CostLimit` records define spend budgets by target type (`tenant`, `operation`, `user`, `agent`, `mission`, `channel`, `model`, `execution_context`), period, warning threshold, and enforcement mode (`warn_only` or `hard_stop`).
+- Centralize reporting math and guardrail checks in `Costs::Scope`, `Costs::AggregateQuery`, `Costs::LimitEvaluator`, `Costs::LimitEnforcer`, and `Costs::MessageCostSnapshotter`; do not open-code spend queries in controllers, views, or builtin tools.
+- Hard-stop limits block new chat work only when the current period is already exceeded; they cannot pre-charge in-flight model responses before final token usage is known.
+- The admin Cost Analysis UI lives under `/admin/costs` and `/admin/cost_limits`, with feature CSS in `app/assets/tailwind/features/_costs.css`.
+- Agent Alpha delegates spend, budget, warning, hard-cap, and cost-limit work to the builtin `cost_designer` agent, which uses dedicated cost tools rather than generic record mutation.
+
 ## Builtin Agent Records
 
 Builtin/internal agents are normal `Agent` records synchronized from TOML definitions, not `RubyLLM::Agent` subclasses.

@@ -127,8 +127,8 @@ module MissionControlHelper
     truncate(text.squish, length:)
   end
 
-  def mc_chat_cost(_chat)
-    0
+  def mc_chat_cost(chat)
+    chat.messages.includes(:model, :chat).sum(&:effective_cost)
   end
 
   def mc_chat_tokens(chat)

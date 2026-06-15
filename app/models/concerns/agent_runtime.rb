@@ -125,14 +125,16 @@ module AgentRuntime
     parent_chat = options[:parent_chat]
     user = options[:user] || parent_chat&.user
 
-    Chat.create!(
+    chat_attributes = {
       agent: self,
       model: runtime_config[:model_record],
       parent_chat:,
       user:,
       title: options[:title].presence || "Subagent: #{name}",
       execution_context: options[:execution_context] || parent_chat&.execution_context || :user,
-    )
+    }
+    Chat.new(chat_attributes).check_cost_limits!
+    Chat.create!(chat_attributes)
   end
 
   def resolved_configure_options(options, runtime_config)

@@ -11,6 +11,7 @@ RSpec.describe BuiltinAgents::Synchronizer do
       "channel_designer",
       "skill_catalog_designer",
       "test_suite_designer",
+      "cost_designer",
     ]
   end
 

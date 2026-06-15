@@ -127,6 +127,11 @@ class ApplicationController < ActionController::Base
   end
   helper_method :scoped_channels
 
+  def scoped_cost_limits
+    current_tenant ? current_tenant.cost_limits : CostLimit.none
+  end
+  helper_method :scoped_cost_limits
+
   def scoped_clients
     current_tenant ? current_tenant.clients : Client.none
   end
@@ -155,7 +160,8 @@ class ApplicationController < ActionController::Base
   def tenant_scoped_chats
     return Chat.none unless current_tenant
 
-    base_scope = Chat.where(user_id: current_tenant.users.select(:id))
+    base_scope = Chat.where(tenant_id: current_tenant.id)
+                     .or(Chat.where(user_id: current_tenant.users.select(:id)))
                      .or(Chat.where(agent_id: current_tenant.agents.select(:id)))
                      .or(Chat.where(mission_id: current_tenant.missions.select(:id)))
 
