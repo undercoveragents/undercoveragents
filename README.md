@@ -36,6 +36,7 @@ It is designed for teams that want more than a thin SDK. You can configure agent
 - Builtin product-manual skill catalogs for admin, agents, missions, channels, test suites, skills, tools, and RAG
 - Built-in admin assistant, playground, inspector, API docs, and job dashboard
 - Agent Alpha can now inspect agent chat history and run synchronous debug prompts against agents through the agent-designer runtime tools, using the same persisted chats/messages the inspector shows.
+- Inspector assistant messages can be promoted into chat-sourced test cases, closing the production-feedback-to-evaluation loop.
 - Rails-native stack with Hotwire, Haml, Tailwind, Solid Queue, and Falcon
 
 ## LLM Providers Support

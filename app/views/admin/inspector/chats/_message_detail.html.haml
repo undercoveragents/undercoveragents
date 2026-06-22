@@ -138,3 +138,13 @@
           Content Raw (JSON)
         .inspector-code-block-wrapper
           %pre.inspector-code-block= JSON.pretty_generate(message.content_raw)
+    - if message.assistant? && message.chat.agent.present?
+      .inspector-message-section
+        .inspector-message-section-label
+          %i.fa-solid.fa-vial-circle-check.mr-1
+          Evaluation
+        = button_to promote_message_to_test_case_admin_inspector_chat_path(message.chat, message_id: message.id),
+                    method: :post,
+                    class: "btn btn-secondary btn-sm" do
+          %i.fa-solid.fa-plus.mr-1
+          Promote to test case
